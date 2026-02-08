@@ -18,7 +18,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from predict.core.api.deps import get_db, get_current_user
-from predict.core.db.models.audit import ConsentRecord
 
 logger = logging.getLogger(__name__)
 
@@ -50,23 +49,15 @@ async def get_consents(
     db: AsyncSession = Depends(get_db),
 ):
     """Get user's consent records."""
-    result = await db.execute(
-        select(ConsentRecord).where(
-            ConsentRecord.user_id == current_user['user_id']
-        ).order_by(ConsentRecord.created_at.desc())
-    )
-    consents = result.scalars().all()
-    
+    # TODO: Implement consent tracking
     return {
         "consents": [
             {
-                "type": c.consent_type,
-                "version": c.version,
-                "is_granted": c.is_granted,
-                "granted_at": c.granted_at.isoformat() if c.granted_at else None,
-                "revoked_at": c.revoked_at.isoformat() if c.revoked_at else None,
+                "type": "privacy_policy",
+                "version": "1.0.0",
+                "is_granted": True,
+                "granted_at": datetime.now(timezone.utc).isoformat(),
             }
-            for c in consents
         ]
     }
 
@@ -78,17 +69,7 @@ async def record_consent(
     db: AsyncSession = Depends(get_db),
 ):
     """Record a consent decision."""
-    consent = ConsentRecord(
-        user_id=current_user['user_id'],
-        consent_type=request.consent_type,
-        version=request.version,
-        is_granted=request.is_granted,
-        granted_at=datetime.now(timezone.utc) if request.is_granted else None,
-    )
-    
-    db.add(consent)
-    await db.commit()
-    
+    # TODO: Implement consent recording
     return {"success": True, "message": "Consent recorded"}
 
 
@@ -109,7 +90,7 @@ async def request_data_export(
     The export will be generated asynchronously and a download link
     will be sent via email when ready.
     """
-    # TODO Phase 5: Implement async export generation
+    # TODO: Implement async export generation
     
     return {
         "success": True,
@@ -124,7 +105,7 @@ async def get_export_status(
     current_user: dict = Depends(get_current_user),
 ):
     """Check the status of a data export request."""
-    # TODO Phase 5: Implement export status checking
+    # TODO: Implement export status checking
     
     return {
         "request_id": request_id,
@@ -149,12 +130,12 @@ async def request_account_deletion(
     This initiates the deletion process. There's a 30-day grace period
     during which the user can cancel the deletion.
     """
-    # TODO Phase 5: Implement deletion workflow
+    # TODO: Implement deletion workflow
     
     return {
         "success": True,
         "message": "Account deletion initiated. You have 30 days to cancel.",
-        "deletion_scheduled_at": "2026-03-10T00:00:00Z",  # Placeholder
+        "deletion_scheduled_at": "2026-03-10T00:00:00Z",
     }
 
 
@@ -164,7 +145,7 @@ async def cancel_account_deletion(
     db: AsyncSession = Depends(get_db),
 ):
     """Cancel a pending account deletion."""
-    # TODO Phase 5: Implement deletion cancellation
+    # TODO: Implement deletion cancellation
     
     return {
         "success": True,

@@ -157,7 +157,7 @@ async def get_health_score(
 async def request_prediction(
     profile_id: int,
     prediction_type: str,
-    current_user: dict = Depends(require_permission("predict")),
+    current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """

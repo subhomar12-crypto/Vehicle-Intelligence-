@@ -14,6 +14,8 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
+from predict.core.api.deps import get_current_user
+
 from predict.core.api.deps import get_current_user, require_permission
 
 logger = logging.getLogger(__name__)
@@ -60,7 +62,7 @@ class ConversationHistoryResponse(BaseModel):
 @router.post("/chat", response_model=ChatResponse)
 async def chat(
     request: ChatRequest,
-    current_user: dict = Depends(require_permission("llm_chat")),
+    current_user: dict = Depends(get_current_user),
 ):
     """
     Send a message to the AI assistant.

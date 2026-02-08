@@ -41,7 +41,7 @@ __all__ = [
     "DTCCode", "DTCHistory",
     # Guardian domain
     "Guardian", "VehicleGuardian", "Alert", "GuardianCommand",
-    "LocationRequest", "ConsentRecord", "GuardianTelemetry", "DrivingEvent",
+    "LocationRequest", "GuardianTelemetry", "DrivingEvent",
     # Trip domain
     "Trip", "TripEvent", "Driver", "VehicleDriver", "DriverSession",
     "DriverInviteCode", "DriverBehaviorSummary", "GuardianTrip",
@@ -54,4 +54,5 @@ __all__ = [
     # Audit domain
     "AuditLog", "VerificationCode", "VerificationSession",
     "IdempotencyCache", "FailedOperation", "DataExportConfig", "ExportHistory",
+    "ConsentRecord",
 ]
