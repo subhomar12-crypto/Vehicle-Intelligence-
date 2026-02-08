@@ -60,16 +60,32 @@ class PredictConfig:
     LOG_RETENTION_DAYS: int = 7
     AUDIT_LOG_RETENTION_DAYS: int = 90
 
+    # Database
+    DATABASE_URL: str = "postgresql+asyncpg://predict_admin:password@localhost:5432/predict"
+    
     # Database pool
     DB_POOL_SIZE: int = 5
     DB_MAX_OVERFLOW: int = 15
     DB_POOL_PRE_PING: bool = True
 
     # Redis
+    REDIS_URL: str = "redis://localhost:6379/0"
     REDIS_KEY_TTL_SECONDS: int = 300  # 5 minutes for API key cache
+
+    # Debug mode
+    debug: bool = False
+
+    # CORS origins
+    cors_origins: list = None
 
     def __post_init__(self):
         """Create required directories on init."""
+        if self.cors_origins is None:
+            self.cors_origins = [
+                "http://localhost:3000",
+                "http://localhost:8000",
+                "https://predict.previlium.com",
+            ]
         self.ensure_directories()
 
     # ==================== DERIVED PATHS ====================
@@ -139,6 +155,10 @@ class PredictConfig:
     def CUSTOMERS_DIR(self) -> Path:
         return self.PREDICT_DATA_DIR / "customers"
 
+    @property
+    def CACHE_DIR(self) -> Path:
+        return self.DATA_DIR / "cache"
+
     def ensure_directories(self) -> None:
         """Create all required directories if they don't exist."""
         dirs = [
@@ -147,6 +167,7 @@ class PredictConfig:
             self.BACKUPS_DIR,
             self.EXPORTS_DIR,
             self.PARQUET_DIR,
+            self.CACHE_DIR,
             self.MODELS_DIR,
             self.GGUF_DIR,
             self.LSTM_MODELS_DIR,
