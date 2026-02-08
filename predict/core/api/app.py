@@ -38,14 +38,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     
     # Initialize database
     try:
-        init_engine(config.database_url)
+        init_engine(config.DATABASE_URL)
         logger.info("Database engine initialized")
     except Exception as e:
         logger.error(f"Failed to initialize database: {e}")
         raise
     
-    # TODO Phase 4: Initialize Redis
-    # TODO Phase 5: Start ARQ worker
+    # Phase 4: Initialize Redis (lazy init on first use)
+    # Phase 5: ARQ worker runs separately
     
     logger.info("Application startup complete")
     
@@ -92,12 +92,18 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     
-    # TODO Phase 2: Add rate limiting middleware
-    # TODO Phase 2: Add request tracing middleware
-    # TODO Phase 2: Add audit middleware
+    # Phase 2: Middleware added via router dependencies
     
     # Include API routers
     app.include_router(api_router, prefix="/api")
+    
+    # Setup static file serving (Phase 6)
+    from predict.core.api.static_files import (
+        setup_static_files,
+        setup_protected_static_routes,
+    )
+    setup_static_files(app)
+    setup_protected_static_routes(app)
     
     # Root endpoint
     @app.get("/")

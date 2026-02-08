@@ -12,7 +12,7 @@ This service handles:
 import hashlib
 import logging
 import secrets
-from datetime import datetime, timedelta, timezone
+import time
 from typing import Optional, Dict, Any, Tuple
 
 import bcrypt
@@ -33,51 +33,51 @@ API_KEY_PREFIX = "pk_"
 
 class AuthService:
     """Authentication and authorization service."""
-    
+
     def __init__(self, db_session: AsyncSession):
         self.db = db_session
-    
+
     # ========================
     # Password Hashing
     # ========================
-    
+
     @staticmethod
     def hash_password(password: str) -> str:
         """Hash password using bcrypt."""
         password_bytes = password.encode('utf-8')
         salt = bcrypt.gensalt(rounds=12)
         return bcrypt.hashpw(password_bytes, salt).decode('utf-8')
-    
+
     @staticmethod
     def verify_password(password: str, password_hash: str) -> bool:
         """Verify password against bcrypt hash."""
         password_bytes = password.encode('utf-8')
         hash_bytes = password_hash.encode('utf-8')
         return bcrypt.checkpw(password_bytes, hash_bytes)
-    
+
     @staticmethod
     def hash_api_key_sha256(api_key: str) -> str:
         """Legacy SHA-256 hash for API keys (fallback only)."""
         return hashlib.sha256(api_key.encode('utf-8')).hexdigest()
-    
+
     @staticmethod
     def hash_api_key_bcrypt(api_key: str) -> str:
         """Primary bcrypt hash for API keys."""
         key_bytes = api_key.encode('utf-8')
         salt = bcrypt.gensalt(rounds=10)
         return bcrypt.hashpw(key_bytes, salt).decode('utf-8')
-    
+
     @staticmethod
     def verify_api_key_bcrypt(api_key: str, key_hash: str) -> bool:
         """Verify API key against bcrypt hash."""
         key_bytes = api_key.encode('utf-8')
         hash_bytes = key_hash.encode('utf-8')
         return bcrypt.checkpw(key_bytes, hash_bytes)
-    
+
     # ========================
     # User Registration
     # ========================
-    
+
     async def register_user(
         self,
         email: str,
@@ -96,33 +96,33 @@ class AuthService:
                 code=ErrorCode.VALIDATION_ERROR,
                 message="Email already registered",
             )
-        
-        # Create user
+
+        # Create user (name is NOT NULL, default to email prefix)
         user = User(
             email=email.lower().strip(),
             password_hash=self.hash_password(password),
-            name=name,
+            name=name or email.split('@')[0],
             phone=phone,
-            is_active=True,
-            is_verified=False,
+            status="active",
+            verified=False,
             tier='free',
         )
-        
+
         self.db.add(user)
         await self.db.flush()  # Get user.id
-        
+
         # Create default API key
         await self.create_api_key(
             user_id=user.id,
             name="Default Key",
             tier='free',
         )
-        
+
         await self.db.commit()
         logger.info(f"User registered: {user.email}")
-        
+
         return user
-    
+
     async def authenticate_user(
         self,
         email: str,
@@ -132,26 +132,26 @@ class AuthService:
         result = await self.db.execute(
             select(User).where(
                 User.email == email.lower().strip(),
-                User.is_active == True,
+                User.status == "active",
             )
         )
         user = result.scalar_one_or_none()
-        
+
         if not user or not user.password_hash:
             return None
-        
+
         if self.verify_password(password, user.password_hash):
-            # Update last login
-            user.last_login = datetime.now(timezone.utc)
+            # Update last login (float epoch)
+            user.last_login = time.time()
             await self.db.commit()
             return user
-        
+
         return None
-    
+
     # ========================
     # API Key Management
     # ========================
-    
+
     async def create_api_key(
         self,
         user_id: int,
@@ -163,116 +163,121 @@ class AuthService:
     ) -> Tuple[str, ApiKey]:
         """
         Create a new API key.
-        
+
         Returns:
             (plain_api_key, api_key_object)
-            
+
         Note: The plain API key is only returned once - store it securely!
         """
         # Generate random key
         random_part = secrets.token_urlsafe(32)
         plain_key = f"{API_KEY_PREFIX}{random_part}"
-        
-        # Calculate expiry
+
+        # Calculate expiry (float epoch)
         expires_at = None
         if expires_days:
-            expires_at = datetime.now(timezone.utc) + timedelta(days=expires_days)
-        
-        # Create key record
+            expires_at = time.time() + (expires_days * 86400)
+
+        now = time.time()
+
+        # Create key record (matches ApiKey ORM model)
         api_key = ApiKey(
+            key_id=secrets.token_hex(32),
             user_id=user_id,
             key_hash=self.hash_api_key_bcrypt(plain_key),
             name=name,
+            status="active",
+            created_at=now,
             tier=tier,
             permissions=permissions or ['vehicle_data', 'diagnostic'],
             apps=apps or ['obd'],
-            is_active=True,
             expires_at=expires_at,
         )
-        
+
         self.db.add(api_key)
         await self.db.commit()
-        
+
         logger.info(f"API key created for user {user_id}: {name}")
-        
+
         return plain_key, api_key
-    
+
     async def validate_api_key(
         self,
         api_key: str,
     ) -> Optional[Dict[str, Any]]:
         """
         Validate an API key.
-        
+
         Checks:
         1. bcrypt hash (primary)
         2. SHA-256 fallback (30-day migration)
-        
+
         Returns:
             Key data dict or None if invalid
         """
         if not api_key or not api_key.startswith(API_KEY_PREFIX):
             return None
-        
+
         # Look up by legacy hash first (for migration period)
         legacy_hash = self.hash_api_key_sha256(api_key)
-        
+
         result = await self.db.execute(
             select(ApiKey).where(
                 (ApiKey.legacy_sha256_hash == legacy_hash) |
                 (ApiKey.key_hash == api_key[:50])  # Partial match for lookup
             )
         )
-        
+
         # Get all potentially matching keys
         potential_keys = result.scalars().all()
-        
+        now = time.time()
+
         for key_record in potential_keys:
-            # Skip inactive or expired keys
-            if not key_record.is_active:
+            # Skip inactive or expired keys (status field, not is_active)
+            if key_record.status != "active":
                 continue
-            
-            if key_record.expires_at and key_record.expires_at < datetime.now(timezone.utc):
+
+            if key_record.expires_at and key_record.expires_at < now:
                 continue
-            
+
             # Try bcrypt verification
             if self.verify_api_key_bcrypt(api_key, key_record.key_hash):
-                # Update last used
-                key_record.last_used_at = datetime.now(timezone.utc)
+                # Update last used (float epoch)
+                key_record.last_used_at = now
                 await self.db.commit()
-                
+
                 return {
                     'key_id': key_record.id,
                     'user_id': key_record.user_id,
                     'name': key_record.name,
                     'tier': key_record.tier,
-                    'permissions': key_record.permissions,
-                    'apps': key_record.apps,
+                    'permissions': key_record.permissions or [],
+                    'apps': key_record.apps or [],
                     'profile_id': key_record.profile_id,
                 }
-            
+
             # Fallback: Check legacy SHA-256 hash
             if key_record.legacy_sha256_hash == legacy_hash:
                 # Auto-upgrade to bcrypt
                 key_record.key_hash = self.hash_api_key_bcrypt(api_key)
                 key_record.legacy_sha256_hash = None  # Clear legacy
-                key_record.last_used_at = datetime.now(timezone.utc)
+                key_record.last_used_at = now
                 await self.db.commit()
-                
+
                 logger.info(f"Auto-upgraded API key {key_record.id} from SHA-256 to bcrypt")
-                
+
                 return {
                     'key_id': key_record.id,
                     'user_id': key_record.user_id,
                     'name': key_record.name,
                     'tier': key_record.tier,
-                    'permissions': key_record.permissions,
-                    'apps': key_record.apps,
+                    'permissions': key_record.permissions or [],
+                    'apps': key_record.apps or [],
                     'profile_id': key_record.profile_id,
                 }
-        
+
         return None
-    
+
     async def revoke_api_key(self, key_id: int, user_id: int) -> bool:
         """Revoke an API key."""
         result = await self.db.execute(
@@ -282,20 +287,20 @@ class AuthService:
             )
         )
         api_key = result.scalar_one_or_none()
-        
+
         if not api_key:
             return False
-        
-        api_key.is_active = False
+
+        api_key.status = "revoked"
         await self.db.commit()
-        
+
         logger.info(f"API key {key_id} revoked by user {user_id}")
         return True
-    
+
     # ========================
     # Verification Codes
     # ========================
-    
+
     async def create_verification_code(
         self,
         user_id: int,
@@ -304,26 +309,28 @@ class AuthService:
         """Create a verification code for email/phone verification."""
         # Generate 6-digit code
         code = ''.join(secrets.choice('0123456789') for _ in range(6))
-        
+
         # Hash the code for storage
         code_hash = hashlib.sha256(code.encode()).hexdigest()
-        
-        # Create new code
+
+        now = time.time()
+
+        # Create new code (matches VerificationCode ORM model)
         verification = VerificationCode(
             user_id=user_id,
-            code_hash=code_hash,
-            purpose=purpose,
-            expires_at=datetime.now(timezone.utc) + timedelta(hours=VERIFICATION_CODE_EXPIRY_HOURS),
-            attempts=0,
+            code=code_hash,
+            type=purpose,
+            created_at=now,
+            expires_at=now + (VERIFICATION_CODE_EXPIRY_HOURS * 3600),
         )
-        
+
         self.db.add(verification)
         await self.db.commit()
-        
+
         logger.info(f"Verification code created for user {user_id}, purpose={purpose}")
-        
+
         return code
-    
+
     async def verify_code(
         self,
         user_id: int,
@@ -332,35 +339,36 @@ class AuthService:
     ) -> bool:
         """Verify a verification code."""
         code_hash = hashlib.sha256(code.encode()).hexdigest()
-        
+        now = time.time()
+
         result = await self.db.execute(
             select(VerificationCode).where(
                 VerificationCode.user_id == user_id,
-                VerificationCode.code_hash == code_hash,
-                VerificationCode.purpose == purpose,
-                VerificationCode.used_at.is_(None),
-                VerificationCode.expires_at > datetime.now(timezone.utc),
+                VerificationCode.code == code_hash,
+                VerificationCode.type == purpose,
+                VerificationCode.used == False,
+                VerificationCode.expires_at > now,
             )
         )
         verification = result.scalar_one_or_none()
-        
+
         if not verification:
             return False
-        
+
         # Mark as used
-        verification.used_at = datetime.now(timezone.utc)
-        
+        verification.used = True
+
         # Mark user as verified
         result = await self.db.execute(
             select(User).where(User.id == user_id)
         )
         user = result.scalar_one()
-        
+
         if purpose == 'email':
-            user.is_verified = True
-        
+            user.verified = True
+
         await self.db.commit()
-        
+
         logger.info(f"User {user_id} verified with code, purpose={purpose}")
-        
+
         return True

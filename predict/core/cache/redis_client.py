@@ -38,7 +38,7 @@ async def get_redis() -> Optional[redis.Redis]:
     try:
         config = get_config()
         _redis_client = redis.from_url(
-            config.redis_url,
+            config.REDIS_URL,
             decode_responses=True,
             socket_connect_timeout=5,
             socket_keepalive=True,

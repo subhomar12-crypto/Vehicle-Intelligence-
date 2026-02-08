@@ -42,8 +42,8 @@ class HeadlessServer:
         """Start the headless server."""
         config = get_config()
         
-        host = host or config.server_host
-        port = port or config.server_port
+        host = host or config.SERVER_HOST
+        port = port or config.SERVER_PORT
         
         logger.info(f"Starting {APP_NAME} v{APP_VERSION} in headless mode")
         logger.info(f"Server will listen on {host}:{port}")

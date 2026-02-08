@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import Optional, List
 
 from sqlalchemy import (
-    String, Integer, Float, Boolean, Text, ForeignKey, Index, UniqueConstraint,
+    String, Integer, Float, Boolean, Text, JSON, ForeignKey, Index, UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -43,6 +43,10 @@ class User(TimestampMixin, Base):
     # Legacy hash for migration (SHA-256 from old system)
     legacy_api_key_hash: Mapped[Optional[str]] = mapped_column(String(255))
 
+    # Auth (bcrypt password for web/mobile login)
+    password_hash: Mapped[Optional[str]] = mapped_column(String(255))
+    last_login: Mapped[Optional[float]] = mapped_column(Float)
+
     # Relationships
     api_keys: Mapped[List["ApiKey"]] = relationship(back_populates="user", foreign_keys="ApiKey.user_id")
     entitlements: Mapped[List["Entitlement"]] = relationship(back_populates="user")
@@ -66,6 +70,13 @@ class ApiKey(Base):
     status: Mapped[str] = mapped_column(String(20), server_default="active")  # active, revoked
     created_at: Mapped[float] = mapped_column(Float, nullable=False)
     last_used_at: Mapped[Optional[float]] = mapped_column(Float)
+
+    # Access control
+    tier: Mapped[str] = mapped_column(String(20), server_default="free")
+    permissions: Mapped[Optional[list]] = mapped_column(JSON)
+    apps: Mapped[Optional[list]] = mapped_column(JSON)
+    expires_at: Mapped[Optional[float]] = mapped_column(Float)
+    profile_id: Mapped[Optional[int]] = mapped_column(Integer)
 
     # Legacy SHA-256 hash for 30-day migration
     legacy_sha256_hash: Mapped[Optional[str]] = mapped_column(String(255))

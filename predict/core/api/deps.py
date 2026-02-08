@@ -8,13 +8,12 @@ These dependencies are used across all API routers for:
 """
 
 import logging
-from typing import AsyncGenerator, Optional
+from typing import Optional
 
 from fastapi import Depends, Request, Header
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from predict.core.db.session import get_db_session
+from predict.core.db.session import get_db
 from predict.core.middleware.api_key import extract_api_key, validate_api_key
 from predict.core.middleware.error_handler import APIError, ErrorCode
 
@@ -22,14 +21,9 @@ logger = logging.getLogger(__name__)
 
 security = HTTPBearer(auto_error=False)
 
-
-async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    """Get database session for dependency injection."""
-    async with get_db_session() as session:
-        try:
-            yield session
-        finally:
-            await session.close()
+# Re-export get_db from session module for use in routers
+# Usage: db: AsyncSession = Depends(get_db)
+get_db = get_db
 
 
 async def get_current_user(

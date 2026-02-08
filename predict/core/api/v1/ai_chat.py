@@ -14,8 +14,6 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
-from predict.core.api.deps import get_current_user
-
 from predict.core.api.deps import get_current_user, require_permission
 
 logger = logging.getLogger(__name__)
