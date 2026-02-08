@@ -112,7 +112,6 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     
     async def _check_redis(self, key: str) -> tuple[bool, int, Optional]:
         """Check rate limit using Redis."""
-        import asyncio
         from datetime import datetime, timedelta
         
         pipe = self.redis.pipeline()
@@ -128,7 +127,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         # Set expiry on key
         pipe.expire(key, self.default_window)
         
-        results = await asyncio.to_thread(pipe.execute)
+        results = await pipe.execute()
         current_count = results[2]  # zcard result
         
         is_allowed = current_count <= self.default_limit
@@ -162,15 +161,3 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         reset_time = now + timedelta(seconds=self.default_window)
         
         return is_allowed, remaining, reset_time
-
-
-class RateLimitExceededError(APIError):
-    """Custom error for rate limit exceeded."""
-    
-    def __init__(self, retry_after: int = 60):
-        super().__init__(
-            status_code=429,
-            code=ErrorCode.RATE_LIMIT_EXCEEDED,
-            message="Rate limit exceeded. Please try again later.",
-            details={"retry_after_seconds": retry_after},
-        )

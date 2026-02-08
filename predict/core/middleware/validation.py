@@ -96,52 +96,6 @@ async def validate_json_size(request: Request, max_size_bytes: int = 10 * 1024 *
             )
 
 
-def validate_timestamp(timestamp: Any) -> datetime:
-    """Validate and parse a timestamp value."""
-    if isinstance(timestamp, datetime):
-        return timestamp
-    
-    if isinstance(timestamp, str):
-        # Try ISO format
-        try:
-            return datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
-        except ValueError:
-            pass
-        
-        # Try common formats
-        formats = [
-            "%Y-%m-%d %H:%M:%S",
-            "%Y-%m-%dT%H:%M:%S",
-            "%Y-%m-%d %H:%M:%S.%f",
-            "%Y-%m-%dT%H:%M:%S.%f",
-        ]
-        for fmt in formats:
-            try:
-                return datetime.strptime(timestamp, fmt)
-            except ValueError:
-                continue
-    
-    if isinstance(timestamp, (int, float)):
-        # Unix timestamp
-        return datetime.utcfromtimestamp(timestamp)
-    
-    raise ValueError(f"Cannot parse timestamp: {timestamp}")
-
-
-def sanitize_string(value: str, max_length: int = 255) -> str:
-    """Sanitize a string input."""
-    if not isinstance(value, str):
-        return str(value)[:max_length]
-    return value.strip()[:max_length]
-
-
-def validate_email(email: str) -> bool:
-    """Basic email validation."""
-    import re
-    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-    return bool(re.match(pattern, email))
-
-
 def validate_vin(vin: str) -> tuple[bool, Optional[str]]:
     """Validate VIN format."""
     if not vin:
@@ -164,18 +118,8 @@ def validate_vin(vin: str) -> tuple[bool, Optional[str]]:
     return True, None
 
 
-def validate_phone(phone: str) -> tuple[bool, Optional[str]]:
-    """Basic phone number validation."""
-    if not phone:
-        return False, "Phone number cannot be empty"
-    
-    # Remove common separators
-    cleaned = phone.replace(" ", "").replace("-", "").replace("(", "").replace(")", "").replace("+", "")
-    
-    if not cleaned.isdigit():
-        return False, "Phone number must contain only digits"
-    
-    if len(cleaned) < 8 or len(cleaned) > 15:
-        return False, "Phone number must be between 8 and 15 digits"
-    
-    return True, None
+def validate_email(email: str) -> bool:
+    """Basic email validation."""
+    import re
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return bool(re.match(pattern, email))

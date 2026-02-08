@@ -1,25 +1,24 @@
 """
-CORS configuration.
-Locked to specific origins in production.
+CORS middleware configuration.
 """
 
-from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 
-def setup_cors(app: FastAPI) -> None:
-    """Configure CORS middleware."""
+def setup_cors(app, origins: list = None):
+    """Add CORS middleware to the app."""
+    if origins is None:
+        origins = [
+            "http://localhost:3000",
+            "http://localhost:8000",
+            "https://predict.previlium.com",
+            "https://app.predict.previlium.com",
+        ]
+    
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[
-            "https://predict.previlium.com",
-            "https://pdf.previlium.com",
-            "http://localhost:8000",
-            "http://localhost:3000",
-            "http://127.0.0.1:8000",
-        ],
+        allow_origins=origins,
         allow_credentials=True,
-        allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+        allow_methods=["*"],
         allow_headers=["*"],
-        max_age=3600,
     )

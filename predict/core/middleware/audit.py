@@ -10,8 +10,6 @@ from datetime import datetime, timezone
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from predict.core.db.models.audit import AuditLog
-
 logger = logging.getLogger(__name__)
 
 
@@ -55,53 +53,21 @@ class AuditMiddleware(BaseHTTPMiddleware):
         if request.method not in WRITE_METHODS:
             return await call_next(request)
         
-        # Capture request data before processing
-        old_data = None
-        new_data = None
-        
-        try:
-            # Try to get old data for updates/deletes
-            if request.method in ('PUT', 'PATCH', 'DELETE'):
-                old_data = await self._get_current_state(request)
-        except Exception as e:
-            logger.debug(f"Could not capture old state: {e}")
-        
         # Process the request
         response = await call_next(request)
         
-        # Capture new data for creates/updates
-        if response.status_code < 400:  # Only on success
-            try:
-                new_data = await self._get_response_data(response)
-            except Exception as e:
-                logger.debug(f"Could not capture new state: {e}")
-        
-        # Log to audit
+        # Log to audit (async)
         try:
-            await self._log_audit(request, response, old_data, new_data)
+            await self._log_audit(request, response)
         except Exception as e:
             logger.error(f"Failed to write audit log: {e}")
         
         return response
     
-    async def _get_current_state(self, request: Request) -> Optional[dict]:
-        """Try to get current state of resource before modification."""
-        # This would need database access to fetch current record
-        # Implementation depends on the specific resource
-        return None
-    
-    async def _get_response_data(self, response: Response) -> Optional[dict]:
-        """Extract data from response."""
-        # Would need to read response body
-        # Note: This can be tricky with streaming responses
-        return None
-    
     async def _log_audit(
         self,
         request: Request,
         response: Response,
-        old_data: Optional[dict],
-        new_data: Optional[dict],
     ) -> None:
         """Create audit log entry."""
         
@@ -122,20 +88,13 @@ class AuditMiddleware(BaseHTTPMiddleware):
             'action': f"{request.method}_{resource_type}",
             'resource_type': resource_type,
             'resource_id': resource_id,
-            'old_data': old_data,
-            'new_data': new_data,
             'ip_address': self._get_client_ip(request),
             'user_agent': request.headers.get('user-agent'),
             'request_id': request_id,
-            'created_at': datetime.now(timezone.utc),
+            'created_at': datetime.now(timezone.utc).isoformat(),
         }
         
-        # Write to database (async)
-        if self.db_session_factory:
-            # Would use async session here
-            pass
-        
-        # Also log to application logs
+        # Log to application logs
         logger.info(
             f"AUDIT: {audit_entry['action']} by user={user_id} "
             f"resource={resource_type}/{resource_id}"
@@ -152,40 +111,3 @@ class AuditMiddleware(BaseHTTPMiddleware):
             return real_ip
         
         return request.client.host if request.client else 'unknown'
-
-
-def create_audit_log(
-    db_session,
-    action: str,
-    resource_type: str,
-    resource_id: Optional[str] = None,
-    user_id: Optional[int] = None,
-    api_key_id: Optional[int] = None,
-    old_data: Optional[dict] = None,
-    new_data: Optional[dict] = None,
-    ip_address: Optional[str] = None,
-    user_agent: Optional[str] = None,
-    request_id: Optional[str] = None,
-) -> AuditLog:
-    """
-    Create an audit log entry programmatically.
-    
-    Use this in services to log business logic operations.
-    """
-    audit_log = AuditLog(
-        user_id=user_id,
-        api_key_id=api_key_id,
-        action=action,
-        resource_type=resource_type,
-        resource_id=resource_id,
-        old_data=old_data,
-        new_data=new_data,
-        ip_address=ip_address,
-        user_agent=user_agent,
-        request_id=request_id,
-    )
-    
-    db_session.add(audit_log)
-    # Don't commit here - let caller manage transaction
-    
-    return audit_log

@@ -308,14 +308,6 @@ class AuthService:
         # Hash the code for storage
         code_hash = hashlib.sha256(code.encode()).hexdigest()
         
-        # Expire existing codes for this purpose
-        await self.db.execute(
-            select(VerificationCode).where(
-                VerificationCode.user_id == user_id,
-                VerificationCode.purpose == purpose,
-            )
-        )
-        
         # Create new code
         verification = VerificationCode(
             user_id=user_id,
@@ -353,28 +345,16 @@ class AuthService:
         verification = result.scalar_one_or_none()
         
         if not verification:
-            # Increment attempts for any matching code
-            result = await self.db.execute(
-                select(VerificationCode).where(
-                    VerificationCode.user_id == user_id,
-                    VerificationCode.purpose == purpose,
-                    VerificationCode.used_at.is_(None),
-                )
-            )
-            for v in result.scalars():
-                v.attempts += 1
-            await self.db.commit()
-            
             return False
         
         # Mark as used
         verification.used_at = datetime.now(timezone.utc)
         
         # Mark user as verified
-        user_result = await self.db.execute(
+        result = await self.db.execute(
             select(User).where(User.id == user_id)
         )
-        user = user_result.scalar_one()
+        user = result.scalar_one()
         
         if purpose == 'email':
             user.is_verified = True
@@ -382,58 +362,5 @@ class AuthService:
         await self.db.commit()
         
         logger.info(f"User {user_id} verified with code, purpose={purpose}")
-        
-        return True
-    
-    # ========================
-    # Password Reset
-    # ========================
-    
-    async def initiate_password_reset(self, email: str) -> Optional[str]:
-        """Initiate password reset - returns reset token if email exists."""
-        result = await self.db.execute(
-            select(User).where(
-                User.email == email.lower().strip(),
-                User.is_active == True,
-            )
-        )
-        user = result.scalar_one_or_none()
-        
-        if not user:
-            # Don't reveal if email exists
-            return None
-        
-        # Create verification code for password reset
-        code = await self.create_verification_code(user.id, purpose='password_reset')
-        
-        return code
-    
-    async def reset_password(
-        self,
-        email: str,
-        code: str,
-        new_password: str,
-    ) -> bool:
-        """Reset password with verification code."""
-        result = await self.db.execute(
-            select(User).where(
-                User.email == email.lower().strip(),
-                User.is_active == True,
-            )
-        )
-        user = result.scalar_one_or_none()
-        
-        if not user:
-            return False
-        
-        # Verify code
-        if not await self.verify_code(user.id, code, purpose='password_reset'):
-            return False
-        
-        # Update password
-        user.password_hash = self.hash_password(new_password)
-        await self.db.commit()
-        
-        logger.info(f"Password reset successful for user {user.id}")
         
         return True
