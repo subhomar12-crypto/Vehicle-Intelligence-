@@ -3,7 +3,7 @@ Async SQLAlchemy engine factory.
 
 Creates connection pool with:
 - pool_size=5 base connections
-- max_overflow=15 burst connections
+- max_overflow=15 burst connections  
 - pool_pre_ping=True to detect stale connections
 - pool_recycle=3600 to prevent connection aging issues
 """
