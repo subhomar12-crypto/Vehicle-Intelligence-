@@ -1,0 +1,159 @@
+# ===========================================
+# Predict OBD - Git Ignore Configuration
+# ===========================================
+
+# -------------------------------------------
+# API KEYS AND SECRETS (CRITICAL)
+# -------------------------------------------
+# Never commit API keys or credentials
+api_keys.json
+**/api_keys.json
+!api_keys.template.json
+
+# API key backup files
+*_apikey.txt
+*_APIKEY.txt
+**/*_apikey.txt
+
+# Credentials and secrets
+credentials.json
+secrets.json
+*.secret
+*.credentials
+.env
+.env.*
+!.env.example
+
+# -------------------------------------------
+# APPLICATION DATA
+# -------------------------------------------
+# PredictData directory (user data)
+PredictData/
+
+# Legacy data directories
+data/
+config/api_keys.json
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# -------------------------------------------
+# PYTHON
+# -------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# -------------------------------------------
+# IDE AND EDITORS
+# -------------------------------------------
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# -------------------------------------------
+# LOGS AND TEMPORARY FILES
+# -------------------------------------------
+*.log
+logs/
+temp/
+tmp/
+*.tmp
+*.temp
+*.cache
+
+# -------------------------------------------
+# OS GENERATED FILES
+# -------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# -------------------------------------------
+# BUILD AND DISTRIBUTION
+# -------------------------------------------
+*.exe
+*.msi
+*.dmg
+installer_output/
+CarAI_Installer/output/
+
+# -------------------------------------------
+# PDF REPORTS (Generated)
+# -------------------------------------------
+reports/*.pdf
+**/generated_reports/
+
+# -------------------------------------------
+# PREDICT UNIFIED ARCHITECTURE (v3.0)
+# -------------------------------------------
+# Runtime data
+data/parquet/
+data/backups/
+data/exports/
+data/logs/
+
+# AI model files (too large for git)
+models/gguf/*.gguf
+models/lstm/*.h5
+models/lstm/*.keras
+models/lstm/*.pkl
+models/registry.json
+
+# Firebase credentials
+*firebase*.json
+
+# USB captures
+*.pcapng
+
+# Temp Office files
+~$*
+
+# Installer output
+Output/
+CarAI_Installer/
+
+# Pytest
+.pytest_cache/
+htmlcov/
+.coverage
+
+# Build
+*.spec
