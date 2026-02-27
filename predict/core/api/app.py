@@ -9,6 +9,7 @@ Creates and configures the FastAPI application with:
 """
 
 import logging
+import threading
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
@@ -46,18 +47,44 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     
     # Phase 4: Initialize Redis (lazy init on first use)
     # Phase 5: ARQ worker runs separately
-    
+
+    # Preload LLM model in background thread (avoids blocking server startup)
+    def _preload_llm():
+        try:
+            from predict.core.ai.llm.assistant import get_llm_assistant
+            assistant = get_llm_assistant()
+            if not assistant.is_loaded and assistant.model_path.exists():
+                logger.info("Preloading LLM model in background thread...")
+                assistant.load_model("qwen")
+            if assistant.is_available():
+                logger.info("LLM model preloaded successfully")
+            else:
+                logger.warning("LLM model not available (file may be missing)")
+        except Exception as e:
+            logger.warning(f"LLM preload failed (non-critical): {e}")
+
+    threading.Thread(target=_preload_llm, daemon=True, name="llm-preload").start()
+
+    # Start tier expiry background task
+    from predict.core.tasks.tier_expiry import start_expiry_task
+    start_expiry_task()
+    logger.info("Tier expiry task started")
+
     logger.info("Application startup complete")
-    
+
     yield
-    
+
     # Shutdown
     logger.info("Shutting down application...")
-    
+
+    # Stop tier expiry task
+    from predict.core.tasks.tier_expiry import stop_expiry_task
+    stop_expiry_task()
+
     # Close database connections
     await close_engine()
     logger.info("Database engine closed")
-    
+
     logger.info("Application shutdown complete")
 
 
@@ -83,6 +110,10 @@ def create_app() -> FastAPI:
     # Setup error handlers
     setup_error_handlers(app)
     
+    # Add security headers middleware (must be added before CORS so it wraps responses)
+    from predict.core.middleware.security_headers import SecurityHeadersMiddleware
+    app.add_middleware(SecurityHeadersMiddleware)
+
     # Add CORS middleware
     app.add_middleware(
         CORSMiddleware,
@@ -92,10 +123,16 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     
-    # Phase 2: Middleware added via router dependencies
-    
     # Include API routers
     app.include_router(api_router, prefix="/api")
+
+    # Legacy Android auth routes at /auth/* (Android calls without /api/ prefix)
+    from predict.core.api.v1.auth import app_legacy_router
+    app.include_router(app_legacy_router, prefix="/auth", tags=["legacy-auth"])
+
+    # Legacy vehicle_data routes (routes already have /api/ in their paths)
+    from predict.core.api.v1 import vehicle_data as _vd
+    app.include_router(_vd.legacy_router, tags=["legacy-vehicle-data"])
     
     # Setup static file serving (Phase 6)
     from predict.core.api.static_files import (

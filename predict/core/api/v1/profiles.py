@@ -169,8 +169,22 @@ async def _user_can_access_vehicle(
 
     profile_id = vehicle.profile_id
 
-    # Co-guardian: User.email → Guardian.email → VehicleGuardian
+    # Co-guardian: direct user_id lookup on VehicleGuardian
     stmt = (
+        select(VehicleGuardian.id)
+        .where(
+            VehicleGuardian.user_id == user_id,
+            VehicleGuardian.profile_id == profile_id,
+            VehicleGuardian.is_active.is_(True),
+        )
+    )
+    result = await db.execute(stmt)
+    if result.scalar_one_or_none() is not None:
+        return True
+
+    # Legacy fallback: User.email → Guardian.email → VehicleGuardian
+    # (for records created before user_id was added to VehicleGuardian)
+    stmt_legacy = (
         select(VehicleGuardian.id)
         .join(Guardian, Guardian.guardian_id == VehicleGuardian.guardian_id)
         .join(User, User.email == Guardian.email)
@@ -178,10 +192,11 @@ async def _user_can_access_vehicle(
             User.id == user_id,
             VehicleGuardian.profile_id == profile_id,
             VehicleGuardian.is_active.is_(True),
+            VehicleGuardian.user_id.is_(None),  # Only for legacy records
         )
     )
-    result = await db.execute(stmt)
-    if result.scalar_one_or_none() is not None:
+    result_legacy = await db.execute(stmt_legacy)
+    if result_legacy.scalar_one_or_none() is not None:
         return True
 
     # Driver assignment
@@ -435,12 +450,10 @@ async def list_vehicles(
     else:
         user_id = current_user['user_id']
 
-    # Subquery: co-guardian vehicles
+    # Subquery: co-guardian vehicles (direct user_id lookup)
     guardian_sub = (
         select(VehicleGuardian.profile_id)
-        .join(Guardian, Guardian.guardian_id == VehicleGuardian.guardian_id)
-        .join(User, User.email == Guardian.email)
-        .where(User.id == user_id, VehicleGuardian.is_active.is_(True))
+        .where(VehicleGuardian.user_id == user_id, VehicleGuardian.is_active.is_(True))
     )
 
     # Subquery: driver-assigned vehicles

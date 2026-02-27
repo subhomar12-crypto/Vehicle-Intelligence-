@@ -312,8 +312,25 @@ def _generate_verification_code() -> str:
 
 
 def _hash_code(code: str) -> str:
-    """Hash a verification code for storage."""
-    return hashlib.sha256(code.encode()).hexdigest()
+    """Hash a verification code for storage using bcrypt."""
+    try:
+        import bcrypt
+        return bcrypt.hashpw(code.encode(), bcrypt.gensalt(rounds=10)).decode()
+    except ImportError:
+        # Fallback to SHA-256 only if bcrypt is unavailable
+        return hashlib.sha256(code.encode()).hexdigest()
+
+
+def _verify_code_hash(code: str, stored_hash: str) -> bool:
+    """Verify a verification code against its stored hash."""
+    try:
+        import bcrypt
+        if stored_hash.startswith("$2"):
+            return bcrypt.checkpw(code.encode(), stored_hash.encode())
+    except ImportError:
+        pass
+    # Fallback: SHA-256 comparison for legacy codes
+    return hashlib.sha256(code.encode()).hexdigest() == stored_hash
 
 
 async def _get_user_by_email(session: AsyncSession, email: str) -> Optional[User]:
@@ -354,37 +371,76 @@ async def _verify_code(
     code: str,
     purpose: str = 'email'
 ) -> bool:
-    """Verify a verification code."""
-    code_hash = _hash_code(code)
+    """Verify a verification code.
+
+    Uses bcrypt comparison (with SHA-256 fallback for legacy codes).
+    Enforces a max of 5 attempts per code before invalidation.
+    """
     now = time.time()
-    
+
+    # Fetch all unused, non-expired codes for this user+purpose
     result = await session.execute(
         select(VerificationCode).where(
             VerificationCode.user_id == user_id,
-            VerificationCode.code == code_hash,
             VerificationCode.type == purpose,
             VerificationCode.used == False,
             VerificationCode.expires_at > now,
         )
     )
-    verification = result.scalar_one_or_none()
-    
-    if not verification:
+    candidates = result.scalars().all()
+
+    if not candidates:
         return False
-    
-    # Mark as used
-    verification.used = True
-    
-    # Mark user as verified if email verification
-    if purpose == 'email':
-        user_result = await session.execute(
-            select(User).where(User.id == user_id)
-        )
-        user = user_result.scalar_one()
-        user.verified = True
-    
-    await session.flush()
-    return True
+
+    for verification in candidates:
+        # Check attempt count (stored in nonce field as "attempts:N" prefix or absent)
+        attempt_count = _get_attempt_count(verification)
+
+        if attempt_count >= 5:
+            # Code exhausted — mark as used (invalidated)
+            verification.used = True
+            await session.flush()
+            continue
+
+        # Increment attempt counter
+        _increment_attempt_count(verification)
+
+        if _verify_code_hash(code, verification.code):
+            # Correct code — mark as used
+            verification.used = True
+
+            # Mark user as verified if email verification
+            if purpose == 'email':
+                user_result = await session.execute(
+                    select(User).where(User.id == user_id)
+                )
+                user = user_result.scalar_one()
+                user.verified = True
+
+            await session.flush()
+            return True
+        else:
+            # Wrong code — persist the incremented attempt count
+            await session.flush()
+
+    return False
+
+
+def _get_attempt_count(verification: VerificationCode) -> int:
+    """Read the attempt counter stored in the submitted_nonce field."""
+    raw = verification.submitted_nonce or ""
+    if raw.startswith("attempts:"):
+        try:
+            return int(raw.split(":")[1])
+        except (ValueError, IndexError):
+            return 0
+    return 0
+
+
+def _increment_attempt_count(verification: VerificationCode) -> None:
+    """Increment the attempt counter stored in the submitted_nonce field."""
+    count = _get_attempt_count(verification) + 1
+    verification.submitted_nonce = f"attempts:{count}"
 
 
 # =============================================================================
@@ -986,31 +1042,16 @@ async def verify_login_code(
             message="Invalid email or code",
         )
     
-    # Verify the code
-    code_hash = _hash_code(request.code)
-    now = time.time()
-    
-    result = await db.execute(
-        select(VerificationCode).where(
-            VerificationCode.user_id == user.id,
-            VerificationCode.code == code_hash,
-            VerificationCode.type == 'login',
-            VerificationCode.used == False,
-            VerificationCode.expires_at > now,
-        )
-    )
-    verification = result.scalar_one_or_none()
-    
-    if not verification:
+    # Verify the code (uses bcrypt comparison + attempt counting)
+    code_valid = await _verify_code(db, user.id, request.code, 'login')
+
+    if not code_valid:
         raise APIError(
             status_code=400,
             code=ErrorCode.VALIDATION_ERROR,
             message="Invalid or expired verification code",
         )
-    
-    # Mark code as used
-    verification.used = True
-    
+
     # Mark user as verified
     user.verified = True
     user.last_login = time.time()

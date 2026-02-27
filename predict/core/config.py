@@ -72,6 +72,14 @@ class PredictConfig:
     REDIS_URL: str = "redis://localhost:6379/0"
     REDIS_KEY_TTL_SECONDS: int = 300  # 5 minutes for API key cache
 
+    # Email SMTP settings
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    FROM_EMAIL: str = "noreply@previlium.com"
+    FROM_NAME: str = "PREDICT"
+
     # Debug mode
     debug: bool = False
 
@@ -79,13 +87,67 @@ class PredictConfig:
     cors_origins: list = None
 
     def __post_init__(self):
-        """Create required directories on init."""
+        """Create required directories and load .env overrides."""
+        # Load .env file if python-dotenv is available
+        try:
+            from dotenv import load_dotenv
+            env_path = self.ROOT_DIR / ".env"
+            if env_path.exists():
+                load_dotenv(env_path, override=False)
+        except ImportError:
+            pass
+
+        # Override config fields from environment variables
+        env_overrides = {
+            "DATABASE_URL": os.environ.get("DATABASE_URL"),
+            "REDIS_URL": os.environ.get("REDIS_URL"),
+            "SERVER_HOST": os.environ.get("SERVER_HOST"),
+            "SERVER_PORT": os.environ.get("SERVER_PORT"),
+            "PUBLIC_API_URL": os.environ.get("PUBLIC_API_URL"),
+            "SMTP_HOST": os.environ.get("SMTP_HOST"),
+            "SMTP_PORT": os.environ.get("SMTP_PORT"),
+            "SMTP_USER": os.environ.get("SMTP_USER"),
+            "SMTP_PASSWORD": os.environ.get("SMTP_PASSWORD"),
+            "FROM_EMAIL": os.environ.get("EMAIL_FROM"),
+            "FROM_NAME": os.environ.get("EMAIL_FROM_NAME"),
+        }
+        for key, value in env_overrides.items():
+            if value is not None:
+                if key in ("SERVER_PORT", "SMTP_PORT"):
+                    value = int(value)
+                object.__setattr__(self, key, value)
+
         if self.cors_origins is None:
-            self.cors_origins = [
-                "http://localhost:3000",
-                "http://localhost:8000",
-                "https://predict.previlium.com",
-            ]
+            # Environment-based CORS: load from CORS_ORIGINS env var or use defaults
+            env_cors = os.environ.get("CORS_ORIGINS")
+            if env_cors:
+                # Comma-separated list from environment
+                self.cors_origins = [o.strip() for o in env_cors.split(",") if o.strip()]
+            elif self.debug or os.environ.get("PREDICT_ENV", "dev").lower() in ("dev", "development", "local"):
+                # Development: allow localhost + production domains
+                self.cors_origins = [
+                    "http://localhost:3000",
+                    "http://localhost:5173",
+                    "http://localhost:4173",
+                    "http://localhost:8000",
+                    "http://localhost:8080",
+                    "https://predict.previlium.com",
+                    "https://app.predict.previlium.com",
+                    "https://predict-pp.com",
+                    "https://www.predict-pp.com",
+                    "https://predictapp.com",
+                    "https://www.predictapp.com",
+                ]
+            else:
+                # Production: only HTTPS production domains
+                self.cors_origins = [
+                    "https://predict.previlium.com",
+                    "https://app.predict.previlium.com",
+                    "https://predict-pp.com",
+                    "https://www.predict-pp.com",
+                    "https://predictapp.com",
+                    "https://www.predictapp.com",
+                ]
         self.ensure_directories()
 
     # ==================== DERIVED PATHS ====================
