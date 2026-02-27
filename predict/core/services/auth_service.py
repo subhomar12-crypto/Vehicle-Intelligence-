@@ -182,7 +182,7 @@ class AuthService:
 
         # Create key record (matches ApiKey ORM model)
         api_key = ApiKey(
-            key_id=secrets.token_hex(32),
+            key_prefix=plain_key[:8],
             user_id=user_id,
             key_hash=self.hash_api_key_bcrypt(plain_key),
             name=name,
@@ -218,18 +218,25 @@ class AuthService:
         if not api_key or not api_key.startswith(API_KEY_PREFIX):
             return None
 
-        # Look up by legacy hash first (for migration period)
-        legacy_hash = self.hash_api_key_sha256(api_key)
-
+        # Look up by prefix (first 8 chars) to narrow candidates for bcrypt check
+        prefix = api_key[:8] if len(api_key) >= 8 else api_key
         result = await self.db.execute(
             select(ApiKey).where(
-                (ApiKey.legacy_sha256_hash == legacy_hash) |
-                (ApiKey.key_hash == api_key[:50])  # Partial match for lookup
+                ApiKey.key_prefix == prefix,
+                ApiKey.status == "active",
             )
         )
+        potential_keys = list(result.scalars().all())
 
-        # Get all potentially matching keys
-        potential_keys = result.scalars().all()
+        # Also check legacy SHA-256 hash for migration period
+        legacy_hash = self.hash_api_key_sha256(api_key)
+        legacy_result = await self.db.execute(
+            select(ApiKey).where(
+                ApiKey.legacy_sha256_hash == legacy_hash,
+                ApiKey.status == "active",
+            )
+        )
+        potential_keys.extend(legacy_result.scalars().all())
         now = time.time()
 
         for key_record in potential_keys:

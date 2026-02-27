@@ -33,12 +33,12 @@ async def get_current_user(
 ) -> dict:
     """
     Get current authenticated user from API key.
-    
+
     This dependency validates the API key and returns user information.
     It should be used on protected endpoints.
     """
-    api_key = extract_api_key(x_api_key=x_api_key, authorization=authorization)
-    
+    api_key = extract_api_key(x_api_key=x_api_key, authorization=authorization, request=request)
+
     if not api_key:
         raise APIError(
             status_code=401,
@@ -69,10 +69,10 @@ async def get_optional_user(
 ) -> Optional[dict]:
     """
     Get current user if authenticated, None otherwise.
-    
+
     Use this for endpoints that work for both authenticated and unauthenticated users.
     """
-    api_key = extract_api_key(x_api_key=x_api_key, authorization=authorization)
+    api_key = extract_api_key(x_api_key=x_api_key, authorization=authorization, request=request)
     
     if not api_key:
         return None

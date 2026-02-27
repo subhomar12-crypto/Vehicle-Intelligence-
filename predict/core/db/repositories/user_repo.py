@@ -40,10 +40,14 @@ class ApiKeyRepository(BaseRepository[ApiKey]):
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_by_key_id(self, key_id: str) -> Optional[ApiKey]:
-        stmt = select(ApiKey).where(ApiKey.key_id == key_id)
+    async def get_by_prefix(self, prefix: str) -> list[ApiKey]:
+        """Get all active keys matching the given prefix (for bcrypt verification)."""
+        stmt = select(ApiKey).where(
+            ApiKey.key_prefix == prefix,
+            ApiKey.status == "active",
+        )
         result = await self.session.execute(stmt)
-        return result.scalar_one_or_none()
+        return list(result.scalars().all())
 
     async def get_active_keys_for_user(self, user_id: int) -> List[ApiKey]:
         stmt = (

@@ -53,16 +53,13 @@ class AppType(Enum):
 
 # Tier permission mappings — preserved exactly
 TIER_PERMISSIONS: Dict[Tier, List[Permission]] = {
-    Tier.FREE: [Permission.VEHICLE_DATA, Permission.DIAGNOSTIC],
-    Tier.BASIC: [Permission.VEHICLE_DATA, Permission.DIAGNOSTIC, Permission.PREDICT],
+    Tier.FREE: [Permission.VEHICLE_DATA],
     Tier.PRO: [Permission.VEHICLE_DATA, Permission.DIAGNOSTIC, Permission.PREDICT,
-               Permission.LLM_CHAT],
-    Tier.PREMIUM: [Permission.VEHICLE_DATA, Permission.DIAGNOSTIC, Permission.PREDICT,
-                   Permission.LLM_CHAT, Permission.REPORTS],
+               Permission.LLM_CHAT, Permission.REPORTS],
+    Tier.PREMIUM: list(Permission),
     Tier.ADMIN: list(Permission),
     Tier.FLEET_DRIVER: [Permission.VEHICLE_DATA, Permission.DIAGNOSTIC, Permission.PREDICT],
-    Tier.FLEET_MANAGER: [Permission.VEHICLE_DATA, Permission.DIAGNOSTIC, Permission.PREDICT,
-                         Permission.LLM_CHAT, Permission.REPORTS, Permission.GUARDIAN],
+    Tier.FLEET_MANAGER: list(Permission),
     Tier.ENTERPRISE: list(Permission),
 }
 
@@ -75,14 +72,20 @@ def hash_api_key_sha256(api_key: str) -> str:
 def extract_api_key(
     x_api_key: Optional[str] = Header(None, alias="X-API-Key"),
     authorization: Optional[str] = Header(None),
+    request: Optional[Request] = None,
 ) -> Optional[str]:
-    """Extract API key from X-API-Key or Authorization: Bearer header."""
+    """Extract API key from X-API-Key header, Authorization: Bearer header, or HttpOnly cookie."""
     if x_api_key:
         return x_api_key
     if authorization:
         if authorization.startswith("Bearer "):
             return authorization[7:]
         return authorization
+    # Fall back to HttpOnly cookie (set by web login endpoints)
+    if request:
+        cookie_key = request.cookies.get("api_key")
+        if cookie_key:
+            return cookie_key
     return None
 
 
@@ -100,6 +103,7 @@ async def validate_api_key(request: Request) -> Dict[str, Any]:
     api_key = extract_api_key(
         x_api_key=request.headers.get("X-API-Key"),
         authorization=request.headers.get("Authorization"),
+        request=request,
     )
 
     if not api_key:
@@ -138,13 +142,23 @@ async def validate_api_key(request: Request) -> Dict[str, Any]:
 
 async def _lookup_api_key(api_key: str) -> Optional[Dict[str, Any]]:
     """
-    Look up API key in database.
-    Placeholder until Phase 3 wires up database queries.
+    Look up API key in database, with admin key fast-path.
+
+    Flow:
+    1. Check admin key from .env (fast path, no DB hit)
+    2. Narrow candidates by key_prefix (first 8 chars)
+    3. bcrypt.checkpw() against each candidate's key_hash
+    4. Legacy fallback: SHA-256 hash match (30-day migration window)
+    5. Join with users table to get tier/name
+    6. Return user info dict or None
     """
-    # This will be implemented when auth_service.py is created
-    # For now, allow admin key from environment
-    import os
-    admin_key = os.environ.get("ADMIN_API_KEY", "")
+    # --- Fast path: admin key from .env ---
+    try:
+        from predict.core.security.secrets_loader import get_secrets
+        admin_key = get_secrets().ADMIN_API_KEY
+    except Exception:
+        import os
+        admin_key = os.environ.get("ADMIN_API_KEY", "")
     if admin_key and api_key == admin_key:
         return {
             "key_id": "admin",
@@ -155,7 +169,97 @@ async def _lookup_api_key(api_key: str) -> Optional[Dict[str, Any]]:
             "apps": [AppType.ALL.value],
             "profile_id": None,
         }
-    return None
+
+    # --- Database lookup ---
+    try:
+        from sqlalchemy import select
+        from predict.core.db.session import get_db_session
+        from predict.core.db.models.user import ApiKey as ApiKeyModel, User
+        from predict.core.security.hashing import verify_api_key
+
+        async with get_db_session() as session:
+            # Narrow candidates by prefix (first 8 chars of the incoming key)
+            prefix = api_key[:8] if len(api_key) >= 8 else api_key
+            result = await session.execute(
+                select(ApiKeyModel).where(
+                    ApiKeyModel.key_prefix == prefix,
+                    ApiKeyModel.status == "active",
+                )
+            )
+            candidates = result.scalars().all()
+
+            key_record = None
+
+            # Try bcrypt verification against each candidate
+            for candidate in candidates:
+                if candidate.key_hash and verify_api_key(api_key, candidate.key_hash):
+                    key_record = candidate
+                    break
+
+            # Legacy fallback: SHA-256 hash match (for keys created before migration)
+            if not key_record:
+                incoming_sha256 = hashlib.sha256(api_key.encode("utf-8")).hexdigest()
+                legacy_result = await session.execute(
+                    select(ApiKeyModel).where(
+                        ApiKeyModel.legacy_sha256_hash == incoming_sha256,
+                        ApiKeyModel.status == "active",
+                    )
+                )
+                key_record = legacy_result.scalar_one_or_none()
+
+                # Auto-upgrade to bcrypt if found via legacy hash
+                if key_record:
+                    from predict.core.security.hashing import hash_api_key
+                    key_record.key_hash = hash_api_key(api_key)
+                    key_record.key_prefix = api_key[:8] if len(api_key) >= 8 else api_key
+                    key_record.legacy_sha256_hash = None  # Clear legacy hash
+                    logger.info(f"Auto-upgraded API key {key_record.id} from SHA-256 to bcrypt")
+
+            if not key_record:
+                return None
+
+            # Check expiration
+            if key_record.expires_at and key_record.expires_at < time.time():
+                logger.debug(f"API key expired: {api_key[:8]}...")
+                return None
+
+            # Get the owning user
+            user_result = await session.execute(
+                select(User).where(User.id == key_record.user_id)
+            )
+            user = user_result.scalar_one_or_none()
+
+            if not user or user.status != "active":
+                return None
+
+            # Use the user's current tier (admin can change it)
+            tier = user.tier or key_record.tier or "free"
+
+            # Map tier to permissions via TIER_PERMISSIONS
+            try:
+                tier_enum = Tier(tier)
+                permissions = [p.value for p in TIER_PERMISSIONS.get(
+                    tier_enum, TIER_PERMISSIONS[Tier.FREE]
+                )]
+            except ValueError:
+                permissions = [p.value for p in TIER_PERMISSIONS[Tier.FREE]]
+
+            # Update last_used_at timestamp
+            key_record.last_used_at = time.time()
+
+            return {
+                "key_id": key_record.id,
+                "user_id": user.id,
+                "name": user.name,
+                "tier": tier,
+                "permissions": permissions,
+                "apps": key_record.apps or [AppType.OBD.value],
+                "profile_id": key_record.profile_id,
+            }
+
+    except Exception as e:
+        logger.error(f"Database API key lookup failed: {e}")
+        return None
 
 
 def require_permission(permission: Permission):

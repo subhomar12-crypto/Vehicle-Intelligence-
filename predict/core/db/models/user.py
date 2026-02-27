@@ -5,7 +5,6 @@ Consolidates: unified_users + customers → users
               entitlements, rate_limits, usage_counters, tier_presets, driver_assignments
 """
 
-from datetime import datetime
 from typing import Optional, List
 
 from sqlalchemy import (
@@ -59,13 +58,13 @@ class User(TimestampMixin, Base):
 
 
 class ApiKey(Base):
-    """API keys linked to users. bcrypt hashed."""
+    """API keys linked to users. bcrypt hashed — raw key never stored."""
     __tablename__ = "api_keys"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    key_id: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    key_prefix: Mapped[str] = mapped_column(String(8), nullable=False)  # First 8 chars for admin lookup
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
-    key_hash: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    key_hash: Mapped[str] = mapped_column(String(255), nullable=False)  # bcrypt hash
     name: Mapped[str] = mapped_column(String(100), server_default="Default Key")
     status: Mapped[str] = mapped_column(String(20), server_default="active")  # active, revoked
     created_at: Mapped[float] = mapped_column(Float, nullable=False)
@@ -86,6 +85,7 @@ class ApiKey(Base):
     __table_args__ = (
         Index("idx_api_keys_hash", "key_hash"),
         Index("idx_api_keys_user", "user_id"),
+        Index("idx_api_keys_prefix", "key_prefix"),
     )
 
 
@@ -99,6 +99,7 @@ class Entitlement(Base):
     enabled: Mapped[bool] = mapped_column(Boolean, server_default="true")
     granted_at: Mapped[float] = mapped_column(Float, nullable=False)
     granted_by: Mapped[Optional[int]] = mapped_column(Integer)
+    expires_at: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
 
     user: Mapped["User"] = relationship(back_populates="entitlements")
 
