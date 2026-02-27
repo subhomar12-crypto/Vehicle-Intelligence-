@@ -65,6 +65,15 @@ async def _rate_limit_code(request: Request):
     if not allowed:
         raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, detail="Too many code requests. Try again later.")
 
+async def _rate_limit_device_login(request: Request):
+    """Rate limit device login code verification: 5 attempts per hour per IP."""
+    client_ip = _rl._get_client_ip(request)
+    allowed, meta = await _rl.is_allowed(
+        f"{client_ip}:/auth/device-login", limit=5, window_seconds=3600
+    )
+    if not allowed:
+        raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, detail="Too many login attempts. Try again later.")
+
 # =============================================================================
 # COOKIE HELPERS
 # =============================================================================
@@ -89,6 +98,31 @@ def _make_clear_cookie() -> str:
 # =============================================================================
 # REQUEST/RESPONSE MODELS (Exact same schema as old code)
 # =============================================================================
+
+def _validate_password_strength(password: str) -> str:
+    """
+    Enforce password strength policy.
+
+    Accepted if EITHER:
+      - length >= 10 characters, OR
+      - length >= 8 AND contains at least 1 uppercase + 1 digit + 1 special character
+
+    Raises ValueError with a clear message if the password is too weak.
+    """
+    import re
+    if len(password) >= 10:
+        return password
+    if len(password) >= 8:
+        has_upper = bool(re.search(r'[A-Z]', password))
+        has_digit = bool(re.search(r'\d', password))
+        has_special = bool(re.search(r'[^A-Za-z0-9]', password))
+        if has_upper and has_digit and has_special:
+            return password
+    raise ValueError(
+        "Password is too weak. Use at least 10 characters, "
+        "or 8+ characters with an uppercase letter, a digit, and a special character."
+    )
+
 
 class RegisterRequest(BaseModel):
     """Request model for customer registration (from old CustomerRegisterRequest)."""
@@ -117,6 +151,11 @@ class RegisterRequest(BaseModel):
     @classmethod
     def validate_car_plate(cls, v: str) -> str:
         return v.upper().strip()
+
+    @field_validator('password')
+    @classmethod
+    def validate_password(cls, v: str) -> str:
+        return _validate_password_strength(v)
 
 
 class RegisterResponse(BaseModel):
@@ -257,11 +296,16 @@ class ResetPasswordRequest(BaseModel):
     email: EmailStr
     code: str = Field(..., min_length=6, max_length=6)
     new_password: str = Field(..., min_length=8)
-    
+
     @field_validator('email')
     @classmethod
     def validate_email(cls, v: str) -> str:
         return v.lower().strip()
+
+    @field_validator('new_password')
+    @classmethod
+    def validate_new_password(cls, v: str) -> str:
+        return _validate_password_strength(v)
 
 
 class LogoutRequest(BaseModel):
@@ -807,6 +851,7 @@ async def device_login(
     request: DeviceLoginRequest,
     req: Request,
     db: AsyncSession = Depends(get_db),
+    _rl_guard: None = Depends(_rate_limit_device_login),
 ):
     """
     Login from device with device binding.
@@ -1144,23 +1189,23 @@ async def refresh_access_token(
             message="Invalid refresh token",
         )
     
-    # Create new tokens
+    # Create new tokens — access token: 1 hour, refresh token: 7 days
     user_id = guardian_id.replace('refresh_', '')
     access_token = create_token(
         guardian_id=f"user_{user_id}",
-        expires_hours=24,
+        expires_hours=1,
     )
     new_refresh_token = create_token(
         guardian_id=f"refresh_{user_id}",
         expires_hours=168,
     )
-    
+
     return RefreshTokenResponse(
         success=True,
         access_token=access_token,
         refresh_token=new_refresh_token,
         token_type="bearer",
-        expires_in=86400,
+        expires_in=3600,
     )
 
 

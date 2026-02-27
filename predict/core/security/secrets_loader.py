@@ -30,6 +30,14 @@ class Secrets(BaseSettings):
     # Security
     SECRET_KEY: str = Field(description="App-wide signing key")
     ADMIN_API_KEY: str = Field(default="", description="Admin API key for management endpoints")
+    FIELD_ENCRYPTION_KEY: str = Field(
+        default="",
+        description=(
+            "AES-256-GCM key for field-level encryption (VIN, phone). "
+            "Generate with: python -c \"import secrets, base64; "
+            "print(base64.urlsafe_b64encode(secrets.token_bytes(32)).decode())\""
+        ),
+    )
 
     # Email
     SMTP_HOST: str = Field(default="")

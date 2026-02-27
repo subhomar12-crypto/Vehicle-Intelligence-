@@ -36,6 +36,28 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+async def _log_admin_read(
+    session: AsyncSession,
+    admin_user: dict,
+    endpoint: str,
+    params: dict,
+) -> None:
+    """Write an audit log entry for admin read operations (non-blocking)."""
+    try:
+        entry = AuditLog(
+            timestamp=time.time(),
+            action="admin_read",
+            user_id=None,
+            admin_id=admin_user.get("user_id"),
+            details=json.dumps({"endpoint": endpoint, "params": params}),
+        )
+        session.add(entry)
+        await session.flush()
+    except Exception as exc:
+        # Never block the admin response due to audit log failures
+        logger.warning(f"Failed to write admin audit log for {endpoint}: {exc}")
+
+
 # Pydantic models
 class UpdateUserRequest(BaseModel):
     tier: Optional[str] = None
@@ -81,24 +103,25 @@ async def list_users(
 ):
     """List all users (admin only)."""
     require_admin(current_user)
-    
+    await _log_admin_read(session, current_user, "list_users", {"limit": limit, "offset": offset, "search": search})
+
     stmt = select(User).order_by(desc(User.created_at)).limit(limit).offset(offset)
-    
+
     if search:
         stmt = stmt.where(
             User.email.ilike(f"%{search}%") |
             User.name.ilike(f"%{search}%") |
             User.car_plate.ilike(f"%{search}%")
         )
-    
+
     result = await session.execute(stmt)
     users = result.scalars().all()
-    
+
     # Get total count
     count_stmt = select(func.count(User.id))
     count_result = await session.execute(count_stmt)
     total = count_result.scalar()
-    
+
     return {
         "users": [
             {
@@ -128,7 +151,8 @@ async def get_user_details(
 ):
     """Get detailed user information (admin only)."""
     require_admin(current_user)
-    
+    await _log_admin_read(session, current_user, "get_user_details", {"user_id": user_id})
+
     stmt = select(User).where(User.id == user_id)
     result = await session.execute(stmt)
     user = result.scalar_one_or_none()
@@ -384,6 +408,7 @@ async def get_user_entitlements(
 ):
     """Get per-user entitlements and rate limit overrides (admin only)."""
     require_admin(current_user)
+    await _log_admin_read(session, current_user, "get_user_entitlements", {"user_id": user_id})
 
     # Entitlements
     stmt = select(Entitlement).where(Entitlement.user_id == user_id)
@@ -742,7 +767,7 @@ async def get_system_stats(
     current_user = Depends(get_current_user),
 ):
     """Get system statistics (admin only).
-    
+
     Returns:
         - total_users: Total number of registered users
         - active_users: Number of active users
@@ -754,7 +779,8 @@ async def get_system_stats(
         - storage_used_mb: Estimated database storage
     """
     require_admin(current_user)
-    
+    await _log_admin_read(session, current_user, "get_system_stats", {})
+
     stats = {}
     
     # User counts
@@ -818,12 +844,13 @@ async def list_api_keys(
     current_user = Depends(get_current_user),
 ):
     """List all API keys (admin only).
-    
+
     Args:
         user_id: Optional filter to show keys for specific user
     """
     require_admin(current_user)
-    
+    await _log_admin_read(session, current_user, "list_api_keys", {"user_id": user_id})
+
     stmt = select(ApiKey).order_by(desc(ApiKey.created_at))
     
     if user_id:

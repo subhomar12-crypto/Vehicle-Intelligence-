@@ -4,27 +4,82 @@ Consolidates: profiles + vehicle_profiles → vehicle_profiles
               vehicle_data, obd_records, telemetry_records
 """
 
-from datetime import datetime
 from typing import Optional
 
 from sqlalchemy import (
-    String, Integer, Float, Text, Index,
+    Boolean, String, Integer, Float, Text, ForeignKey, Index, UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
 from predict.core.db.base import Base, TimestampMixin
 
 
+def _try_encrypt(value: Optional[str]) -> Optional[str]:
+    """Encrypt *value* if FIELD_ENCRYPTION_KEY is configured; otherwise return as-is.
+
+    This graceful fallback prevents hard crashes on systems that haven't yet
+    configured the encryption key (e.g. development setups without a .env).
+    Production systems SHOULD always configure the key.
+    """
+    if value is None:
+        return None
+    try:
+        from predict.core.security.encryption import encrypt_field
+        return encrypt_field(value)
+    except RuntimeError:
+        # Key not configured — store plaintext (warns in logs via encryption.py)
+        return value
+
+
+def _try_decrypt(value: Optional[str]) -> Optional[str]:
+    """Decrypt *value* if it looks like AES-GCM output; otherwise return as-is.
+
+    This allows gradual migration: plaintext rows written before encryption was
+    enabled continue to be readable without a migration step.
+    """
+    if value is None:
+        return None
+    # Heuristic: AES-GCM blobs are always longer than 40 chars when base64-encoded
+    # and don't look like a raw 17-char VIN or short phone number.
+    if len(value) <= 30:
+        # Likely plaintext (e.g., a 17-char VIN or short phone)
+        return value
+    try:
+        from predict.core.security.encryption import decrypt_field
+        return decrypt_field(value)
+    except Exception:
+        # Decryption failed — value was probably already plaintext
+        return value
+
+
 class VehicleProfile(TimestampMixin, Base):
-    """Vehicle profile. Merges server profiles + desktop vehicle_profiles."""
+    """Vehicle profile. Merges server profiles + desktop vehicle_profiles.
+
+    VIN field encryption
+    --------------------
+    The VIN is stored AES-256-GCM encrypted in the ``vin`` database column.
+    Access via the ``vin`` Python property which transparently encrypts on write
+    and decrypts on read.  A stable HMAC-SHA256 hash is stored in ``vin_hash``
+    to allow exact-match DB lookups without exposing plaintext.
+    """
     __tablename__ = "vehicle_profiles"
 
     profile_id: Mapped[int] = mapped_column(primary_key=True)
+    owner_user_id: Mapped[Optional[int]] = mapped_column(
+        Integer, ForeignKey("users.id"), index=True,
+    )
     name: Mapped[Optional[str]] = mapped_column(String(255))
     make: Mapped[Optional[str]] = mapped_column(String(100))
     model: Mapped[Optional[str]] = mapped_column(String(100))
     year: Mapped[Optional[int]] = mapped_column(Integer)
-    vin: Mapped[Optional[str]] = mapped_column(String(17))
+
+    # Encrypted VIN — stored in the existing "vin" column; Python attribute renamed
+    # to _vin_encrypted so that direct assignment is controlled via the property below.
+    _vin_encrypted: Mapped[Optional[str]] = mapped_column("vin", String(512))
+
+    # Stable HMAC-SHA256 hash for indexed equality searches (WHERE vin_hash = ?)
+    vin_hash: Mapped[Optional[str]] = mapped_column(String(64), index=True)
+
     license_plate: Mapped[Optional[str]] = mapped_column(String(20))
     category: Mapped[str] = mapped_column(String(50), server_default="Personal")
     engine_type: Mapped[Optional[str]] = mapped_column(String(50))
@@ -38,11 +93,37 @@ class VehicleProfile(TimestampMixin, Base):
     warranty_info: Mapped[Optional[str]] = mapped_column(Text)
     insurance_details: Mapped[Optional[str]] = mapped_column(Text)
     obd_device_mac: Mapped[Optional[str]] = mapped_column(String(17))
+    displacement: Mapped[Optional[str]] = mapped_column(String(10))  # e.g., "3.5L"
+    cylinders: Mapped[Optional[int]] = mapped_column(Integer)  # e.g., 6
 
     __table_args__ = (
-        Index("idx_vehicle_profiles_vin", "vin"),
+        # Index on vin_hash replaces the plaintext vin index for lookups
+        Index("idx_vehicle_profiles_vin_hash", "vin_hash"),
         Index("idx_vehicle_profiles_plate", "license_plate"),
     )
+
+    # ------------------------------------------------------------------
+    # VIN property — encrypts on write, decrypts on read
+    # ------------------------------------------------------------------
+
+    @property
+    def vin(self) -> Optional[str]:
+        """Return the decrypted VIN (or plaintext if key not configured)."""
+        return _try_decrypt(self._vin_encrypted)
+
+    @vin.setter
+    def vin(self, value: Optional[str]) -> None:
+        """Encrypt and store the VIN; also update the searchable hash."""
+        if value is None:
+            self._vin_encrypted = None
+            self.vin_hash = None
+            return
+        self._vin_encrypted = _try_encrypt(value)
+        try:
+            from predict.core.security.encryption import hash_field
+            self.vin_hash = hash_field(value)
+        except RuntimeError:
+            self.vin_hash = None
 
 
 class VehicleData(Base):
@@ -81,6 +162,9 @@ class VehicleData(Base):
     vibration_rms: Mapped[Optional[float]] = mapped_column(Float)
     vibration_peak: Mapped[Optional[float]] = mapped_column(Float)
     vibration_crest_factor: Mapped[Optional[float]] = mapped_column(Float)
+
+    # Odometer (km, sent from Android OdometerTracker)
+    odometer: Mapped[Optional[float]] = mapped_column(Float)
 
     # Metadata
     source: Mapped[Optional[str]] = mapped_column(String(20))
@@ -148,4 +232,109 @@ class ServiceRecord(Base):
     __table_args__ = (
         Index("idx_service_records_profile", "profile_id"),
         Index("idx_service_records_date", "profile_id", "service_date"),
+    )
+
+
+class DailyVehicleStats(Base):
+    """Daily aggregated vehicle statistics for charts and PDF reports."""
+    __tablename__ = "daily_vehicle_stats"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    profile_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    date: Mapped[str] = mapped_column(String(10), nullable=False)  # "2026-02-14"
+    max_speed_kmh: Mapped[float] = mapped_column(Float, server_default="0.0")
+    max_coolant_temp_c: Mapped[float] = mapped_column(Float, server_default="0.0")
+    avg_speed_kmh: Mapped[float] = mapped_column(Float, server_default="0.0")
+    total_distance_km: Mapped[float] = mapped_column(Float, server_default="0.0")
+    total_fuel_consumed_l: Mapped[float] = mapped_column(Float, server_default="0.0")
+    data_points: Mapped[int] = mapped_column(Integer, server_default="0")
+    created_at: Mapped[float] = mapped_column(Float, nullable=False)
+    updated_at: Mapped[float] = mapped_column(Float, nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("profile_id", "date", name="uq_daily_stats_vehicle_date"),
+        Index("idx_daily_stats_profile", "profile_id"),
+    )
+
+
+class VehicleResearch(TimestampMixin, Base):
+    """Vehicle research data from LLM + web search.
+
+    Stores common problems, recalls, failure-prone parts, and AI features
+    for a vehicle make/model/year. Populated automatically after vehicle
+    registration via background research task.
+    """
+    __tablename__ = "vehicle_research"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    profile_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("vehicle_profiles.profile_id"), unique=True,
+    )
+
+    # Status: pending, researching, completed, failed, stale
+    research_status: Mapped[str] = mapped_column(String(20), server_default="pending")
+
+    # Research results (stored as JSON strings)
+    common_problems: Mapped[Optional[str]] = mapped_column(Text)
+    failure_prone_parts: Mapped[Optional[str]] = mapped_column(Text)
+    recalls: Mapped[Optional[str]] = mapped_column(Text)
+    tsbs: Mapped[Optional[str]] = mapped_column(Text)
+    owner_reviews_summary: Mapped[Optional[str]] = mapped_column(Text)
+
+    # Scores
+    reliability_score: Mapped[Optional[float]] = mapped_column(Float)  # 0-10
+    confidence_score: Mapped[Optional[float]] = mapped_column(Float)  # 0-1
+
+    # AI features for prediction engine integration
+    ai_features: Mapped[Optional[str]] = mapped_column(Text)
+
+    # Raw data for debugging
+    raw_search_results: Mapped[Optional[str]] = mapped_column(Text)
+    sources: Mapped[Optional[str]] = mapped_column(Text)
+
+    # VIN status: unknown, detected, missing, manual
+    vin_status: Mapped[str] = mapped_column(String(20), server_default="unknown")
+
+    # When research was last completed
+    researched_at: Mapped[Optional[float]] = mapped_column(Float)
+
+    __table_args__ = (
+        Index("idx_vehicle_research_profile", "profile_id"),
+        Index("idx_vehicle_research_status", "research_status"),
+    )
+
+
+class FailureEvent(TimestampMixin, Base):
+    """Confirmed vehicle failure/repair event for AI training."""
+    __tablename__ = "failure_events"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    profile_id: Mapped[int] = mapped_column(Integer, ForeignKey("vehicle_profiles.profile_id"))
+
+    # Event details
+    event_type: Mapped[str] = mapped_column(String(50))
+    # Values: component_failure, dtc_confirmed, repair_completed, recall_service, preventive_maintenance
+    component: Mapped[str] = mapped_column(String(100))
+    description: Mapped[Optional[str]] = mapped_column(Text)
+    severity: Mapped[str] = mapped_column(String(20), server_default="medium")
+    # Values: low, medium, high, critical
+
+    # Linked data
+    dtc_code: Mapped[Optional[str]] = mapped_column(String(10))
+    mileage_at_failure: Mapped[Optional[int]] = mapped_column(Integer)
+    cost: Mapped[Optional[float]] = mapped_column(Float)  # QAR
+
+    # OBD snapshot at time of failure (JSON sensor values)
+    obd_snapshot: Mapped[Optional[str]] = mapped_column(Text)
+
+    # AI training metadata
+    training_label: Mapped[Optional[str]] = mapped_column(String(50))
+    training_exported: Mapped[bool] = mapped_column(Boolean, server_default="false")
+
+    event_timestamp: Mapped[float] = mapped_column(Float)
+
+    __table_args__ = (
+        Index("idx_failure_events_profile", "profile_id"),
+        Index("idx_failure_events_type", "event_type"),
+        Index("idx_failure_events_component", "component"),
     )

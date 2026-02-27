@@ -15,14 +15,48 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from predict.core.db.base import Base, TimestampMixin
 
 
+def _try_encrypt_phone(value: Optional[str]) -> Optional[str]:
+    """Encrypt *value* if FIELD_ENCRYPTION_KEY is configured; otherwise return as-is."""
+    if value is None:
+        return None
+    try:
+        from predict.core.security.encryption import encrypt_field
+        return encrypt_field(value)
+    except RuntimeError:
+        return value
+
+
+def _try_decrypt_phone(value: Optional[str]) -> Optional[str]:
+    """Decrypt *value* if it looks encrypted; otherwise return as-is (plaintext migration)."""
+    if value is None:
+        return None
+    if len(value) <= 20:
+        # Short values are plaintext phone numbers (e.g., "+974 1234 5678")
+        return value
+    try:
+        from predict.core.security.encryption import decrypt_field
+        return decrypt_field(value)
+    except Exception:
+        return value
+
+
 class User(TimestampMixin, Base):
-    """Core identity table. Merges unified_users + customers."""
+    """Core identity table. Merges unified_users + customers.
+
+    Phone number encryption
+    -----------------------
+    The phone number is stored AES-256-GCM encrypted in the ``phone`` database
+    column.  Access via the ``phone`` Python property which transparently
+    encrypts on write and decrypts on read.
+    """
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    phone: Mapped[Optional[str]] = mapped_column(String(50))
+
+    # Encrypted phone — stored in the existing "phone" column
+    _phone_encrypted: Mapped[Optional[str]] = mapped_column("phone", String(512))
     role: Mapped[str] = mapped_column(String(20), server_default="owner")  # owner, driver, admin
     status: Mapped[str] = mapped_column(String(20), server_default="active")  # active, suspended, deleted
     registered_via: Mapped[str] = mapped_column(String(20), server_default="desktop")  # desktop, android
@@ -55,6 +89,20 @@ class User(TimestampMixin, Base):
         Index("idx_users_role", "role"),
         Index("idx_users_tier", "tier"),
     )
+
+    # ------------------------------------------------------------------
+    # Phone property — encrypts on write, decrypts on read
+    # ------------------------------------------------------------------
+
+    @property
+    def phone(self) -> Optional[str]:
+        """Return the decrypted phone number (or plaintext if key not configured)."""
+        return _try_decrypt_phone(self._phone_encrypted)
+
+    @phone.setter
+    def phone(self, value: Optional[str]) -> None:
+        """Encrypt and store the phone number."""
+        self._phone_encrypted = _try_encrypt_phone(value)
 
 
 class ApiKey(Base):

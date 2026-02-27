@@ -15,6 +15,7 @@ import logging
 import time
 import re
 import os
+import uuid
 from typing import Optional, List
 from pathlib import Path
 
@@ -208,11 +209,17 @@ async def _user_can_access_vehicle(
     return result.scalar_one_or_none() is not None
 
 
-def get_vehicle_image_path(vehicle_id: int, upload_dir: str = "uploads/vehicles") -> Path:
-    """Get the storage path for vehicle images."""
+def get_vehicle_image_path(vehicle_id: int, filename: str, upload_dir: str = "uploads/vehicles") -> Path:
+    """Get the storage path for vehicle images.
+
+    Args:
+        vehicle_id: The vehicle profile ID (used for directory organisation).
+        filename: The randomised filename (caller is responsible for generating it).
+        upload_dir: Base upload directory.
+    """
     base_path = Path(upload_dir)
     base_path.mkdir(parents=True, exist_ok=True)
-    return base_path / f"vehicle_{vehicle_id}.jpg"
+    return base_path / filename
 
 
 def validate_image_file(file: UploadFile) -> tuple[bool, Optional[str]]:
@@ -827,22 +834,26 @@ async def upload_vehicle_image(
     # Read and validate file size
     contents = await file.read()
     max_size = 5 * 1024 * 1024  # 5MB
-    
+
     if len(contents) > max_size:
-        raise APIError(
-            status_code=400,
-            code=ErrorCode.VALIDATION_ERROR,
-            message=f"File too large. Maximum size: 5MB",
+        from fastapi import HTTPException as _HTTPException
+        raise _HTTPException(
+            status_code=413,
+            detail="File too large (max 5MB)",
         )
-    
+
+    # Randomise filename to prevent path traversal and enumeration attacks
+    original_ext = Path(file.filename or "").suffix.lower() or ".jpg"
+    random_filename = f"{uuid.uuid4().hex}{original_ext}"
+
     # Save file
     try:
-        file_path = get_vehicle_image_path(vehicle_id)
+        file_path = get_vehicle_image_path(vehicle_id, random_filename)
         with open(file_path, "wb") as f:
             f.write(contents)
-        
-        # Generate URL for the image
-        image_url = f"/uploads/vehicles/vehicle_{vehicle_id}.jpg"
+
+        # Store the randomised URL in the vehicle record for later retrieval
+        image_url = f"/uploads/vehicles/{random_filename}"
         
         logger.info(f"Vehicle image uploaded: profile_id={vehicle_id}, size={len(contents)} bytes")
         
