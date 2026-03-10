@@ -2321,6 +2321,21 @@ async def explain_predictions(
 
     action_plan = narratives.get("action_plan", {"urgent": [], "soon": [], "routine": [], "healthy_components": []})
 
+    # Haiku diagnostic reasoning (optional, non-blocking)
+    haiku_result = None
+    try:
+        from predict.core.ai.llm.assistant import diagnostic_reasoning
+        haiku_result = await diagnostic_reasoning(
+            vehicle_info=vehicle_dict,
+            component_scores=health.get("components", {}),
+            sensor_readings=latest_telemetry or {},
+            driving_context=health.get("driving_context", "unknown"),
+            research_data=research_data,
+            dtc_codes=dtc_codes,
+        )
+    except Exception as haiku_err:
+        logger.warning(f"Haiku call failed in /explain: {haiku_err}")
+
     elapsed = round((_time.time() - start_time) * 1000)
 
     response = {
@@ -2344,6 +2359,15 @@ async def explain_predictions(
         },
         "processing_time_ms": elapsed,
     }
+
+    if haiku_result:
+        response["ai_diagnostic"] = {
+            "disagreements": haiku_result.get("disagreements", []),
+            "cross_patterns": haiku_result.get("cross_patterns", []),
+            "known_issue_flags": haiku_result.get("known_issue_flags", []),
+            "overall_rating": haiku_result.get("overall_rating"),
+            "owner_summary": haiku_result.get("owner_summary"),
+        }
 
     # Cache in-memory
     _explain_cache[vehicle_id] = (_time.time(), response)
