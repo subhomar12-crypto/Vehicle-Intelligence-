@@ -141,6 +141,7 @@ class RegisterRequest(BaseModel):
     vin: Optional[str] = Field(default=None, max_length=17)
     drivetrain: Optional[str] = Field(default=None, max_length=20)
     category: Optional[str] = Field(default=None, max_length=20)
+    mileage_km: Optional[int] = Field(default=None, ge=0, le=2000000)
 
     @field_validator('email')
     @classmethod
@@ -578,6 +579,7 @@ async def register(
         vin=request.vin or None,
         drivetrain=request.drivetrain or None,
         category=request.category or None,
+        mileage_km=request.mileage_km,
         created_at=now,
     )
     db.add(vehicle)

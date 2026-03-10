@@ -72,6 +72,8 @@ class VehicleProfileCreate(BaseModel):
     transmission: Optional[str] = None
     displacement: Optional[str] = None  # e.g., "3.5L"
     cylinders: Optional[int] = Field(None, ge=1, le=16)
+    mileage_km: Optional[int] = Field(None, ge=0, le=2000000)
+    component_ages: Optional[dict] = None
 
 
 class VehicleProfileUpdate(BaseModel):
@@ -87,6 +89,11 @@ class VehicleProfileUpdate(BaseModel):
     transmission: Optional[str] = None
     displacement: Optional[str] = None
     cylinders: Optional[int] = Field(None, ge=1, le=16)
+    mileage_km: Optional[int] = Field(None, ge=0, le=2000000)
+    component_ages: Optional[dict] = None
+    calibration_id: Optional[str] = None
+    ecu_name: Optional[str] = None
+    cvn: Optional[str] = None
 
 
 class VehicleProfileResponse(BaseModel):
@@ -104,6 +111,10 @@ class VehicleProfileResponse(BaseModel):
     transmission: Optional[str]
     displacement: Optional[str] = None
     cylinders: Optional[int] = None
+    calibration_id: Optional[str] = None
+    ecu_name: Optional[str] = None
+    cvn: Optional[str] = None
+    image_url: Optional[str] = None
     created_at: str
     updated_at: Optional[str]
 
@@ -410,6 +421,10 @@ async def profile_list_legacy(
             "drivetrain": v.drivetrain or "",
             "displacement": v.displacement or "",
             "cylinders": v.cylinders or 0,
+            "calibration_id": v.calibration_id,
+            "ecu_name": v.ecu_name,
+            "cvn": v.cvn,
+            "image_url": v.image_url,
             "api_key": api_key.key_prefix + "..." if api_key else None,
         }
         for v in vehicles
@@ -498,6 +513,10 @@ async def list_vehicles(
             transmission=v.transmission,
             displacement=v.displacement,
             cylinders=v.cylinders,
+            calibration_id=v.calibration_id,
+            ecu_name=v.ecu_name,
+            cvn=v.cvn,
+            image_url=v.image_url,
             created_at=_fmt_ts(v.created_at),
             updated_at=_fmt_ts(v.updated_at) if v.updated_at else None,
         )
@@ -571,6 +590,8 @@ async def create_vehicle(
         transmission=request.transmission,
         displacement=request.displacement,
         cylinders=request.cylinders,
+        mileage_km=request.mileage_km,
+        component_ages=request.component_ages,
         created_at=now,
         updated_at=now,
     )
@@ -637,6 +658,10 @@ async def get_vehicle(
         transmission=vehicle.transmission,
         displacement=vehicle.displacement,
         cylinders=vehicle.cylinders,
+        calibration_id=vehicle.calibration_id,
+        ecu_name=vehicle.ecu_name,
+        cvn=vehicle.cvn,
+        image_url=vehicle.image_url,
         created_at=_fmt_ts(vehicle.created_at),
         updated_at=_fmt_ts(vehicle.updated_at) if vehicle.updated_at else None,
     )
@@ -815,7 +840,8 @@ async def upload_vehicle_image(
             message="Vehicle profile not found",
         )
 
-    if vehicle.owner_user_id != current_user['user_id']:
+    user_tier = current_user.get('tier', 'free')
+    if vehicle.owner_user_id != current_user['user_id'] and user_tier != 'admin':
         raise APIError(
             status_code=403,
             code=ErrorCode.AUTH_INSUFFICIENT_PERMISSIONS,
@@ -852,11 +878,19 @@ async def upload_vehicle_image(
         with open(file_path, "wb") as f:
             f.write(contents)
 
+        # Process photo (background removal + EXIF strip)
+        from predict.core.services.photo_service import process_vehicle_photo
+        await asyncio.to_thread(process_vehicle_photo, str(file_path))
+
         # Store the randomised URL in the vehicle record for later retrieval
         image_url = f"/uploads/vehicles/{random_filename}"
-        
+
+        # Save image URL to vehicle profile
+        vehicle.image_url = image_url
+        await db.commit()
+
         logger.info(f"Vehicle image uploaded: profile_id={vehicle_id}, size={len(contents)} bytes")
-        
+
         return VehicleImageUploadResponse(
             success=True,
             message="Image uploaded successfully",
@@ -871,6 +905,187 @@ async def upload_vehicle_image(
             code=ErrorCode.INTERNAL_ERROR,
             message="Failed to save image file",
         )
+
+
+# ========================
+# Pre-Registration Photo Upload
+# ========================
+
+@router.post("/vehicles/photos/upload-preregistered")
+async def upload_preregistered_photo(
+    file: UploadFile = File(...),
+    make: str = Form(""),
+    model: str = Form(""),
+    year: int = Form(0),
+    color: str = Form(""),
+    vin: str = Form(""),
+    license_plate: str = Form(""),
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Upload a vehicle photo before the vehicle is registered. Admin only."""
+    user_tier = current_user.get('tier', 'free')
+    if user_tier != 'admin':
+        raise APIError(status_code=403, code=ErrorCode.AUTH_INSUFFICIENT_PERMISSIONS, message="Admin only")
+
+    is_valid, error = validate_image_file(file)
+    if not is_valid:
+        raise APIError(status_code=400, code=ErrorCode.VALIDATION_ERROR, message=error)
+
+    contents = await file.read()
+    if len(contents) > 5 * 1024 * 1024:
+        from fastapi import HTTPException as _HTTPException
+        raise _HTTPException(status_code=413, detail="File too large (max 5MB)")
+
+    original_ext = Path(file.filename or "").suffix.lower() or ".jpg"
+    random_filename = f"{uuid.uuid4().hex}{original_ext}"
+
+    file_path = get_vehicle_image_path(0, random_filename)
+    with open(file_path, "wb") as f:
+        f.write(contents)
+
+    # Process photo
+    from predict.core.services.photo_service import process_vehicle_photo
+    await asyncio.to_thread(process_vehicle_photo, str(file_path))
+
+    image_url = f"/uploads/vehicles/{random_filename}"
+
+    # Save to VehiclePhoto table
+    from predict.core.db.models.vehicle import VehiclePhoto
+    photo = VehiclePhoto(
+        vin=vin or None,
+        license_plate=license_plate or None,
+        make=make or None,
+        model=model or None,
+        year=year or None,
+        color=color or None,
+        image_url=image_url,
+        original_url=image_url,
+        uploaded_by="admin",
+    )
+    db.add(photo)
+    await db.commit()
+
+    return {"success": True, "message": "Photo uploaded", "photo_id": photo.id, "image_url": image_url}
+
+
+@router.get("/vehicles/photos/unmatched")
+async def get_unmatched_photos(
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """List pre-uploaded photos not yet assigned to a vehicle profile. Admin only."""
+    user_tier = current_user.get('tier', 'free')
+    if user_tier != 'admin':
+        raise APIError(status_code=403, code=ErrorCode.AUTH_INSUFFICIENT_PERMISSIONS, message="Admin only")
+
+    from predict.core.db.models.vehicle import VehiclePhoto
+
+    stmt = select(VehiclePhoto).where(VehiclePhoto.assigned_to_profile_id.is_(None)).order_by(VehiclePhoto.id.desc())
+    result = await db.execute(stmt)
+    photos = result.scalars().all()
+
+    return {
+        "success": True,
+        "photos": [
+            {
+                "id": p.id,
+                "make": p.make,
+                "model": p.model,
+                "year": p.year,
+                "color": p.color,
+                "vin": p.vin,
+                "license_plate": p.license_plate,
+                "image_url": p.image_url,
+                "uploaded_by": p.uploaded_by,
+                "created_at": str(p.created_at) if p.created_at else None,
+            }
+            for p in photos
+        ],
+        "count": len(photos),
+    }
+
+
+@router.delete("/vehicles/photos/{photo_id}")
+async def delete_vehicle_photo(
+    photo_id: int,
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Delete a pre-uploaded vehicle photo. Admin only."""
+    user_tier = current_user.get('tier', 'free')
+    if user_tier != 'admin':
+        raise APIError(status_code=403, code=ErrorCode.AUTH_INSUFFICIENT_PERMISSIONS, message="Admin only")
+
+    from predict.core.db.models.vehicle import VehiclePhoto
+
+    stmt = select(VehiclePhoto).where(VehiclePhoto.id == photo_id)
+    result = await db.execute(stmt)
+    photo = result.scalar_one_or_none()
+
+    if not photo:
+        raise APIError(status_code=404, code=ErrorCode.VEHICLE_NOT_FOUND, message="Photo not found")
+
+    # Delete file from disk
+    file_path = Path(photo.image_url.lstrip("/"))
+    if file_path.exists():
+        file_path.unlink()
+
+    await db.delete(photo)
+    await db.commit()
+
+    return {"success": True, "message": "Photo deleted"}
+
+
+# ========================
+# Last Known Location
+# ========================
+
+class LastLocationRequest(BaseModel):
+    """Payload sent by driver app on OBD disconnect."""
+    latitude: float
+    longitude: float
+    accuracy: Optional[float] = None
+    timestamp: Optional[float] = None  # Unix timestamp; defaults to server time
+
+
+@router.post("/vehicles/{vehicle_id}/last-location")
+async def update_last_location(
+    vehicle_id: int,
+    payload: LastLocationRequest,
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    POST /api/vehicles/{vehicle_id}/last-location
+
+    Called by driver app when OBD disconnects. Silently saves GPS snapshot.
+    """
+    vehicle_repo = VehicleProfileRepository(db)
+    vehicle = await vehicle_repo.get_by_id(vehicle_id)
+
+    if not vehicle:
+        raise APIError(
+            status_code=404,
+            code=ErrorCode.VEHICLE_NOT_FOUND,
+            message="Vehicle profile not found",
+        )
+
+    # Only the vehicle owner can update location
+    if vehicle.owner_user_id != current_user["user_id"]:
+        raise APIError(
+            status_code=403,
+            code=ErrorCode.AUTH_INSUFFICIENT_PERMISSIONS,
+            message="Only the vehicle owner can update location",
+        )
+
+    vehicle.last_latitude = payload.latitude
+    vehicle.last_longitude = payload.longitude
+    vehicle.last_location_accuracy = payload.accuracy
+    vehicle.last_location_at = payload.timestamp or time.time()
+    await db.commit()
+
+    return {"success": True, "message": "Location saved"}
 
 
 # ========================
@@ -973,6 +1188,20 @@ async def create_service_record(
 
     db.add(record)
     await db.commit()
+
+    # Track prediction accuracy (non-blocking)
+    try:
+        from predict.core.ai.accuracy_tracker import get_accuracy_tracker
+        tracker = get_accuracy_tracker()
+        await tracker.on_service_record_created(
+            vehicle_id=vehicle_id,
+            service_type=request.service_type,
+            component_type=getattr(request, "component_type", None),
+            session=db,
+        )
+        await db.commit()
+    except Exception as e:
+        logger.debug("Accuracy tracking failed (non-fatal): %s", e)
 
     return SuccessResponse(success=True, message="Service record added")
 
