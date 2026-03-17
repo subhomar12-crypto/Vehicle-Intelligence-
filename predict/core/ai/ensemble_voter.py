@@ -1,38 +1,53 @@
 """
-Ensemble voting system for combining multiple ML models.
-
-Combines predictions from LSTM, XGBoost, and other models for robust results.
+Ensemble voter that combines predictions from multiple models with uncertainty estimation.
 """
 
 import logging
-from typing import List, Dict, Any, Optional, Tuple
-from dataclasses import dataclass
-from datetime import datetime
+import time
+from typing import Dict, Any, List, Optional
 import numpy as np
 
 logger = logging.getLogger(__name__)
 
 
-@dataclass
-class ModelPrediction:
-    """Single model prediction result."""
-    model_name: str
-    failure_probability: float
-    weight: float
-    confidence: float
+class _SimpleUncertaintyEstimator:
+    """Inline replacement for deleted UncertaintyEstimator module."""
+
+    def estimate(self, predictions: List[Dict[str, Any]]) -> Dict[str, Any]:
+        risks = [p["risk"] for p in predictions]
+        if len(risks) < 2:
+            return {
+                "confidence": 0.7,
+                "epistemic_uncertainty": 0.3,
+                "confidence_level": "low",
+                "models_agree": True,
+                "should_suppress_alert": False,
+                "should_abstain": False,
+            }
+        std = float(np.std(risks))
+        confidence = max(0.5, min(1.0, 1.0 - (std / 0.5)))
+        models_agree = std < 0.15
+        return {
+            "confidence": confidence,
+            "epistemic_uncertainty": std,
+            "confidence_level": "high" if confidence > 0.8 else ("medium" if confidence > 0.6 else "low"),
+            "models_agree": models_agree,
+            "should_suppress_alert": confidence < 0.5,
+            "should_abstain": confidence < 0.3,
+        }
 
 
 class EnsembleVoter:
     """
-    Ensemble voter combining multiple model predictions.
-    
-    Uses weighted voting based on model performance and confidence.
+    Combines predictions from multiple models using weighted voting.
+
+    Includes uncertainty estimation for production safety.
     """
-    
+
     def __init__(self):
-        self.models: Dict[str, Any] = {}
-        self.weights: Dict[str, float] = {}
-        self.min_confidence_threshold = 0.3
+        self.models: Dict[str, Dict[str, Any]] = {}
+        self.uncertainty_estimator = _SimpleUncertaintyEstimator()
+        logger.debug("EnsembleVoter initialized")
     
     def register_model(
         self,
@@ -40,228 +55,96 @@ class EnsembleVoter:
         model: Any,
         weight: float = 1.0,
     ) -> None:
-        """
-        Register a model with the ensemble.
-        
-        Args:
-            name: Model identifier
-            model: Model instance with predict() method
-            weight: Voting weight (higher = more influence)
-        """
-        self.models[name] = model
-        self.weights[name] = weight
+        """Register a model with the ensemble."""
+        self.models[name] = {
+            "model": model,
+            "weight": weight,
+        }
         logger.info(f"Registered model '{name}' with weight {weight}")
     
-    def predict(
+    async def predict(
         self,
-        data: Any,
-        require_consensus: bool = False,
+        data: Dict[str, Any],
+        component: str = "general",
     ) -> Dict[str, Any]:
         """
-        Make ensemble prediction using all registered models.
+        Get ensemble prediction with uncertainty estimate.
         
         Args:
-            data: Input data for prediction
-            require_consensus: If True, all models must agree on risk level
+            data: Input sensor data
+            component: Component being assessed
         
         Returns:
-            Ensemble prediction with:
-                - failure_probability: Weighted average
-                - risk_level: LOW, MEDIUM, HIGH, CRITICAL
-                - model_predictions: Individual model results
-                - confidence: Overall confidence
-                - consensus: Whether models agree
+            Dict with ensemble prediction and uncertainty metrics
         """
-        if not self.models:
-            logger.warning("No models registered in ensemble")
-            return self._fallback_prediction()
+        predictions = []
         
-        # Get predictions from all models
-        model_predictions = self._get_model_predictions(data)
+        # Collect predictions from all models
+        for name, model_info in self.models.items():
+            try:
+                model = model_info["model"]
+                
+                # Get prediction from model
+                if hasattr(model, 'predict'):
+                    pred = await model.predict(data) if hasattr(model.predict, '__code__') and model.predict.__code__.co_flags & 0x80 else model.predict(data)
+                else:
+                    continue
+                
+                predictions.append({
+                    "model": name,
+                    "risk": float(pred) if isinstance(pred, (int, float)) else pred.get("risk", 0.5),
+                    "weight": model_info["weight"],
+                    "component": component,
+                })
+            
+            except Exception as e:
+                logger.warning(f"Model '{name}' failed to predict: {e}")
+                continue
         
-        if not model_predictions:
-            return self._fallback_prediction()
+        if not predictions:
+            logger.error("No models produced predictions")
+            return {
+                "risk": 0.5,
+                "confidence": 0.0,
+                "uncertainty": 1.0,
+                "predictions": [],
+                "timestamp": time.time(),
+            }
         
-        # Calculate weighted average
-        weighted_prob = self._calculate_weighted_average(model_predictions)
+        # Calculate weighted ensemble prediction
+        total_weight = sum(p["weight"] for p in predictions)
+        weighted_risk = sum(p["risk"] * p["weight"] for p in predictions) / total_weight
         
-        # Determine risk level
-        risk_level = self._determine_risk_level(weighted_prob)
-        
-        # Check consensus
-        consensus = self._check_consensus(model_predictions)
-        
-        # Calculate overall confidence
-        confidence = self._calculate_overall_confidence(model_predictions)
+        # Estimate uncertainty
+        uncertainty = self.uncertainty_estimator.estimate(predictions)
         
         result = {
-            "failure_probability": round(weighted_prob, 4),
-            "risk_level": risk_level,
-            "confidence": round(confidence, 4),
-            "consensus": consensus,
-            "model_count": len(model_predictions),
-            "model_predictions": [
-                {
-                    "model": p.model_name,
-                    "probability": round(p.failure_probability, 4),
-                    "weight": p.weight,
-                    "confidence": round(p.confidence, 4),
-                }
-                for p in model_predictions
-            ],
-            "timestamp": datetime.utcnow().isoformat(),
+            "risk": weighted_risk,
+            "raw_risk": weighted_risk,
+            "confidence": uncertainty["confidence"],
+            "uncertainty": uncertainty["epistemic_uncertainty"],
+            "confidence_level": uncertainty["confidence_level"],
+            "models_agree": uncertainty["models_agree"],
+            "should_suppress_alert": uncertainty["should_suppress_alert"],
+            "should_abstain": uncertainty["should_abstain"],
+            "predictions": predictions,
+            "uncertainty_details": uncertainty,
+            "timestamp": time.time(),
         }
         
-        # Add warning if consensus required but not achieved
-        if require_consensus and not consensus:
-            result["warning"] = "Low consensus - models disagree on risk level"
+        logger.debug(
+            f"Ensemble prediction: risk={weighted_risk:.3f}, "
+            f"confidence={uncertainty['confidence']:.3f}"
+        )
         
         return result
     
-    def _get_model_predictions(
-        self,
-        data: Any
-    ) -> List[ModelPrediction]:
-        """Get predictions from all registered models."""
-        predictions = []
-        
-        for name, model in self.models.items():
-            try:
-                # Call model predict method
-                if hasattr(model, 'predict'):
-                    raw_pred = model.predict(data)
-                else:
-                    logger.warning(f"Model {name} has no predict method")
-                    continue
-                
-                # Parse prediction
-                prob, conf = self._parse_prediction(raw_pred, name)
-                
-                pred = ModelPrediction(
-                    model_name=name,
-                    failure_probability=prob,
-                    weight=self.weights.get(name, 1.0),
-                    confidence=conf,
-                )
-                predictions.append(pred)
-            
-            except Exception as e:
-                logger.error(f"Model {name} prediction failed: {e}")
-                continue
-        
-        return predictions
-    
-    def _parse_prediction(
-        self,
-        raw_pred: Any,
-        model_name: str
-    ) -> Tuple[float, float]:
-        """Parse prediction result into probability and confidence."""
-        if isinstance(raw_pred, dict):
-            prob = raw_pred.get('failure_probability', 0.0)
-            conf = raw_pred.get('confidence', 0.5)
-        elif isinstance(raw_pred, (list, np.ndarray)):
-            prob = float(raw_pred[0]) if len(raw_pred) > 0 else 0.0
-            conf = 0.5
-        else:
-            prob = float(raw_pred)
-            conf = 0.5
-        
-        # Clamp values
-        prob = max(0.0, min(1.0, prob))
-        conf = max(0.0, min(1.0, conf))
-        
-        return prob, conf
-    
-    def _calculate_weighted_average(
-        self,
-        predictions: List[ModelPrediction]
-    ) -> float:
-        """Calculate weighted average of predictions."""
-        total_weight = sum(p.weight * p.confidence for p in predictions)
-        
-        if total_weight == 0:
-            return 0.0
-        
-        weighted_sum = sum(
-            p.failure_probability * p.weight * p.confidence
-            for p in predictions
-        )
-        
-        return weighted_sum / total_weight
-    
-    def _determine_risk_level(self, probability: float) -> str:
-        """Determine risk level from probability."""
-        if probability < 0.2:
-            return "LOW"
-        elif probability < 0.4:
-            return "MEDIUM"
-        elif probability < 0.7:
-            return "HIGH"
-        else:
-            return "CRITICAL"
-    
-    def _check_consensus(self, predictions: List[ModelPrediction]) -> bool:
-        """Check if models agree on risk level."""
-        if len(predictions) < 2:
-            return True
-        
-        risk_levels = [
-            self._determine_risk_level(p.failure_probability)
-            for p in predictions
-        ]
-        
-        # Check if all agree
-        return len(set(risk_levels)) == 1
-    
-    def _calculate_overall_confidence(
-        self,
-        predictions: List[ModelPrediction]
-    ) -> float:
-        """Calculate overall confidence based on model confidences and agreement."""
-        if not predictions:
-            return 0.0
-        
-        # Average confidence weighted by model weights
-        total_weight = sum(p.weight for p in predictions)
-        avg_confidence = sum(p.confidence * p.weight for p in predictions) / total_weight
-        
-        # Penalize if models disagree significantly
-        probs = [p.failure_probability for p in predictions]
-        prob_std = np.std(probs)
-        agreement_factor = max(0, 1 - prob_std)
-        
-        return avg_confidence * agreement_factor
-    
-    def _fallback_prediction(self) -> Dict[str, Any]:
-        """Return fallback when no models available."""
+    def get_model_status(self) -> Dict[str, Any]:
+        """Get status of all registered models."""
         return {
-            "failure_probability": 0.0,
-            "risk_level": "UNKNOWN",
-            "confidence": 0.0,
-            "consensus": False,
-            "model_count": 0,
-            "model_predictions": [],
-            "timestamp": datetime.utcnow().isoformat(),
-            "note": "No models available for prediction",
-        }
-    
-    def update_weight(self, model_name: str, weight: float) -> bool:
-        """Update voting weight for a model."""
-        if model_name not in self.models:
-            return False
-        
-        self.weights[model_name] = weight
-        logger.info(f"Updated weight for '{model_name}' to {weight}")
-        return True
-    
-    def get_model_info(self) -> List[Dict[str, Any]]:
-        """Get information about registered models."""
-        return [
-            {
-                "name": name,
-                "weight": self.weights.get(name, 1.0),
-                "type": type(model).__name__,
+            name: {
+                "weight": info["weight"],
+                "type": type(info["model"]).__name__,
             }
-            for name, model in self.models.items()
-        ]
+            for name, info in self.models.items()
+        }
