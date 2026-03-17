@@ -1396,6 +1396,21 @@ async def batch_v2_upload(
                 if val is not None:
                     record_kwargs[column_name] = val
 
+            # Inject ambient temp from weather API if missing
+            if (
+                not record_kwargs.get("ambient_temp")
+                and record_kwargs.get("latitude")
+                and record_kwargs.get("longitude")
+            ):
+                try:
+                    from predict.core.ai.weather_service import get_weather_service
+                    weather_temp = await get_weather_service().get_current_temp(
+                        record_kwargs["latitude"], record_kwargs["longitude"]
+                    )
+                    record_kwargs["ambient_temp"] = weather_temp
+                except Exception:
+                    pass  # Weather is best-effort; never block data ingestion
+
             record = VehicleData(**record_kwargs)
             session.add(record)
             stored_count += 1
