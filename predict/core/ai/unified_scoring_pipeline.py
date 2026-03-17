@@ -386,8 +386,25 @@ class UnifiedScoringPipeline:
     # Driving context
     # ------------------------------------------------------------------
 
-    def _classify_driving(self, telemetry: Dict[str, Any]) -> str:
+    def _classify_driving(self, telemetry) -> str:
         """Heuristic driving-context classification."""
+        # If we have a window of readings, use the full classifier
+        if isinstance(telemetry, list):
+            try:
+                from predict.core.ai.driving_classifier import DrivingContextClassifier
+                classifier = DrivingContextClassifier()
+                result = classifier.classify(telemetry)
+                return result["context"]
+            except Exception:
+                pass  # Fall back to single-reading heuristic
+            
+            # Fallback: use last reading from list
+            if telemetry:
+                telemetry = telemetry[-1]
+            else:
+                return "city"
+        
+        # Single reading heuristic
         speed = telemetry.get("speed") or 0
         rpm = telemetry.get("rpm") or 0
 
