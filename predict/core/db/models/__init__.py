@@ -37,6 +37,9 @@ from predict.core.db.models.prediction_feedback import (
     ComponentAccuracyStats, FleetPenaltyAdjustment,
 )
 from predict.core.db.models.pricing import PartsPrice, ServicePrice
+from predict.core.db.models.model_registry import (
+    ModelVersion, BaseModelEntry, TrainingJob,
+)
 
 __all__ = [
     # User domain
@@ -70,4 +73,6 @@ __all__ = [
     "ComponentAccuracyStats", "FleetPenaltyAdjustment",
     # Pricing domain
     "PartsPrice", "ServicePrice",
+    # Model registry
+    "ModelVersion", "BaseModelEntry", "TrainingJob",
 ]
