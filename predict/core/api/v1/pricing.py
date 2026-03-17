@@ -1,7 +1,7 @@
 """
 Pricing API — CRUD for parts and service prices (Qatar market).
 
-Admin endpoints: full CRUD + verify web-scraped prices.
+Admin endpoints: full CRUD + verify web-scraped prices + LLM-powered web search.
 Customer endpoints: /estimate/{component_id} returns min/max QAR range.
 Mechanic feedback: auto-create price entry from driver service logs.
 """
@@ -97,6 +97,13 @@ class ServicePriceUpdate(BaseModel):
 class FeedbackPriceRequest(BaseModel):
     component_id: str
     total_cost: float = Field(..., gt=0)
+    vehicle_make: Optional[str] = None
+    vehicle_model: Optional[str] = None
+    vehicle_year: Optional[int] = None
+
+
+class PriceSearchRequest(BaseModel):
+    component_id: str
     vehicle_make: Optional[str] = None
     vehicle_model: Optional[str] = None
     vehicle_year: Optional[int] = None
@@ -614,6 +621,47 @@ async def _cascading_service_lookup(
     )
     result = await session.execute(stmt)
     return list(result.scalars().all())
+
+
+# ========================
+# Admin — LLM-Powered Price Search
+# ========================
+
+@router.post("/search")
+async def search_prices(
+    body: PriceSearchRequest,
+    current_user: dict = Depends(get_current_user),
+):
+    """Search the web for parts prices and extract structured data via LLM.
+
+    Admin only. Results are returned for review — NOT auto-saved.
+    The admin can manually save verified prices through the CRUD endpoints.
+    """
+    _require_admin(current_user)
+
+    from predict.core.services.price_search_service import PriceSearchService
+    from dataclasses import asdict
+
+    service = PriceSearchService()
+    results = await service.search_prices(
+        component=body.component_id,
+        vehicle_make=body.vehicle_make,
+        vehicle_model=body.vehicle_model,
+        vehicle_year=body.vehicle_year,
+    )
+
+    logger.info(
+        "Price search: component=%s make=%s results=%d",
+        body.component_id,
+        body.vehicle_make,
+        len(results),
+    )
+
+    return {
+        "success": True,
+        "results": [asdict(r) for r in results],
+        "query_count": len(results),
+    }
 
 
 # ========================
