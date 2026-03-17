@@ -1147,14 +1147,48 @@ async def get_health_assessment(
     except Exception as e:
         logger.warning("Failed to fetch Mode 06 data for vehicle %d: %s", vehicle_id, e)
 
-    # 7. Run cold-start predictor + event bus
-    predictor = get_cold_start_predictor()
-
+    # 7. Run unified scoring pipeline (falls back to cold-start on failure)
     # Lazy-load event bus and listeners
     from predict.core.events.event_bus import event_bus
     import predict.core.events.listeners  # noqa: F401 — registers listeners
 
+    # Try the unified pipeline first — it runs cold-start internally
+    # and will blend in LSTM / XGBoost / survival as they come online.
+    _used_unified_pipeline = False
     try:
+        from predict.core.ai.unified_scoring_pipeline import get_unified_pipeline
+        pipeline = get_unified_pipeline()
+        pipeline_result = await pipeline.score_vehicle(
+            session=session,
+            profile_id=vehicle_id,
+            latest_telemetry=latest_telemetry,
+            telemetry_history=telemetry_history,
+            vehicle_profile=vehicle_profile,
+            dtc_codes=dtc_codes,
+            service_records=service_records_data if service_records_data else None,
+        )
+        if pipeline_result and pipeline_result.get("success"):
+            # Merge the raw cold-start result (which the pipeline ran internally)
+            # so downstream enrichment (baseline, urgency, patterns) keeps working.
+            cs_raw = pipeline_result.pop("_cold_start_raw", None)
+            result = pipeline_result
+            # Carry over fields from cold-start that the pipeline doesn't duplicate
+            if cs_raw and isinstance(cs_raw, dict):
+                result.setdefault("active_dtcs", cs_raw.get("active_dtcs", []))
+                result.setdefault("climate_region", cs_raw.get("climate_region", "qatar"))
+                result.setdefault("mileage_km", cs_raw.get("mileage_km"))
+                result.setdefault("mileage_source", cs_raw.get("mileage_source"))
+                result.setdefault("detected_patterns", cs_raw.get("detected_patterns", []))
+                result.setdefault("cold_start_available", cs_raw.get("cold_start_available", False))
+                result.setdefault("resting_voltage", cs_raw.get("resting_voltage"))
+            _used_unified_pipeline = True
+            logger.info("health-assessment: used unified pipeline for vehicle %d", vehicle_id)
+    except Exception as pipe_err:
+        logger.warning("Unified pipeline failed, falling back to cold-start: %s", pipe_err)
+
+    # Fallback: direct cold-start predictor (pre-pipeline path)
+    if not _used_unified_pipeline:
+        predictor = get_cold_start_predictor()
         result = await predictor.assess_vehicle_health(
             vehicle_id=vehicle_id,
             latest_telemetry=latest_telemetry,
@@ -1165,7 +1199,10 @@ async def get_health_assessment(
             climate_region="qatar",
             service_records=service_records_data if service_records_data else None,
             mode06_results=mode06_data,
+            session=session,
         )
+
+    try:
 
         # 7b. Merge per-vehicle baseline anomalies (if available)
         try:
@@ -2099,6 +2136,7 @@ async def explain_predictions(
             profile=vehicle_dict,
             active_dtcs=dtc_codes,
             include_explanation=True,
+            session=session,
         )
         cold_start_health = full_intelligence.get("cold_start_health", {})
         lstm_preds = full_intelligence.get("predictions", {}).get("lstm", {})
@@ -2118,6 +2156,7 @@ async def explain_predictions(
             dtc_codes=dtc_codes,
             telemetry_history=telemetry_history,
             climate_region="qatar",
+            session=session,
         )
         full_intelligence = {"cold_start_health": cold_start_health}
         lstm_preds = {}
