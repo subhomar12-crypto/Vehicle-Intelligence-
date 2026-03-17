@@ -7,8 +7,10 @@ Consolidates: profiles + vehicle_profiles → vehicle_profiles
 from typing import Optional
 
 from sqlalchemy import (
-    Boolean, String, Integer, Float, Text, ForeignKey, Index, UniqueConstraint,
+    Boolean, LargeBinary, String, Integer, Float, Text, ForeignKey, Index,
+    UniqueConstraint,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from predict.core.db.base import Base, TimestampMixin
@@ -96,6 +98,27 @@ class VehicleProfile(TimestampMixin, Base):
     displacement: Mapped[Optional[str]] = mapped_column(String(10))  # e.g., "3.5L"
     cylinders: Mapped[Optional[int]] = mapped_column(Integer)  # e.g., 6
 
+    # Last known location (saved on OBD disconnect)
+    last_latitude: Mapped[Optional[float]] = mapped_column(Float)
+    last_longitude: Mapped[Optional[float]] = mapped_column(Float)
+    last_location_accuracy: Mapped[Optional[float]] = mapped_column(Float)
+    last_location_at: Mapped[Optional[float]] = mapped_column(Float)  # Unix timestamp
+
+    image_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+
+    # ECU info from OBD Mode 09
+    calibration_id: Mapped[Optional[str]] = mapped_column(String(50))
+    ecu_name: Mapped[Optional[str]] = mapped_column(String(100))
+    cvn: Mapped[Optional[str]] = mapped_column(String(50))
+
+    # Mileage + component age tracking (Intelligence Engine v2)
+    mileage_km: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    component_ages = mapped_column(JSONB, nullable=True)  # {"battery": {"replaced_date": "2025-06-15", "replaced_km": 180000}, ...}
+
+    # Persisted AI health explanation — one LLM call serves both OBD + Guardian
+    last_explain_json: Mapped[Optional[str]] = mapped_column(Text)
+    last_explain_at: Mapped[Optional[float]] = mapped_column(Float)  # Unix timestamp
+
     __table_args__ = (
         # Index on vin_hash replaces the plaintext vin index for lookups
         Index("idx_vehicle_profiles_vin_hash", "vin_hash"),
@@ -165,6 +188,39 @@ class VehicleData(Base):
 
     # Odometer (km, sent from Android OdometerTracker)
     odometer: Mapped[Optional[float]] = mapped_column(Float)
+
+    # Extended PIDs — populated when vehicle ECU supports them
+    ambient_temp: Mapped[Optional[float]] = mapped_column(Float)
+    boost_pressure: Mapped[Optional[float]] = mapped_column(Float)
+    fuel_rate: Mapped[Optional[float]] = mapped_column(Float)
+    torque: Mapped[Optional[float]] = mapped_column(Float)
+    obd_odometer: Mapped[Optional[float]] = mapped_column(Float)
+
+    # Additional extended PIDs for AI training
+    intake_manifold_pressure: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    baro_pressure: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    o2_sensor_b1s1: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    o2_sensor_b1s2: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    catalyst_temp_b1s1: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    catalyst_temp_b1s2: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    oil_pressure: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+
+    # DTC event counts — injected into telemetry for AI timeline correlation
+    dtc_active_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    dtc_pending_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+
+    # Mode 06 ECU test summary counts
+    mode06_total: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    mode06_passed: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    mode06_failed: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+
+    # Mode 06 ECU test results (stored as JSON array)
+    mode06_results: Mapped[Optional[str]] = mapped_column(Text)
+
+    # Consult-II extended sensors (Pi5 edge unit)
+    injector_ms: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    fuel_trim_b2: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    accel_pedal: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
 
     # Metadata
     source: Mapped[Optional[str]] = mapped_column(String(20))
@@ -302,6 +358,62 @@ class VehicleResearch(TimestampMixin, Base):
         Index("idx_vehicle_research_profile", "profile_id"),
         Index("idx_vehicle_research_status", "research_status"),
     )
+
+
+class VehicleBaseline(Base):
+    """Per-vehicle AI baseline — learned 'normal' for THIS specific car.
+
+    Progresses through phases as data accumulates:
+      - collecting:        < 500 data points, just accumulating stats
+      - baseline_ready:    500+ points, mean/std/trends available
+      - autoencoder_ready: 2000+ points, autoencoder trained, anomaly detection active
+    """
+    __tablename__ = "vehicle_baselines"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    profile_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("vehicle_profiles.profile_id"), unique=True, index=True,
+    )
+    trip_count: Mapped[int] = mapped_column(Integer, server_default="0")
+    data_points: Mapped[int] = mapped_column(Integer, server_default="0")
+
+    # Per-sensor running stats: {"rpm": {"mean": 2400, "std": 300, "min": 700, "max": 6200}, ...}
+    sensor_stats: Mapped[Optional[str]] = mapped_column(Text)
+
+    # Weekly trend data: {"coolant_temp": [91.2, 91.5, 91.8, 92.3], ...}
+    weekly_trends: Mapped[Optional[str]] = mapped_column(Text)
+
+    # Autoencoder model weights (~50KB per vehicle, binary)
+    autoencoder_weights: Mapped[Optional[bytes]] = mapped_column(LargeBinary, nullable=True)
+    autoencoder_trained_at: Mapped[Optional[float]] = mapped_column(Float)
+    autoencoder_loss: Mapped[Optional[float]] = mapped_column(Float)
+
+    # Phase: collecting / baseline_ready / autoencoder_ready
+    phase: Mapped[str] = mapped_column(String(20), server_default="collecting")
+
+    updated_at: Mapped[Optional[float]] = mapped_column(Float)
+    created_at: Mapped[Optional[float]] = mapped_column(Float)
+
+    __table_args__ = (
+        Index("idx_vehicle_baselines_profile", "profile_id"),
+    )
+
+
+class VehiclePhoto(TimestampMixin, Base):
+    """Pre-uploaded vehicle photos for matching on registration."""
+    __tablename__ = "vehicle_photos"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    vin: Mapped[Optional[str]] = mapped_column(String(17), nullable=True)
+    license_plate: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    make: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    model: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    year: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    color: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    image_url: Mapped[str] = mapped_column(String(500))
+    original_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    uploaded_by: Mapped[str] = mapped_column(String(20), server_default="admin")  # admin/owner/driver
+    assigned_to_profile_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 
 
 class FailureEvent(TimestampMixin, Base):
