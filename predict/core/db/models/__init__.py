@@ -9,7 +9,7 @@ from predict.core.db.models.user import (
 from predict.core.db.models.vehicle import (
     VehicleProfile, VehicleData, OBDRecord, TelemetryRecord, ServiceRecord,
 )
-from predict.core.db.models.dtc import DTCCode, DTCHistory
+from predict.core.db.models.dtc import DTCCodes, DTCHistory
 from predict.core.db.models.guardian import (
     Guardian, VehicleGuardian, Alert, GuardianCommand,
     LocationRequest, ConsentRecord, GuardianTelemetry, DrivingEvent,
@@ -27,9 +27,16 @@ from predict.core.db.models.subscription import (
     TierUpgradeRequest, SubscriptionAuditLog,
 )
 from predict.core.db.models.audit import (
-    AuditLog, VerificationCode, VerificationSession,
+    Report, AuditLog, VerificationCode, VerificationSession,
     IdempotencyCache, FailedOperation, DataExportConfig, ExportHistory,
 )
+from predict.core.db.models.pid_atlas import PIDAtlas
+from predict.core.db.models.prediction_feedback import (
+    PredictionSnapshot, PredictionAccuracy, PredictionFeedback,
+    FleetPattern, FleetLearningAdjustment,
+    ComponentAccuracyStats, FleetPenaltyAdjustment,
+)
+from predict.core.db.models.pricing import PartsPrice, ServicePrice
 
 __all__ = [
     # User domain
@@ -38,7 +45,7 @@ __all__ = [
     # Vehicle domain
     "VehicleProfile", "VehicleData", "OBDRecord", "TelemetryRecord", "ServiceRecord",
     # DTC domain
-    "DTCCode", "DTCHistory",
+    "DTCCodes", "DTCHistory",
     # Guardian domain
     "Guardian", "VehicleGuardian", "Alert", "GuardianCommand",
     "LocationRequest", "GuardianTelemetry", "DrivingEvent",
@@ -52,7 +59,15 @@ __all__ = [
     "FleetInvite", "Geofence", "GeofenceEvent",
     "TierUpgradeRequest", "SubscriptionAuditLog",
     # Audit domain
-    "AuditLog", "VerificationCode", "VerificationSession",
+    "Report", "AuditLog", "VerificationCode", "VerificationSession",
     "IdempotencyCache", "FailedOperation", "DataExportConfig", "ExportHistory",
     "ConsentRecord",
+    # PID Atlas
+    "PIDAtlas",
+    # Prediction Feedback
+    "PredictionSnapshot", "PredictionAccuracy", "PredictionFeedback",
+    "FleetPattern", "FleetLearningAdjustment",
+    "ComponentAccuracyStats", "FleetPenaltyAdjustment",
+    # Pricing domain
+    "PartsPrice", "ServicePrice",
 ]
