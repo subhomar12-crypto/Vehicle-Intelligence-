@@ -114,6 +114,9 @@ desktop.ini
 # Windows reserved device name (cannot be indexed by git)
 nul
 
+# Claude Code internal settings (never commit)
+.claude/
+
 # -------------------------------------------
 # BUILD AND DISTRIBUTION
 # -------------------------------------------
