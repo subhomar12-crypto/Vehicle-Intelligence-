@@ -174,8 +174,11 @@ def _fmt_ts(ts) -> str:
 
 async def _user_can_access_vehicle(
     db: AsyncSession, user_id: int, vehicle: VehicleProfile,
+    user_tier: str = None,
 ) -> bool:
-    """Check if user can access vehicle as owner, co-guardian, or driver."""
+    """Check if user can access vehicle as owner, co-guardian, driver, or admin."""
+    if user_tier in ("admin", "enterprise"):
+        return True
     if vehicle.owner_user_id == user_id:
         return True
 
@@ -636,7 +639,7 @@ async def get_vehicle(
             message="Vehicle profile not found",
         )
 
-    if not await _user_can_access_vehicle(db, current_user['user_id'], vehicle):
+    if not await _user_can_access_vehicle(db, current_user['user_id'], vehicle, current_user.get('tier')):
         raise APIError(
             status_code=403,
             code=ErrorCode.AUTH_INSUFFICIENT_PERMISSIONS,
@@ -1109,7 +1112,7 @@ async def list_service_records(
             message="Vehicle profile not found",
         )
 
-    if not await _user_can_access_vehicle(db, current_user['user_id'], vehicle):
+    if not await _user_can_access_vehicle(db, current_user['user_id'], vehicle, current_user.get('tier')):
         raise APIError(
             status_code=403,
             code=ErrorCode.AUTH_INSUFFICIENT_PERMISSIONS,
@@ -1159,7 +1162,7 @@ async def create_service_record(
             message="Vehicle profile not found",
         )
 
-    if not await _user_can_access_vehicle(db, current_user['user_id'], vehicle):
+    if not await _user_can_access_vehicle(db, current_user['user_id'], vehicle, current_user.get('tier')):
         raise APIError(
             status_code=403,
             code=ErrorCode.AUTH_INSUFFICIENT_PERMISSIONS,
@@ -1203,6 +1206,46 @@ async def create_service_record(
     except Exception as e:
         logger.debug("Accuracy tracking failed (non-fatal): %s", e)
 
+    # Reset component age on service (non-blocking)
+    _SERVICE_TO_COMPONENT = {
+        "oil_change": "engine_oil",
+        "oil_filter": "engine_oil",
+        "air_filter": "air_filter",
+        "cabin_filter": "cabin_filter",
+        "brake_pads": "brakes",
+        "brake_fluid": "brakes",
+        "coolant_flush": "coolant",
+        "transmission": "transmission",
+        "spark_plugs": "spark_plugs",
+        "battery": "battery",
+        "timing_belt": "timing_belt",
+        "timing_chain": "timing_belt",
+    }
+    try:
+        component_name = _SERVICE_TO_COMPONENT.get(request.service_type)
+        if component_name and vehicle:
+            import json as _json
+            ages = {}
+            if vehicle.component_ages:
+                ages = (
+                    _json.loads(vehicle.component_ages)
+                    if isinstance(vehicle.component_ages, str)
+                    else dict(vehicle.component_ages)
+                )
+            from datetime import datetime as _dt
+            ages[component_name] = {
+                "replaced_date": _dt.now().isoformat()[:10],
+                "replaced_km": vehicle.mileage_km or 0,
+            }
+            vehicle.component_ages = ages
+            await db.commit()
+            logger.info(
+                "Component age reset: vehicle=%d component=%s",
+                vehicle_id, component_name,
+            )
+    except Exception as e:
+        logger.debug("Component age reset failed (non-fatal): %s", e)
+
     return SuccessResponse(success=True, message="Service record added")
 
 
@@ -1244,7 +1287,7 @@ async def get_vehicle_research(
             message="Vehicle profile not found",
         )
 
-    if not await _user_can_access_vehicle(db, current_user['user_id'], vehicle):
+    if not await _user_can_access_vehicle(db, current_user['user_id'], vehicle, current_user.get('tier')):
         raise APIError(
             status_code=403,
             code=ErrorCode.AUTH_INSUFFICIENT_PERMISSIONS,
@@ -1322,7 +1365,7 @@ async def get_research_status(
             message="Vehicle profile not found",
         )
 
-    if not await _user_can_access_vehicle(db, current_user['user_id'], vehicle):
+    if not await _user_can_access_vehicle(db, current_user['user_id'], vehicle, current_user.get('tier')):
         raise APIError(
             status_code=403,
             code=ErrorCode.AUTH_INSUFFICIENT_PERMISSIONS,

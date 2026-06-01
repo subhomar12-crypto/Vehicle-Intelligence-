@@ -1,0 +1,12 @@
+{
+  "hex_code": "26A1",
+  "name": "Serial Number",
+  "description": "Serial Number",
+  "formula": "(C * 65536) + (B * 256 + A)",
+  "units": "count",
+  "min_value": "0.0",
+  "max_value": "4294967295",
+  "category": "System",
+  "vehicle_specific": true,
+  "validation_required": false
+}

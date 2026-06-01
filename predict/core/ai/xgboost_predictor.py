@@ -13,29 +13,20 @@ import xgboost as xgb
 from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from predict.core.ai.data_loader import FEATURE_COLUMNS as SENSOR_COLUMNS
+
 logger = logging.getLogger(__name__)
 
-# Component IDs for binary classifiers
+# Canonical 10 component IDs — must match unified_scoring_pipeline.py
 COMPONENT_IDS = [
-    "ENGINE",
-    "TRANSMISSION",
-    "BRAKES",
-    "ELECTRICAL",
-    "COOLING",
-    "FUEL_SYSTEM",
-    "IGNITION",
-    "EXHAUST",
-    "SUSPENSION",
-    "TIRES",
+    "engine_oil", "coolant_system", "battery", "brakes",
+    "transmission_fluid", "spark_plugs", "catalytic_converter",
+    "o2_sensors", "air_filter", "fuel_system",
 ]
 
-# Feature columns extracted from telemetry window
-FEATURE_COLUMNS = [
-    "rpm_std",        # Standard deviation of RPM
-    "load_mean",      # Mean engine load
-    "coolant_delta",  # Coolant temperature change
-    "lambda_variance", # Lambda/O2 sensor variance
-]
+# 5 stats per 15 sensors = 75 features
+STAT_SUFFIXES = ["mean", "std", "min", "max", "delta"]
+FEATURE_COLUMNS = [f"{col}_{stat}" for col in SENSOR_COLUMNS for stat in STAT_SUFFIXES]
 
 
 class XGBoostFailurePredictor:
@@ -82,37 +73,38 @@ class XGBoostFailurePredictor:
         self.models: Dict[str, xgb.XGBClassifier] = {}
         self.is_trained = False
         
+    @property
+    def n_features(self) -> int:
+        """Number of features (5 stats × 15 sensors = 75)."""
+        return len(FEATURE_COLUMNS)
+
     def _extract_features(self, telemetry_window: List[Dict[str, Any]]) -> np.ndarray:
-        """Extract features from telemetry window.
-        
-        Features:
-        - rpm_std: Standard deviation of RPM
-        - load_mean: Mean engine load
-        - coolant_delta: Change in coolant temp (last - first)
-        - lambda_variance: Variance of lambda/O2 sensor readings
-        
+        """Extract 75 features from telemetry window.
+
+        For each of the 15 sensor columns, computes: mean, std, min, max, delta.
+
         Args:
             telemetry_window: List of telemetry readings
-            
+
         Returns:
-            Feature vector (4,)
+            Feature vector (75,)
         """
         if not telemetry_window:
-            return np.zeros(4)
-        
-        # Extract values
-        rpm_values = [r.get("rpm", 0) or 0 for r in telemetry_window]
-        load_values = [r.get("engine_load", 0) or 0 for r in telemetry_window]
-        coolant_values = [r.get("coolant_temp", 0) or 0 for r in telemetry_window]
-        lambda_values = [r.get("lambda", 0) or 0 for r in telemetry_window]
-        
-        # Calculate features
-        rpm_std = np.std(rpm_values) if rpm_values else 0.0
-        load_mean = np.mean(load_values) if load_values else 0.0
-        coolant_delta = (coolant_values[-1] - coolant_values[0]) if len(coolant_values) >= 2 else 0.0
-        lambda_variance = np.var(lambda_values) if lambda_values else 0.0
-        
-        return np.array([rpm_std, load_mean, coolant_delta, lambda_variance])
+            return np.zeros(self.n_features)
+
+        features = []
+        for col in SENSOR_COLUMNS:
+            values = [r.get(col, 0) or 0 for r in telemetry_window]
+            arr = np.array(values, dtype=np.float64)
+            features.extend([
+                float(np.mean(arr)),
+                float(np.std(arr)),
+                float(np.min(arr)),
+                float(np.max(arr)),
+                float(arr[-1] - arr[0]) if len(arr) >= 2 else 0.0,
+            ])
+
+        return np.array(features)
     
     async def train_from_db(
         self,
@@ -128,22 +120,22 @@ class XGBoostFailurePredictor:
         Returns:
             Training metrics dict
         """
-        from predict.core.db.models.prediction import FailureEvent
+        from predict.core.db.models.prediction_feedback import PredictionFeedback
         from predict.core.db.models.vehicle import VehicleData
-        
+
         metrics = {
             "components_trained": [],
             "components_skipped": [],
             "samples_per_component": {},
         }
-        
+
         for component in COMPONENT_IDS:
-            # Query failure events for this component
+            # Query confirmed failure feedback for this component
             result = await session.execute(
-                select(FailureEvent).where(
+                select(PredictionFeedback).where(
                     and_(
-                        FailureEvent.component == component,
-                        FailureEvent.confirmed == True,
+                        PredictionFeedback.component == component,
+                        PredictionFeedback.mechanic_actual_score.isnot(None),
                     )
                 )
             )
@@ -232,15 +224,29 @@ class XGBoostFailurePredictor:
         self.is_trained = len(self.models) > 0
         return metrics
     
+    # Maps component to the sensor indices (in SENSOR_COLUMNS) most relevant to it
+    _COMPONENT_SENSOR_MAP: Dict[str, List[int]] = {
+        "engine_oil":          [0, 4, 11],  # rpm, engine_load, injector_ms
+        "coolant_system":      [2, 7],       # coolant_temp, intake_temp
+        "battery":             [3],          # battery_voltage
+        "brakes":              [1, 5],       # speed, throttle_pos
+        "transmission_fluid":  [1, 0, 5],    # speed, rpm, throttle_pos
+        "spark_plugs":         [10, 0, 8],   # timing_advance, rpm, short_term_fuel_trim
+        "catalytic_converter": [6, 8, 9],    # maf_rate, short/long_term_fuel_trim
+        "o2_sensors":          [8, 9, 12],   # short_term_fuel_trim, long_term_fuel_trim, fuel_trim_b2
+        "air_filter":          [6, 7, 4],    # maf_rate, intake_temp, engine_load
+        "fuel_system":         [8, 9, 11],   # fuel trims, injector_ms
+    }
+
     def train_from_synthetic(
         self,
         n_samples: int = 1000,
     ) -> Dict[str, Any]:
         """Train on synthetic data for development/testing.
-        
+
         Args:
             n_samples: Samples per component
-            
+
         Returns:
             Training metrics dict
         """
@@ -248,28 +254,23 @@ class XGBoostFailurePredictor:
             "components_trained": [],
             "components_skipped": [],
         }
-        
+
         np.random.seed(42)
-        
+        n_feat = self.n_features
+
         for component in COMPONENT_IDS:
-            # Generate synthetic features
-            # Healthy samples: normal distribution
-            X_healthy = np.random.randn(n_samples // 2, 4) * 10 + 50
-            
-            # Failure samples: different distribution based on component
-            if component == "ENGINE":
-                # High RPM variance, high load
-                X_failure = np.random.randn(n_samples // 2, 4) * 20 + np.array([80, 90, 30, 10])
-            elif component == "COOLING":
-                # High coolant delta
-                X_failure = np.random.randn(n_samples // 2, 4) * 15 + np.array([30, 60, 100, 5])
-            elif component == "BRAKES":
-                # High load variance
-                X_failure = np.random.randn(n_samples // 2, 4) * 25 + np.array([40, 85, 10, 8])
-            else:
-                # Generic failure pattern
-                X_failure = np.random.randn(n_samples // 2, 4) * 15 + np.array([60, 75, 40, 7])
-            
+            # Healthy: normal baseline
+            X_healthy = np.random.randn(n_samples // 2, n_feat) * 10 + 50
+
+            # Failure: shift the 5 stats for relevant sensors
+            X_failure = np.random.randn(n_samples // 2, n_feat) * 10 + 50
+            sensor_indices = self._COMPONENT_SENSOR_MAP.get(component, [0])
+            for si in sensor_indices:
+                base = si * 5  # 5 stats per sensor
+                X_failure[:, base + 0] += 30   # mean shift
+                X_failure[:, base + 1] += 20   # std shift
+                X_failure[:, base + 4] += 15   # delta shift
+
             X = np.vstack([X_healthy, X_failure])
             y = np.hstack([np.zeros(n_samples // 2), np.ones(n_samples // 2)])
             

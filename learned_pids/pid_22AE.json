@@ -1,0 +1,12 @@
+{
+  "hex_code": "22AE",
+  "name": "WPM Filtered",
+  "description": "Wheel Pulse Monitor Filtered",
+  "formula": "(B * 256 + A)/10",
+  "units": "pulses",
+  "min_value": "0.0",
+  "max_value": "32767",
+  "category": "Sensors",
+  "vehicle_specific": true,
+  "validation_required": false
+}

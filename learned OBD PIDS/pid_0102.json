@@ -1,0 +1,12 @@
+{
+  "hex_code": "0102",
+  "name": "Freeze DTC",
+  "description": "Stored DTC for freeze frame",
+  "formula": "A B",
+  "units": "",
+  "min_value": "",
+  "max_value": "Diagnostics",
+  "category": "No",
+  "vehicle_specific": false,
+  "validation_required": false
+}

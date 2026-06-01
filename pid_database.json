@@ -1,0 +1,260 @@
+{
+  "metadata": {
+    "version": "5.0",
+    "description": "PID Database for Predict OBD Application",
+    "last_updated": "2024",
+    "total_pids": 30
+  },
+  "standard_pids": {
+    "rpm": {
+      "pid": "0x0C",
+      "mode": 1,
+      "name": "Engine RPM",
+      "description": "Engine speed in revolutions per minute",
+      "unit": "rpm",
+      "bytes": 2,
+      "formula": "(A*256+B)/4",
+      "min": 0,
+      "max": 16383.75,
+      "tier": 1
+    },
+    "speed": {
+      "pid": "0x0D",
+      "mode": 1,
+      "name": "Vehicle Speed",
+      "description": "Current vehicle speed",
+      "unit": "km/h",
+      "bytes": 1,
+      "formula": "A",
+      "min": 0,
+      "max": 255,
+      "tier": 1
+    },
+    "coolant_temp": {
+      "pid": "0x05",
+      "mode": 1,
+      "name": "Coolant Temperature",
+      "description": "Engine coolant temperature",
+      "unit": "°C",
+      "bytes": 1,
+      "formula": "A-40",
+      "min": -40,
+      "max": 215,
+      "tier": 1
+    },
+    "engine_load": {
+      "pid": "0x04",
+      "mode": 1,
+      "name": "Engine Load",
+      "description": "Calculated engine load",
+      "unit": "%",
+      "bytes": 1,
+      "formula": "A*100/255",
+      "min": 0,
+      "max": 100,
+      "tier": 1
+    },
+    "throttle_position": {
+      "pid": "0x11",
+      "mode": 1,
+      "name": "Throttle Position",
+      "description": "Throttle position sensor reading",
+      "unit": "%",
+      "bytes": 1,
+      "formula": "A*100/255",
+      "min": 0,
+      "max": 100,
+      "tier": 1
+    },
+    "intake_temp": {
+      "pid": "0x0F",
+      "mode": 1,
+      "name": "Intake Air Temperature",
+      "description": "Intake air temperature",
+      "unit": "°C",
+      "bytes": 1,
+      "formula": "A-40",
+      "min": -40,
+      "max": 215,
+      "tier": 2
+    },
+    "maf": {
+      "pid": "0x10",
+      "mode": 1,
+      "name": "MAF Air Flow",
+      "description": "Mass air flow sensor",
+      "unit": "g/s",
+      "bytes": 2,
+      "formula": "(A*256+B)/100",
+      "min": 0,
+      "max": 655.35,
+      "tier": 2
+    },
+    "map": {
+      "pid": "0x0B",
+      "mode": 1,
+      "name": "Intake Manifold Pressure",
+      "description": "Intake manifold absolute pressure",
+      "unit": "kPa",
+      "bytes": 1,
+      "formula": "A",
+      "min": 0,
+      "max": 255,
+      "tier": 2
+    },
+    "timing_advance": {
+      "pid": "0x0E",
+      "mode": 1,
+      "name": "Timing Advance",
+      "description": "Ignition timing advance",
+      "unit": "°",
+      "bytes": 1,
+      "formula": "(A-128)/2",
+      "min": -64,
+      "max": 63.5,
+      "tier": 2
+    },
+    "short_fuel_trim_1": {
+      "pid": "0x06",
+      "mode": 1,
+      "name": "Short Term Fuel Trim Bank 1",
+      "description": "Short term fuel trim for bank 1",
+      "unit": "%",
+      "bytes": 1,
+      "formula": "(A-128)*100/128",
+      "min": -100,
+      "max": 99.2,
+      "tier": 2
+    },
+    "long_fuel_trim_1": {
+      "pid": "0x07",
+      "mode": 1,
+      "name": "Long Term Fuel Trim Bank 1",
+      "description": "Long term fuel trim for bank 1",
+      "unit": "%",
+      "bytes": 1,
+      "formula": "(A-128)*100/128",
+      "min": -100,
+      "max": 99.2,
+      "tier": 2
+    },
+    "fuel_level": {
+      "pid": "0x2F",
+      "mode": 1,
+      "name": "Fuel Tank Level",
+      "description": "Fuel tank level input",
+      "unit": "%",
+      "bytes": 1,
+      "formula": "A*100/255",
+      "min": 0,
+      "max": 100,
+      "tier": 3
+    },
+    "runtime": {
+      "pid": "0x1F",
+      "mode": 1,
+      "name": "Engine Runtime",
+      "description": "Time since engine start",
+      "unit": "sec",
+      "bytes": 2,
+      "formula": "A*256+B",
+      "min": 0,
+      "max": 65535,
+      "tier": 3
+    },
+    "barometric_pressure": {
+      "pid": "0x33",
+      "mode": 1,
+      "name": "Barometric Pressure",
+      "description": "Absolute barometric pressure",
+      "unit": "kPa",
+      "bytes": 1,
+      "formula": "A",
+      "min": 0,
+      "max": 255,
+      "tier": 3
+    },
+    "ambient_temp": {
+      "pid": "0x46",
+      "mode": 1,
+      "name": "Ambient Air Temperature",
+      "description": "Ambient air temperature",
+      "unit": "°C",
+      "bytes": 1,
+      "formula": "A-40",
+      "min": -40,
+      "max": 215,
+      "tier": 3
+    },
+    "oil_temp": {
+      "pid": "0x5C",
+      "mode": 1,
+      "name": "Engine Oil Temperature",
+      "description": "Engine oil temperature",
+      "unit": "°C",
+      "bytes": 1,
+      "formula": "A-40",
+      "min": -40,
+      "max": 210,
+      "tier": 3
+    },
+    "control_module_voltage": {
+      "pid": "0x42",
+      "mode": 1,
+      "name": "Control Module Voltage",
+      "description": "ECU voltage",
+      "unit": "V",
+      "bytes": 2,
+      "formula": "(A*256+B)/1000",
+      "min": 0,
+      "max": 65.535,
+      "tier": 3
+    }
+  },
+  "nissan_pids": {
+    "description": "Nissan-specific PIDs (Mode 21/22)",
+    "nissan_battery_voltage": {
+      "pid": "0x01",
+      "mode": 33,
+      "name": "Battery Voltage (Nissan)",
+      "unit": "V",
+      "bytes": 1,
+      "formula": "A*0.08",
+      "tier": 2
+    }
+  },
+  "tier_definitions": {
+    "1": {
+      "name": "Critical",
+      "description": "Essential real-time data",
+      "poll_interval_ms": 300,
+      "pids": ["rpm", "speed", "coolant_temp", "engine_load", "throttle_position"]
+    },
+    "2": {
+      "name": "Important",
+      "description": "Important operational data",
+      "poll_interval_ms": 1000,
+      "pids": ["intake_temp", "maf", "map", "timing_advance", "short_fuel_trim_1", "long_fuel_trim_1"]
+    },
+    "3": {
+      "name": "Secondary",
+      "description": "Secondary/diagnostic data",
+      "poll_interval_ms": 5000,
+      "pids": ["fuel_level", "runtime", "barometric_pressure", "ambient_temp", "oil_temp"]
+    }
+  },
+  "protocol_recommendations": {
+    "nissan": {
+      "2017_altima": {
+        "protocol": "6",
+        "protocol_name": "ISO 15765-4 CAN 11-bit 500k",
+        "notes": "Modern CAN protocol, auto-detect works well"
+      },
+      "2003_patrol_y61": {
+        "protocol": "3",
+        "protocol_name": "ISO 9141-2",
+        "notes": "K-Line protocol, may need direct mode"
+      }
+    }
+  }
+}

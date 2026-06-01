@@ -1,0 +1,77 @@
+{
+  "id": "nissan_patrol_y61_2003",
+  "name": "Nissan Patrol Y61 (1997-2010)",
+  "description": "PID profile for Nissan Patrol Y61 with TB48DE engine",
+  "match": {
+    "brand": "nissan",
+    "model": "patrol",
+    "submodel": "y61",
+    "year_from": 1997,
+    "year_to": 2010
+  },
+  "mode01_pids": {},
+  "mode22_pids": {
+    "nissan_transfer_case": {
+      "service": 34,
+      "pid": "0x1280",
+      "header": "7E1",
+      "name": "Transfer Case Position",
+      "unit": "",
+      "category": "drivetrain",
+      "equation": "A",
+      "values": {
+        "0": "2H",
+        "1": "4H",
+        "2": "4L"
+      }
+    },
+    "nissan_diff_lock": {
+      "service": 34,
+      "pid": "0x1281",
+      "header": "7E1",
+      "name": "Differential Lock Status",
+      "unit": "",
+      "category": "drivetrain",
+      "equation": "A",
+      "values": {
+        "0": "Unlocked",
+        "1": "Locked"
+      }
+    },
+    "nissan_transmission_temp": {
+      "service": 34,
+      "pid": "0x11B0",
+      "header": "7E1",
+      "name": "Transmission Oil Temperature",
+      "unit": "°C",
+      "category": "transmission",
+      "equation": "A-40",
+      "min": -40,
+      "max": 200
+    },
+    "nissan_fuel_consumption": {
+      "service": 34,
+      "pid": "0x1210",
+      "header": "7E0",
+      "name": "Fuel Consumption Rate",
+      "unit": "L/h",
+      "category": "fuel",
+      "equation": "(A*256+B)/1000",
+      "min": 0,
+      "max": 50
+    },
+    "nissan_coolant_level": {
+      "service": 34,
+      "pid": "0x1211",
+      "header": "7E0",
+      "name": "Coolant Level",
+      "unit": "",
+      "category": "engine",
+      "equation": "A",
+      "values": {
+        "0": "Low",
+        "1": "OK"
+      }
+    }
+  }
+}

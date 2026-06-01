@@ -1,0 +1,12 @@
+{
+  "hex_code": "0114",
+  "name": "O2 Sensor 1 Voltage",
+  "description": "O2 B1S1",
+  "formula": "A/200",
+  "units": "V",
+  "min_value": "0.0",
+  "max_value": "1.275",
+  "category": "Sensors",
+  "vehicle_specific": false,
+  "validation_required": false
+}

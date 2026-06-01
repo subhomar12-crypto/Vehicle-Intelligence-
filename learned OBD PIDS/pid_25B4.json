@@ -1,0 +1,12 @@
+{
+  "hex_code": "25B4",
+  "name": "Mapped Brake",
+  "description": "Mapped Brake",
+  "formula": "(B * 256 + A) / 327.67",
+  "units": "%",
+  "min_value": "-100.0",
+  "max_value": "100",
+  "category": "Chassis",
+  "vehicle_specific": true,
+  "validation_required": false
+}

@@ -1,0 +1,133 @@
+{
+  "id": "toyota_land_cruiser_2010",
+  "name": "Toyota Land Cruiser 200 Series (2008-2024)",
+  "description": "PID profile for Toyota Land Cruiser 200 Series",
+  "match": {
+    "brand": "toyota",
+    "model": "land_cruiser",
+    "submodel": "200_series",
+    "year_from": 2008,
+    "year_to": 2024
+  },
+  "mode01_pids": {},
+  "mode22_pids": {
+    "toyota_transmission_temp": {
+      "service": 34,
+      "pid": "0x0127",
+      "header": "7E1",
+      "name": "Transmission Temperature",
+      "unit": "°C",
+      "category": "transmission",
+      "equation": "A-40",
+      "min": -40,
+      "max": 210
+    },
+    "toyota_crawl_control": {
+      "service": 34,
+      "pid": "0x0530",
+      "header": "7E0",
+      "name": "Crawl Control Status",
+      "unit": "",
+      "category": "drivetrain",
+      "equation": "A",
+      "values": {
+        "0": "Off",
+        "1": "Low",
+        "2": "Low-Med",
+        "3": "Med",
+        "4": "Med-High",
+        "5": "High"
+      }
+    },
+    "toyota_kdss_status": {
+      "service": 34,
+      "pid": "0x0531",
+      "header": "7B0",
+      "name": "KDSS Status",
+      "unit": "",
+      "category": "suspension",
+      "equation": "A",
+      "values": {
+        "0": "Normal",
+        "1": "Active"
+      }
+    },
+    "toyota_transfer_mode": {
+      "service": 34,
+      "pid": "0x0520",
+      "header": "7E1",
+      "name": "Transfer Case Mode",
+      "unit": "",
+      "category": "drivetrain",
+      "equation": "A",
+      "values": {
+        "0": "H4",
+        "1": "H4L",
+        "2": "L4",
+        "3": "L4L"
+      }
+    },
+    "toyota_diff_lock_front": {
+      "service": 34,
+      "pid": "0x0521",
+      "header": "7E1",
+      "name": "Front Differential Lock",
+      "unit": "",
+      "category": "drivetrain",
+      "equation": "A",
+      "values": {
+        "0": "Unlocked",
+        "1": "Locked"
+      }
+    },
+    "toyota_diff_lock_rear": {
+      "service": 34,
+      "pid": "0x0522",
+      "header": "7E1",
+      "name": "Rear Differential Lock",
+      "unit": "",
+      "category": "drivetrain",
+      "equation": "A",
+      "values": {
+        "0": "Unlocked",
+        "1": "Locked"
+      }
+    },
+    "toyota_height_control": {
+      "service": 34,
+      "pid": "0x0540",
+      "header": "7B0",
+      "name": "Height Control Setting",
+      "unit": "",
+      "category": "suspension",
+      "equation": "A",
+      "values": {
+        "0": "Low",
+        "1": "Normal",
+        "2": "High"
+      }
+    },
+    "toyota_fuel_rail_pressure": {
+      "service": 34,
+      "pid": "0x0140",
+      "header": "7E0",
+      "name": "Fuel Rail Pressure",
+      "unit": "MPa",
+      "category": "fuel",
+      "equation": "(A*256+B)/100",
+      "min": 0,
+      "max": 200
+    },
+    "toyota_turbo_boost": {
+      "service": 34,
+      "pid": "0x0150",
+      "header": "7E0",
+      "name": "Turbo Boost Pressure",
+      "unit": "kPa",
+      "category": "engine",
+      "equation": "(A*256+B)/10-100",
+      "min": -100,
+      "max": 250
+    }
+  }
+}

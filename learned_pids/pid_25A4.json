@@ -1,0 +1,12 @@
+{
+  "hex_code": "25A4",
+  "name": "Vehicle Speed",
+  "description": "Vehicle Speed",
+  "formula": "(B * 256 + A)/10",
+  "units": "km/h",
+  "min_value": "0.0",
+  "max_value": "200",
+  "category": "Chassis",
+  "vehicle_specific": true,
+  "validation_required": false
+}

@@ -1,0 +1,4307 @@
+[
+  {
+    "sequence_id": "1db415be",
+    "vehicle_id": "SYN-3231",
+    "failure_type": "battery_failure",
+    "failure_occurred": true,
+    "days_to_failure": 59,
+    "pattern_metadata": {
+      "pattern": "gradual",
+      "start_voltage": 12.55766073901546,
+      "weibull_shape": 2.5
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.557295493815722,
+        12.575063649181358,
+        12.577157787330878,
+        12.593070361792394,
+        12.5858666342038,
+        12.562967468681622,
+        12.51294432611288,
+        12.528285556642599,
+        12.495303535077895,
+        12.526905955575678
+      ]
+    },
+    "total_samples": 640
+  },
+  {
+    "sequence_id": "2797c9e7",
+    "vehicle_id": "SYN-8448",
+    "failure_type": "battery_failure",
+    "failure_occurred": true,
+    "days_to_failure": 46,
+    "pattern_metadata": {
+      "pattern": "gradual",
+      "start_voltage": 12.60390237082936,
+      "weibull_shape": 2.5
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.587321549219483,
+        12.639212002018942,
+        12.652328525455319,
+        12.67322409602234,
+        12.631054192002692,
+        12.593798726157535,
+        12.568542262312775,
+        12.566141340795255,
+        12.54220379484611,
+        12.559389136020728
+      ]
+    },
+    "total_samples": 510
+  },
+  {
+    "sequence_id": "8dcaeb31",
+    "vehicle_id": "SYN-7325",
+    "failure_type": "battery_failure",
+    "failure_occurred": true,
+    "days_to_failure": 51,
+    "pattern_metadata": {
+      "pattern": "gradual",
+      "start_voltage": 12.61497028809555,
+      "weibull_shape": 2.5
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.625740076402527,
+        12.65470082889029,
+        12.651505595732283,
+        12.666142022348135,
+        12.654823419483101,
+        12.621767431847918,
+        12.543343712882546,
+        12.551318072439097,
+        12.55980019613009,
+        12.599782460588756
+      ]
+    },
+    "total_samples": 560
+  },
+  {
+    "sequence_id": "dc616517",
+    "vehicle_id": "SYN-4063",
+    "failure_type": "battery_failure",
+    "failure_occurred": true,
+    "days_to_failure": 34,
+    "pattern_metadata": {
+      "pattern": "gradual",
+      "start_voltage": 12.651876758825193,
+      "weibull_shape": 2.5
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.658802672548374,
+        12.687265359771454,
+        12.699782507552555,
+        12.70176031669603,
+        12.664032026680756,
+        12.654579611824813,
+        12.659963078085006,
+        12.63077738902457,
+        12.593204795394653,
+        12.593380496104507
+      ]
+    },
+    "total_samples": 390
+  },
+  {
+    "sequence_id": "302fce8f",
+    "vehicle_id": "SYN-2875",
+    "failure_type": "battery_failure",
+    "failure_occurred": true,
+    "days_to_failure": 52,
+    "pattern_metadata": {
+      "pattern": "gradual",
+      "start_voltage": 12.68583381868659,
+      "weibull_shape": 2.5
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.707949468375226,
+        12.694570604073885,
+        12.732787147986379,
+        12.734931259101248,
+        12.689158441901776,
+        12.674562115426067,
+        12.663002101282144,
+        12.609785846997001,
+        12.649355417710188,
+        12.666058391535813
+      ]
+    },
+    "total_samples": 570
+  },
+  {
+    "sequence_id": "b696957f",
+    "vehicle_id": "SYN-2264",
+    "failure_type": "battery_failure",
+    "failure_occurred": true,
+    "days_to_failure": 42,
+    "pattern_metadata": {
+      "pattern": "cyclic",
+      "start_voltage": 12.581278278149613,
+      "weibull_shape": 2.5
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.545463353746756,
+        12.590568910638218,
+        12.639042707448182,
+        12.614969718720538,
+        12.6225359116014,
+        12.568922960748298,
+        12.54008712295632,
+        12.541046006573854,
+        12.534844284937785,
+        12.55246395483016
+      ]
+    },
+    "total_samples": 470
+  },
+  {
+    "sequence_id": "61fed9e7",
+    "vehicle_id": "SYN-8508",
+    "failure_type": "battery_failure",
+    "failure_occurred": true,
+    "days_to_failure": 52,
+    "pattern_metadata": {
+      "pattern": "cyclic",
+      "start_voltage": 12.64777171276826,
+      "weibull_shape": 2.5
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.662986028438288,
+        12.654374636215357,
+        12.70916127202363,
+        12.713983968877264,
+        12.684398998843104,
+        12.651641002302547,
+        12.616080268004973,
+        12.588888079593056,
+        12.586062472631951,
+        12.618797325434633
+      ]
+    },
+    "total_samples": 570
+  },
+  {
+    "sequence_id": "81076ef9",
+    "vehicle_id": "SYN-9922",
+    "failure_type": "battery_failure",
+    "failure_occurred": true,
+    "days_to_failure": 37,
+    "pattern_metadata": {
+      "pattern": "gradual",
+      "start_voltage": 12.53854455311732,
+      "weibull_shape": 2.5
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.501817409121395,
+        12.563074450708083,
+        12.619343033949598,
+        12.58864398326781,
+        12.57821022885045,
+        12.562226802969397,
+        12.525452051498073,
+        12.470913630241505,
+        12.46681457026229,
+        12.500970899790257
+      ]
+    },
+    "total_samples": 420
+  },
+  {
+    "sequence_id": "d31b22c2",
+    "vehicle_id": "SYN-2492",
+    "failure_type": "battery_failure",
+    "failure_occurred": true,
+    "days_to_failure": 53,
+    "pattern_metadata": {
+      "pattern": "gradual",
+      "start_voltage": 12.540537945921507,
+      "weibull_shape": 2.5
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.552361662434578,
+        12.575035288881256,
+        12.63039292275304,
+        12.608938256965606,
+        12.554584191381483,
+        12.53777952164988,
+        12.505932788790567,
+        12.512576731058687,
+        12.492362475906281,
+        12.536693256691198
+      ]
+    },
+    "total_samples": 580
+  },
+  {
+    "sequence_id": "85b474bf",
+    "vehicle_id": "SYN-4217",
+    "failure_type": "battery_failure",
+    "failure_occurred": true,
+    "days_to_failure": 38,
+    "pattern_metadata": {
+      "pattern": "cyclic",
+      "start_voltage": 12.603304550699207,
+      "weibull_shape": 2.5
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.583847294590115,
+        12.609181022725572,
+        12.635384641782757,
+        12.64369900212654,
+        12.641471964360585,
+        12.627385615475234,
+        12.57925841170593,
+        12.586729725397294,
+        12.565157817690435,
+        12.6002201077796
+      ]
+    },
+    "total_samples": 430
+  },
+  {
+    "sequence_id": "8f77ac95",
+    "vehicle_id": "SYN-4430",
+    "failure_type": "battery_failure",
+    "failure_occurred": true,
+    "days_to_failure": 31,
+    "pattern_metadata": {
+      "pattern": "cyclic",
+      "start_voltage": 12.66421212666695,
+      "weibull_shape": 2.5
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.659564303151308,
+        12.635554281424081,
+        12.719497955146664,
+        12.715174065631805,
+        12.673142438804897,
+        12.646398288980842,
+        12.603546231789107,
+        12.639000139518673,
+        12.619397688008124,
+        12.625800674185122
+      ]
+    },
+    "total_samples": 360
+  },
+  {
+    "sequence_id": "63651505",
+    "vehicle_id": "SYN-8439",
+    "failure_type": "battery_failure",
+    "failure_occurred": true,
+    "days_to_failure": 45,
+    "pattern_metadata": {
+      "pattern": "sudden",
+      "start_voltage": 12.650907385838721,
+      "weibull_shape": 2.5
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.612539589513586,
+        12.686374580456976,
+        12.696343099155467,
+        12.67623193528068,
+        12.696294871424563,
+        12.663730007019863,
+        12.631522662318092,
+        12.584605909705342,
+        12.61292249706113,
+        12.60821284672472
+      ]
+    },
+    "total_samples": 500
+  },
+  {
+    "sequence_id": "e5b75d64",
+    "vehicle_id": "SYN-8259",
+    "failure_type": "battery_failure",
+    "failure_occurred": true,
+    "days_to_failure": 50,
+    "pattern_metadata": {
+      "pattern": "sudden",
+      "start_voltage": 12.539151251988075,
+      "weibull_shape": 2.5
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.553340352012308,
+        12.529389384695463,
+        12.599820807449083,
+        12.580553539715728,
+        12.513514835260716,
+        12.513779232045094,
+        12.485413893606635,
+        12.50171658177508,
+        12.492195829555612,
+        12.507091731726659
+      ]
+    },
+    "total_samples": 550
+  },
+  {
+    "sequence_id": "4a3f2891",
+    "vehicle_id": "SYN-7210",
+    "failure_type": "battery_failure",
+    "failure_occurred": true,
+    "days_to_failure": 43,
+    "pattern_metadata": {
+      "pattern": "gradual",
+      "start_voltage": 12.632632886631173,
+      "weibull_shape": 2.5
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.62862114946393,
+        12.648715164740006,
+        12.702086371477971,
+        12.689888103152379,
+        12.681142494415084,
+        12.6326217001719,
+        12.609453887069632,
+        12.623515743989893,
+        12.591814957053643,
+        12.6317320922272
+      ]
+    },
+    "total_samples": 480
+  },
+  {
+    "sequence_id": "3f30db7f",
+    "vehicle_id": "SYN-8969",
+    "failure_type": "battery_failure",
+    "failure_occurred": true,
+    "days_to_failure": 33,
+    "pattern_metadata": {
+      "pattern": "sudden",
+      "start_voltage": 12.51324837171138,
+      "weibull_shape": 2.5
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.512453203738156,
+        12.552517508969268,
+        12.570557439384569,
+        12.577693319749711,
+        12.558172133915448,
+        12.52632436383884,
+        12.488418608572664,
+        12.449958537911668,
+        12.461061349695825,
+        12.477449386264613
+      ]
+    },
+    "total_samples": 380
+  },
+  {
+    "sequence_id": "98003997",
+    "vehicle_id": "SYN-7188",
+    "failure_type": "battery_failure",
+    "failure_occurred": true,
+    "days_to_failure": 41,
+    "pattern_metadata": {
+      "pattern": "cyclic",
+      "start_voltage": 12.578143425834911,
+      "weibull_shape": 2.5
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.589925895363859,
+        12.576140005012665,
+        12.64262636702579,
+        12.63119467933127,
+        12.598971805758522,
+        12.555206468786949,
+        12.591994518287356,
+        12.528902361796192,
+        12.54043585572197,
+        12.545968460356763
+      ]
+    },
+    "total_samples": 460
+  },
+  {
+    "sequence_id": "7c2dd17e",
+    "vehicle_id": "SYN-2586",
+    "failure_type": "battery_failure",
+    "failure_occurred": true,
+    "days_to_failure": 52,
+    "pattern_metadata": {
+      "pattern": "gradual",
+      "start_voltage": 12.602778972841076,
+      "weibull_shape": 2.5
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.631081651256524,
+        12.59837857106836,
+        12.636161031663084,
+        12.661987968598032,
+        12.658204838624641,
+        12.603293988980292,
+        12.567586269051198,
+        12.55525136937094,
+        12.566734549559616,
+        12.578312540856384
+      ]
+    },
+    "total_samples": 570
+  },
+  {
+    "sequence_id": "14543436",
+    "vehicle_id": "SYN-6211",
+    "failure_type": "battery_failure",
+    "failure_occurred": true,
+    "days_to_failure": 30,
+    "pattern_metadata": {
+      "pattern": "cyclic",
+      "start_voltage": 12.590650326796876,
+      "weibull_shape": 2.5
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.551626350646378,
+        12.616226636888847,
+        12.632595036487299,
+        12.605696680680305,
+        12.607788117634504,
+        12.612137734351174,
+        12.568635289021236,
+        12.550594105435886,
+        12.528751521985383,
+        12.569303656039256
+      ]
+    },
+    "total_samples": 350
+  },
+  {
+    "sequence_id": "1ac4e650",
+    "vehicle_id": "SYN-9600",
+    "failure_type": "battery_failure",
+    "failure_occurred": true,
+    "days_to_failure": 30,
+    "pattern_metadata": {
+      "pattern": "sudden",
+      "start_voltage": 12.615500210045392,
+      "weibull_shape": 2.5
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.615892150745964,
+        12.676607015056067,
+        12.66010350797865,
+        12.66672133488274,
+        12.626141797676059,
+        12.624841317105922,
+        12.588329059745869,
+        12.581398014138829,
+        12.565367229418776,
+        12.624763280004595
+      ]
+    },
+    "total_samples": 350
+  },
+  {
+    "sequence_id": "cc3d7ffe",
+    "vehicle_id": "SYN-9033",
+    "failure_type": "battery_failure",
+    "failure_occurred": true,
+    "days_to_failure": 46,
+    "pattern_metadata": {
+      "pattern": "gradual",
+      "start_voltage": 12.520904340652752,
+      "weibull_shape": 2.5
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.527286496707376,
+        12.557053203944099,
+        12.566215563947152,
+        12.591102430379479,
+        12.582187471620154,
+        12.512543106860786,
+        12.509071001908529,
+        12.535841066759225,
+        12.49262886988277,
+        12.494163354441557
+      ]
+    },
+    "total_samples": 510
+  },
+  {
+    "sequence_id": "58d97c2e",
+    "vehicle_id": "SYN-9992",
+    "failure_type": "battery_failure",
+    "failure_occurred": true,
+    "days_to_failure": 39,
+    "pattern_metadata": {
+      "pattern": "gradual",
+      "start_voltage": 12.565386373641795,
+      "weibull_shape": 2.5
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.517301656238926,
+        12.588101320793454,
+        12.576550129856981,
+        12.614889042276566,
+        12.614210521119743,
+        12.57830470819277,
+        12.516407234516798,
+        12.494029639172744,
+        12.52996284617947,
+        12.527509453149623
+      ]
+    },
+    "total_samples": 440
+  },
+  {
+    "sequence_id": "0aa86e3a",
+    "vehicle_id": "SYN-2948",
+    "failure_type": "battery_failure",
+    "failure_occurred": true,
+    "days_to_failure": 39,
+    "pattern_metadata": {
+      "pattern": "sudden",
+      "start_voltage": 12.669274821725713,
+      "weibull_shape": 2.5
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.679334766764192,
+        12.676711021361225,
+        12.716364993631565,
+        12.742233846417427,
+        12.692263439287611,
+        12.653095799350947,
+        12.632833880398996,
+        12.658760721889347,
+        12.62689108284394,
+        12.652865283235368
+      ]
+    },
+    "total_samples": 440
+  },
+  {
+    "sequence_id": "cf8bf0ce",
+    "vehicle_id": "SYN-1160",
+    "failure_type": "battery_failure",
+    "failure_occurred": true,
+    "days_to_failure": 56,
+    "pattern_metadata": {
+      "pattern": "gradual",
+      "start_voltage": 12.673608261751149,
+      "weibull_shape": 2.5
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.688731559853066,
+        12.704197215765257,
+        12.72196786589241,
+        12.70983492313691,
+        12.701110463468211,
+        12.684628266888325,
+        12.646983399777032,
+        12.607635426753554,
+        12.612887414653054,
+        12.641384080027978
+      ]
+    },
+    "total_samples": 610
+  },
+  {
+    "sequence_id": "d520e592",
+    "vehicle_id": "SYN-8639",
+    "failure_type": "battery_failure",
+    "failure_occurred": true,
+    "days_to_failure": 39,
+    "pattern_metadata": {
+      "pattern": "gradual",
+      "start_voltage": 12.52403242597295,
+      "weibull_shape": 2.5
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.495014558639326,
+        12.563452246922054,
+        12.578463201684112,
+        12.569969652148687,
+        12.573347000490543,
+        12.53107727321988,
+        12.461167602877545,
+        12.504168622572273,
+        12.473820917019854,
+        12.526765710040355
+      ]
+    },
+    "total_samples": 440
+  },
+  {
+    "sequence_id": "7c6bffff",
+    "vehicle_id": "SYN-3259",
+    "failure_type": "battery_failure",
+    "failure_occurred": true,
+    "days_to_failure": 47,
+    "pattern_metadata": {
+      "pattern": "sudden",
+      "start_voltage": 12.688443991865233,
+      "weibull_shape": 2.5
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.64769375976282,
+        12.716346657527444,
+        12.764800649291686,
+        12.69325557790601,
+        12.718260843540003,
+        12.685928422938662,
+        12.64652339249101,
+        12.64173461049699,
+        12.633678616805184,
+        12.666610584244388
+      ]
+    },
+    "total_samples": 520
+  },
+  {
+    "sequence_id": "cebda9f5",
+    "vehicle_id": "SYN-2284",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "degradation_rate": 0
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.531280809872662,
+        12.595144263923727,
+        12.611304703317085,
+        12.579848827063454,
+        12.569003688378935,
+        12.526884230889538,
+        12.494898239149462,
+        12.43618983275845,
+        12.42261245907477,
+        12.462000782061248
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "fe4fc632",
+    "vehicle_id": "SYN-5393",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "degradation_rate": 0
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.518451017544097,
+        12.639847323520218,
+        12.63006926224261,
+        12.614848642814938,
+        12.612336001651544,
+        12.523769106889866,
+        12.493690471972878,
+        12.44366209193933,
+        12.462017210047708,
+        12.502718668064073
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "58cf762c",
+    "vehicle_id": "SYN-2171",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "degradation_rate": 0
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.672636020998453,
+        12.71675209118268,
+        12.743884345350232,
+        12.744917570001363,
+        12.738102708466363,
+        12.680311866175582,
+        12.600228165859916,
+        12.54200205151219,
+        12.541566006887805,
+        12.606546750735466
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "571083af",
+    "vehicle_id": "SYN-9034",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "degradation_rate": 0
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.53071964792315,
+        12.607491073017995,
+        12.639869464536622,
+        12.641160043931274,
+        12.58832463492541,
+        12.555864923833434,
+        12.49605427695702,
+        12.414874835625191,
+        12.446919049974614,
+        12.487852819962784
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "5c789782",
+    "vehicle_id": "SYN-7681",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "degradation_rate": 0
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.693578143539494,
+        12.751365707817442,
+        12.804743225326215,
+        12.784650444092405,
+        12.735172715922054,
+        12.706048050048345,
+        12.61031532163277,
+        12.592932961492696,
+        12.587382551417035,
+        12.625997343062195
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "6a63cfce",
+    "vehicle_id": "SYN-2281",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "degradation_rate": 0
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.52216261592522,
+        12.574427152052833,
+        12.643609170488439,
+        12.603195640019326,
+        12.596641057827316,
+        12.493994006574571,
+        12.495225308256941,
+        12.427547638165786,
+        12.462379312309926,
+        12.481712000553783
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "62706421",
+    "vehicle_id": "SYN-8334",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "degradation_rate": 0
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.527981786449953,
+        12.61996209527062,
+        12.645607079583783,
+        12.644815922772489,
+        12.601780618767416,
+        12.531823986283309,
+        12.4705485032128,
+        12.458270758827233,
+        12.416202457906893,
+        12.474602972231175
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "089b144e",
+    "vehicle_id": "SYN-7824",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "degradation_rate": 0
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.69772259789657,
+        12.74456491671249,
+        12.782762904606768,
+        12.817848887146821,
+        12.786070406418876,
+        12.68059078685847,
+        12.644190037118364,
+        12.59538302027552,
+        12.580248379049548,
+        12.662181764605013
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "c9b01fba",
+    "vehicle_id": "SYN-8491",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "degradation_rate": 0
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.62036441167648,
+        12.629600543840494,
+        12.72665755760342,
+        12.718622554807117,
+        12.679555450464342,
+        12.62081078663866,
+        12.53471210224478,
+        12.505813905636554,
+        12.517862033992982,
+        12.577091643217706
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "f7d4eb5f",
+    "vehicle_id": "SYN-6459",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "degradation_rate": 0
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.52218733462598,
+        12.603324972648029,
+        12.659186857017618,
+        12.637812748777666,
+        12.624751128584949,
+        12.570470753107871,
+        12.502121849732681,
+        12.468631607640418,
+        12.442329833540144,
+        12.501392115579385
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "54a44997",
+    "vehicle_id": "SYN-9451",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "degradation_rate": 0
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.681289106568638,
+        12.713055847077852,
+        12.687959204097117,
+        12.760414336678785,
+        12.661570871686708,
+        12.63439610131621,
+        12.603610257203583,
+        12.557417241758015,
+        12.595158880060662,
+        12.607667554780868
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "321dafca",
+    "vehicle_id": "SYN-4599",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "degradation_rate": 0
+    },
+    "sensor_data": {
+      "battery_voltage": [
+        12.502852456048998,
+        12.596982794467861,
+        12.638794964540452,
+        12.657212614930547,
+        12.624184448334915,
+        12.548030814025498,
+        12.510887369757159,
+        12.428561614096646,
+        12.43433260148945,
+        12.483676737771058
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "7b542c01",
+    "vehicle_id": "SYN-9899",
+    "failure_type": "alternator_failure",
+    "failure_occurred": true,
+    "days_to_failure": 24,
+    "pattern_metadata": {
+      "pattern": "brush",
+      "base_charging": 14.107393247994104
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        14.1372647458021,
+        14.066579737587773,
+        14.07235993608075,
+        14.113519108766882,
+        14.070589637717688,
+        14.056659076498315,
+        14.105773719270484,
+        14.113246965138888,
+        14.05918511032622,
+        14.08063879058165
+      ]
+    },
+    "total_samples": 270
+  },
+  {
+    "sequence_id": "9a27fbb4",
+    "vehicle_id": "SYN-1252",
+    "failure_type": "alternator_failure",
+    "failure_occurred": true,
+    "days_to_failure": 38,
+    "pattern_metadata": {
+      "pattern": "diode",
+      "base_charging": 14.060847169376913
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        14.061143253384232,
+        14.035313985918409,
+        14.068835616087533,
+        14.123108490085185,
+        14.047669683892263,
+        14.008640494531791,
+        14.087181316028806,
+        14.03786209026346,
+        14.056703066224916,
+        14.040566194781274
+      ]
+    },
+    "total_samples": 410
+  },
+  {
+    "sequence_id": "fc4959a8",
+    "vehicle_id": "SYN-8486",
+    "failure_type": "alternator_failure",
+    "failure_occurred": true,
+    "days_to_failure": 24,
+    "pattern_metadata": {
+      "pattern": "brush",
+      "base_charging": 14.03958468597056
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        14.100050517581826,
+        13.965640024243125,
+        14.030044272407052,
+        14.044014244087723,
+        14.151514867513926,
+        14.022598150761882,
+        14.062108713491746,
+        14.057119054029632,
+        14.057443827384239,
+        14.100655349280636
+      ]
+    },
+    "total_samples": 270
+  },
+  {
+    "sequence_id": "d9ae1bba",
+    "vehicle_id": "SYN-7009",
+    "failure_type": "alternator_failure",
+    "failure_occurred": true,
+    "days_to_failure": 40,
+    "pattern_metadata": {
+      "pattern": "voltage_regulator",
+      "base_charging": 14.038243345401238
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        14.038243345401238,
+        14.038243345401238,
+        14.038243345401238,
+        14.038243345401238,
+        14.038243345401238,
+        14.038243345401238,
+        14.038243345401238,
+        14.038243345401238,
+        14.038243345401238,
+        14.038243345401238
+      ]
+    },
+    "total_samples": 430
+  },
+  {
+    "sequence_id": "f4091b84",
+    "vehicle_id": "SYN-1224",
+    "failure_type": "alternator_failure",
+    "failure_occurred": true,
+    "days_to_failure": 28,
+    "pattern_metadata": {
+      "pattern": "voltage_regulator",
+      "base_charging": 14.019726030745828
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        14.019726030745828,
+        14.019726030745828,
+        14.019726030745828,
+        14.019726030745828,
+        14.019726030745828,
+        14.019726030745828,
+        14.019726030745828,
+        14.019726030745828,
+        14.019726030745828,
+        14.019726030745828
+      ]
+    },
+    "total_samples": 310
+  },
+  {
+    "sequence_id": "1491a23d",
+    "vehicle_id": "SYN-8921",
+    "failure_type": "alternator_failure",
+    "failure_occurred": true,
+    "days_to_failure": 26,
+    "pattern_metadata": {
+      "pattern": "voltage_regulator",
+      "base_charging": 14.162667055812014
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        14.162667055812014,
+        14.162667055812014,
+        14.162667055812014,
+        14.162667055812014,
+        14.162667055812014,
+        14.162667055812014,
+        14.162667055812014,
+        14.162667055812014,
+        14.162667055812014,
+        14.162667055812014
+      ]
+    },
+    "total_samples": 290
+  },
+  {
+    "sequence_id": "3b3e48ea",
+    "vehicle_id": "SYN-4795",
+    "failure_type": "alternator_failure",
+    "failure_occurred": true,
+    "days_to_failure": 37,
+    "pattern_metadata": {
+      "pattern": "voltage_regulator",
+      "base_charging": 14.017636323765021
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        14.017636323765021,
+        14.017636323765021,
+        14.017636323765021,
+        14.017636323765021,
+        14.017636323765021,
+        14.017636323765021,
+        14.017636323765021,
+        14.017636323765021,
+        14.017636323765021,
+        14.017636323765021
+      ]
+    },
+    "total_samples": 400
+  },
+  {
+    "sequence_id": "42f789ce",
+    "vehicle_id": "SYN-8695",
+    "failure_type": "alternator_failure",
+    "failure_occurred": true,
+    "days_to_failure": 41,
+    "pattern_metadata": {
+      "pattern": "diode",
+      "base_charging": 14.164611099818261
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        14.192538919955084,
+        14.237154469145738,
+        14.183693765277031,
+        14.15461219488558,
+        14.266992891384465,
+        14.244381821913896,
+        14.14412749426738,
+        14.129884579335492,
+        14.168521496102697,
+        14.201722180976764
+      ]
+    },
+    "total_samples": 440
+  },
+  {
+    "sequence_id": "dd89b39c",
+    "vehicle_id": "SYN-1779",
+    "failure_type": "alternator_failure",
+    "failure_occurred": true,
+    "days_to_failure": 25,
+    "pattern_metadata": {
+      "pattern": "diode",
+      "base_charging": 14.169012943590218
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        14.074137208577179,
+        14.207989782201995,
+        14.06474941862062,
+        14.14520392706975,
+        14.21240425734857,
+        14.195964636695162,
+        14.254506013857927,
+        14.101981736394658,
+        14.09187442908396,
+        14.118859311310567
+      ]
+    },
+    "total_samples": 280
+  },
+  {
+    "sequence_id": "3303c814",
+    "vehicle_id": "SYN-5043",
+    "failure_type": "alternator_failure",
+    "failure_occurred": true,
+    "days_to_failure": 23,
+    "pattern_metadata": {
+      "pattern": "diode",
+      "base_charging": 14.130475598854874
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        14.149151917601216,
+        14.163198193250476,
+        14.122451433400183,
+        14.212833232968038,
+        14.16063602739915,
+        14.147036298708548,
+        14.162286760925829,
+        14.156617618876815,
+        14.186781465870794,
+        14.107220271402197
+      ]
+    },
+    "total_samples": 260
+  },
+  {
+    "sequence_id": "102ebe9c",
+    "vehicle_id": "SYN-7618",
+    "failure_type": "alternator_failure",
+    "failure_occurred": true,
+    "days_to_failure": 30,
+    "pattern_metadata": {
+      "pattern": "brush",
+      "base_charging": 13.956178221955012
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        13.958605099242153,
+        13.97773195892317,
+        14.00821353656106,
+        13.922569533175153,
+        13.950268244022219,
+        13.96507137827973,
+        13.963519026362846,
+        13.873005263925707,
+        13.929607588033916,
+        14.012777384287666
+      ]
+    },
+    "total_samples": 330
+  },
+  {
+    "sequence_id": "c0697ac2",
+    "vehicle_id": "SYN-9929",
+    "failure_type": "alternator_failure",
+    "failure_occurred": true,
+    "days_to_failure": 36,
+    "pattern_metadata": {
+      "pattern": "bearing",
+      "base_charging": 14.116481995999086
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        14.143214324749684,
+        14.133894970552134,
+        14.197388723585155,
+        13.98895105389997,
+        14.127497383969573,
+        14.213414187779081,
+        14.061644946021993,
+        14.12420148971777,
+        14.063410134708251,
+        14.100382978199944
+      ]
+    },
+    "total_samples": 390
+  },
+  {
+    "sequence_id": "33f1ad2d",
+    "vehicle_id": "SYN-8093",
+    "failure_type": "alternator_failure",
+    "failure_occurred": true,
+    "days_to_failure": 31,
+    "pattern_metadata": {
+      "pattern": "voltage_regulator",
+      "base_charging": 14.026230803814103
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        14.026230803814103,
+        14.026230803814103,
+        14.026230803814103,
+        14.026230803814103,
+        14.026230803814103,
+        14.026230803814103,
+        14.026230803814103,
+        14.026230803814103,
+        14.026230803814103,
+        14.026230803814103
+      ]
+    },
+    "total_samples": 340
+  },
+  {
+    "sequence_id": "2e5d2826",
+    "vehicle_id": "SYN-6710",
+    "failure_type": "alternator_failure",
+    "failure_occurred": true,
+    "days_to_failure": 33,
+    "pattern_metadata": {
+      "pattern": "diode",
+      "base_charging": 14.14950723670417
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        14.16489489931108,
+        14.200996097816958,
+        14.065991977645321,
+        14.080194766999115,
+        14.132824613262622,
+        14.1309422213698,
+        14.12917223515992,
+        14.222240676714618,
+        14.220261178613878,
+        14.147467615587548
+      ]
+    },
+    "total_samples": 360
+  },
+  {
+    "sequence_id": "6fc365fa",
+    "vehicle_id": "SYN-6981",
+    "failure_type": "alternator_failure",
+    "failure_occurred": true,
+    "days_to_failure": 38,
+    "pattern_metadata": {
+      "pattern": "bearing",
+      "base_charging": 14.087132710495878
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        13.854331609916503,
+        14.052631514315909,
+        13.993605888503629,
+        14.212544124032501,
+        14.03479411677439,
+        14.099918419526114,
+        14.084225712561222,
+        14.092528755959215,
+        14.089733550535822,
+        14.078637848498527
+      ]
+    },
+    "total_samples": 410
+  },
+  {
+    "sequence_id": "3d917810",
+    "vehicle_id": "SYN-2025",
+    "failure_type": "alternator_failure",
+    "failure_occurred": true,
+    "days_to_failure": 44,
+    "pattern_metadata": {
+      "pattern": "brush",
+      "base_charging": 14.104715663070415
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        14.148473204364771,
+        14.15636832498135,
+        14.117292510164747,
+        14.11640925922874,
+        14.081394736384853,
+        14.078514991374666,
+        14.038009544421605,
+        14.12313141461018,
+        14.042592564361994,
+        14.068080269630318
+      ]
+    },
+    "total_samples": 470
+  },
+  {
+    "sequence_id": "b1d620d2",
+    "vehicle_id": "SYN-9646",
+    "failure_type": "alternator_failure",
+    "failure_occurred": true,
+    "days_to_failure": 31,
+    "pattern_metadata": {
+      "pattern": "voltage_regulator",
+      "base_charging": 13.994708854082255
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        13.994708854082255,
+        13.994708854082255,
+        13.994708854082255,
+        13.994708854082255,
+        13.994708854082255,
+        13.994708854082255,
+        13.994708854082255,
+        13.994708854082255,
+        13.994708854082255,
+        13.994708854082255
+      ]
+    },
+    "total_samples": 340
+  },
+  {
+    "sequence_id": "839a49d5",
+    "vehicle_id": "SYN-9210",
+    "failure_type": "alternator_failure",
+    "failure_occurred": true,
+    "days_to_failure": 44,
+    "pattern_metadata": {
+      "pattern": "diode",
+      "base_charging": 14.002552228148048
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        13.96300120213289,
+        14.055760815590341,
+        13.989762957085183,
+        13.96816498379876,
+        13.936628615162128,
+        13.964364209748645,
+        13.969249577305987,
+        14.012097538407424,
+        13.94810341378056,
+        13.944070432580682
+      ]
+    },
+    "total_samples": 470
+  },
+  {
+    "sequence_id": "1a449d5b",
+    "vehicle_id": "SYN-2720",
+    "failure_type": "alternator_failure",
+    "failure_occurred": true,
+    "days_to_failure": 28,
+    "pattern_metadata": {
+      "pattern": "brush",
+      "base_charging": 14.004204422130066
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        14.041477109328529,
+        13.987457915851152,
+        13.964311843153332,
+        14.052037950903355,
+        13.968734937901514,
+        13.977121552448704,
+        14.073923661716874,
+        13.918050811754146,
+        14.001414892941456,
+        14.023073105944986
+      ]
+    },
+    "total_samples": 310
+  },
+  {
+    "sequence_id": "e08d74ac",
+    "vehicle_id": "SYN-1882",
+    "failure_type": "alternator_failure",
+    "failure_occurred": true,
+    "days_to_failure": 39,
+    "pattern_metadata": {
+      "pattern": "brush",
+      "base_charging": 14.134756908480055
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        14.093296033655617,
+        14.112755840538194,
+        14.1693478824531,
+        14.144035798444609,
+        14.171691197269256,
+        14.13623894475242,
+        14.166333803772364,
+        14.136307276491316,
+        14.120441556242502,
+        14.123443452029202
+      ]
+    },
+    "total_samples": 420
+  },
+  {
+    "sequence_id": "d08c0847",
+    "vehicle_id": "SYN-7594",
+    "failure_type": "alternator_failure",
+    "failure_occurred": true,
+    "days_to_failure": 33,
+    "pattern_metadata": {
+      "pattern": "voltage_regulator",
+      "base_charging": 13.911642035161117
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        13.911642035161117,
+        13.911642035161117,
+        13.911642035161117,
+        13.911642035161117,
+        13.911642035161117,
+        13.911642035161117,
+        13.911642035161117,
+        13.911642035161117,
+        13.911642035161117,
+        13.911642035161117
+      ]
+    },
+    "total_samples": 360
+  },
+  {
+    "sequence_id": "b87b9617",
+    "vehicle_id": "SYN-1279",
+    "failure_type": "alternator_failure",
+    "failure_occurred": true,
+    "days_to_failure": 41,
+    "pattern_metadata": {
+      "pattern": "brush",
+      "base_charging": 13.966848506957836
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        13.961835918849763,
+        14.02489336132495,
+        13.910794857159027,
+        13.946815070793612,
+        13.991532842447674,
+        13.944974318662261,
+        13.91113110475178,
+        13.939995379394537,
+        14.024973406113858,
+        13.892441147521831
+      ]
+    },
+    "total_samples": 440
+  },
+  {
+    "sequence_id": "7c34f2b4",
+    "vehicle_id": "SYN-9778",
+    "failure_type": "alternator_failure",
+    "failure_occurred": true,
+    "days_to_failure": 23,
+    "pattern_metadata": {
+      "pattern": "bearing",
+      "base_charging": 13.953372556853038
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        14.044719554345386,
+        13.90591721978344,
+        13.78355908155897,
+        13.998052652704038,
+        14.03962560910933,
+        12.247087295058915,
+        14.041358821381495,
+        13.91493755751326,
+        13.943467490565851,
+        13.972124326628402
+      ]
+    },
+    "total_samples": 260
+  },
+  {
+    "sequence_id": "a2154baf",
+    "vehicle_id": "SYN-5076",
+    "failure_type": "alternator_failure",
+    "failure_occurred": true,
+    "days_to_failure": 25,
+    "pattern_metadata": {
+      "pattern": "bearing",
+      "base_charging": 14.140697336055084
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        14.168613710999846,
+        14.182258874892822,
+        14.20805232331556,
+        14.099326626601597,
+        14.217259363464601,
+        14.1062160396885,
+        14.036496010050339,
+        13.950980930160435,
+        12.489577627650867,
+        14.254646679510126
+      ]
+    },
+    "total_samples": 280
+  },
+  {
+    "sequence_id": "b1720deb",
+    "vehicle_id": "SYN-6208",
+    "failure_type": "alternator_failure",
+    "failure_occurred": true,
+    "days_to_failure": 32,
+    "pattern_metadata": {
+      "pattern": "bearing",
+      "base_charging": 14.08905810700687
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        14.142627170854242,
+        14.050745088219589,
+        14.151985042500742,
+        14.089951103312988,
+        14.016387786032734,
+        14.246548652455871,
+        13.824020376332578,
+        13.90223995916492,
+        14.066650243047812,
+        14.071601361888725
+      ]
+    },
+    "total_samples": 350
+  },
+  {
+    "sequence_id": "6de487bf",
+    "vehicle_id": "SYN-7728",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy"
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        14.233196174440035,
+        14.182760301466136,
+        14.329813873680232,
+        14.377037949175623,
+        14.30714264182897,
+        14.233550600755265,
+        14.092696417211652,
+        14.00895838802894,
+        14.004321992095937,
+        14.083590310671415
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "6996a6b7",
+    "vehicle_id": "SYN-9713",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy"
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        14.120173024088563,
+        14.321687341203864,
+        14.377695343395652,
+        14.280595598099369,
+        14.238248881252112,
+        14.081917506866997,
+        13.973587000911845,
+        13.821498818481288,
+        13.833764896505,
+        14.056054591393522
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "c3ff2fb8",
+    "vehicle_id": "SYN-9247",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy"
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        14.127206740504693,
+        14.23628865991407,
+        14.15214948948451,
+        14.347552233647765,
+        14.307679009831325,
+        14.060431673093202,
+        13.923482738489227,
+        13.784301524537836,
+        13.8056509481951,
+        13.909208668813601
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "83bda205",
+    "vehicle_id": "SYN-4481",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy"
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        14.11724698889825,
+        14.215598515207025,
+        14.343560365426423,
+        14.432356341226143,
+        14.218346405396685,
+        14.146113480298073,
+        13.911307344422355,
+        13.862430717265202,
+        14.012815087139867,
+        13.970099876375155
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "6003856d",
+    "vehicle_id": "SYN-6098",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy"
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        14.033575606092697,
+        14.168023389959293,
+        14.124947509211907,
+        14.094588662829361,
+        14.193327886815359,
+        13.926837100925088,
+        13.795389366812941,
+        13.67081790262361,
+        13.863640130678089,
+        13.72011215743829
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "8646d272",
+    "vehicle_id": "SYN-2269",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy"
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        14.146526452766087,
+        14.281564123187776,
+        14.345664506501462,
+        14.334395318851506,
+        14.198739263631968,
+        14.007184727698743,
+        13.959687148322145,
+        13.878373984067439,
+        13.902840836937045,
+        14.027861875548497
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "a1213d92",
+    "vehicle_id": "SYN-1668",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy"
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        13.982955210564644,
+        14.119385168057086,
+        14.05710004906786,
+        14.163998895126188,
+        14.069587709017382,
+        13.903000354115543,
+        13.816571021369583,
+        13.823029846620987,
+        13.655674776399616,
+        13.900605880868584
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "d5937857",
+    "vehicle_id": "SYN-1514",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy"
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        14.029410579305734,
+        14.046215571309222,
+        14.167648009911902,
+        14.171966834144593,
+        13.991922192460946,
+        13.92188906160691,
+        14.018269152870928,
+        13.867278511201308,
+        13.870119492865596,
+        13.958118456133155
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "a5547b03",
+    "vehicle_id": "SYN-5392",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy"
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        14.082807389672368,
+        14.078189149192516,
+        14.362862583165894,
+        14.278587286499963,
+        14.061049289605013,
+        14.12478854697757,
+        13.887744985824755,
+        13.787987923856608,
+        13.929468576523407,
+        13.999413597702747
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "ab96b117",
+    "vehicle_id": "SYN-3627",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy"
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        14.170817530965307,
+        14.182591381969857,
+        14.267532124701718,
+        14.31901506332557,
+        14.096173631245254,
+        14.066290823396283,
+        14.015603901418535,
+        13.894162590998437,
+        13.900022172888342,
+        13.929045878127473
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "aa0ac25b",
+    "vehicle_id": "SYN-7720",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy"
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        14.026550009887817,
+        14.218581688301924,
+        14.348073235300257,
+        14.25580268761283,
+        14.240074994374146,
+        14.126701321238448,
+        14.092539666180754,
+        13.939426645696997,
+        13.891133697980965,
+        14.06145332092007
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "1e45c655",
+    "vehicle_id": "SYN-6697",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy"
+    },
+    "sensor_data": {
+      "charging_voltage": [
+        13.906658308627009,
+        14.161220757687675,
+        14.261739785462359,
+        14.104732520609838,
+        14.122381142352799,
+        13.912678103676244,
+        13.941862756035665,
+        13.82520370497517,
+        13.77709378160334,
+        13.88878234293143
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "8ac4a0f0",
+    "vehicle_id": "SYN-8229",
+    "failure_type": "thermostat_failure",
+    "failure_occurred": true,
+    "days_to_failure": 30,
+    "pattern_metadata": {
+      "pattern": "stuck_closed",
+      "normal_temp": 205.23346598871512
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        200.19586825164714,
+        202.16272167631217,
+        204.02058395255594,
+        203.85475599315737,
+        204.0563381515618,
+        202.33864767103665,
+        210.46110129728964,
+        210.308529772917,
+        205.1086162548804,
+        203.2023401793268
+      ]
+    },
+    "total_samples": 350
+  },
+  {
+    "sequence_id": "411045d5",
+    "vehicle_id": "SYN-2715",
+    "failure_type": "thermostat_failure",
+    "failure_occurred": true,
+    "days_to_failure": 17,
+    "pattern_metadata": {
+      "pattern": "partial",
+      "normal_temp": 206.50694471269315
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        90.6694715102742,
+        124.4037972061325,
+        143.3014481509491,
+        154.56992835307054,
+        165.67191352546294,
+        172.05484104910505,
+        171.71907999887068,
+        173.65735812424145,
+        172.89581808928668,
+        172.29471856264146
+      ]
+    },
+    "total_samples": 220
+  },
+  {
+    "sequence_id": "216d756c",
+    "vehicle_id": "SYN-8249",
+    "failure_type": "thermostat_failure",
+    "failure_occurred": true,
+    "days_to_failure": 34,
+    "pattern_metadata": {
+      "pattern": "partial",
+      "normal_temp": 209.92283895892464
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        90.2608267740209,
+        124.68952064633824,
+        147.336352698771,
+        160.23074479102613,
+        164.27225295343322,
+        171.42394104626229,
+        168.1599438648325,
+        174.66897535633186,
+        184.3121202130047,
+        175.12868726341213
+      ]
+    },
+    "total_samples": 390
+  },
+  {
+    "sequence_id": "6db0cfd6",
+    "vehicle_id": "SYN-5332",
+    "failure_type": "thermostat_failure",
+    "failure_occurred": true,
+    "days_to_failure": 14,
+    "pattern_metadata": {
+      "pattern": "stuck_open",
+      "normal_temp": 209.41729127356618
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        202.55028611254752,
+        209.05664648682725,
+        207.764686002874,
+        207.02354887182446,
+        204.30403884535443,
+        215.6883894017371,
+        209.225221933724,
+        213.5019471519694,
+        206.28294508792482,
+        208.37371022140715
+      ]
+    },
+    "total_samples": 190
+  },
+  {
+    "sequence_id": "85d09726",
+    "vehicle_id": "SYN-3278",
+    "failure_type": "thermostat_failure",
+    "failure_occurred": true,
+    "days_to_failure": 28,
+    "pattern_metadata": {
+      "pattern": "intermittent",
+      "normal_temp": 208.73177117299556
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        211.51842035929945,
+        211.37287803743087,
+        228.80739496940546,
+        216.9530029519483,
+        216.50969220018862,
+        211.99814465163334,
+        211.20698086184404,
+        204.00233814402785,
+        201.4357947790555,
+        206.1247155537699
+      ]
+    },
+    "total_samples": 330
+  },
+  {
+    "sequence_id": "0c4f7db6",
+    "vehicle_id": "SYN-6896",
+    "failure_type": "thermostat_failure",
+    "failure_occurred": true,
+    "days_to_failure": 23,
+    "pattern_metadata": {
+      "pattern": "stuck_closed",
+      "normal_temp": 207.1446982273997
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        205.01323870561498,
+        210.58778885464199,
+        207.70172361292967,
+        213.48276378598803,
+        207.2930075793487,
+        207.03620918469255,
+        209.5546517474057,
+        204.57014858929293,
+        212.93861982628425,
+        214.2204589076474
+      ]
+    },
+    "total_samples": 280
+  },
+  {
+    "sequence_id": "d9339125",
+    "vehicle_id": "SYN-4088",
+    "failure_type": "thermostat_failure",
+    "failure_occurred": true,
+    "days_to_failure": 31,
+    "pattern_metadata": {
+      "pattern": "intermittent",
+      "normal_temp": 205.97442810162212
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        202.61917605597785,
+        213.02998926894062,
+        217.66127846257555,
+        216.35359793616348,
+        216.4273369579152,
+        210.770362996288,
+        199.67461959265137,
+        194.23379503902876,
+        192.46111809752506,
+        191.87022245701624
+      ]
+    },
+    "total_samples": 360
+  },
+  {
+    "sequence_id": "bf5b037c",
+    "vehicle_id": "SYN-6799",
+    "failure_type": "thermostat_failure",
+    "failure_occurred": true,
+    "days_to_failure": 21,
+    "pattern_metadata": {
+      "pattern": "stuck_open",
+      "normal_temp": 209.09526002164606
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        207.83183999547364,
+        204.14820017765612,
+        205.67775831058836,
+        205.16152157331922,
+        216.06920356299813,
+        211.22467566871651,
+        207.78694350891809,
+        209.8102601277716,
+        206.64616544282143,
+        207.08713741657465
+      ]
+    },
+    "total_samples": 260
+  },
+  {
+    "sequence_id": "7d3a5553",
+    "vehicle_id": "SYN-2585",
+    "failure_type": "thermostat_failure",
+    "failure_occurred": true,
+    "days_to_failure": 19,
+    "pattern_metadata": {
+      "pattern": "stuck_open",
+      "normal_temp": 204.1850550947482
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        206.1126278494149,
+        203.83304924805188,
+        205.35252817419428,
+        204.02537855004098,
+        201.89184696597232,
+        203.39050991695635,
+        208.94073196126632,
+        204.29484734620846,
+        198.9563972190391,
+        200.29966246913057
+      ]
+    },
+    "total_samples": 240
+  },
+  {
+    "sequence_id": "4eaadaec",
+    "vehicle_id": "SYN-4755",
+    "failure_type": "thermostat_failure",
+    "failure_occurred": true,
+    "days_to_failure": 34,
+    "pattern_metadata": {
+      "pattern": "intermittent",
+      "normal_temp": 203.0010701059471
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        203.476003209686,
+        210.3066333921425,
+        211.76179643698757,
+        211.66080128995102,
+        209.88735809124702,
+        214.6421590800017,
+        208.1811756112027,
+        190.64360426430207,
+        190.06625553727773,
+        188.9196381064164
+      ]
+    },
+    "total_samples": 390
+  },
+  {
+    "sequence_id": "ba02cdf3",
+    "vehicle_id": "SYN-7681",
+    "failure_type": "thermostat_failure",
+    "failure_occurred": true,
+    "days_to_failure": 23,
+    "pattern_metadata": {
+      "pattern": "stuck_closed",
+      "normal_temp": 203.14632709385964
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        202.42709989334386,
+        200.8228779929157,
+        202.3965748099406,
+        204.35845052159752,
+        206.17660796862728,
+        203.87936595386046,
+        201.9520001644647,
+        205.7980663846484,
+        200.2676070187469,
+        204.1292902650127
+      ]
+    },
+    "total_samples": 280
+  },
+  {
+    "sequence_id": "a57c8ead",
+    "vehicle_id": "SYN-2702",
+    "failure_type": "thermostat_failure",
+    "failure_occurred": true,
+    "days_to_failure": 24,
+    "pattern_metadata": {
+      "pattern": "stuck_open",
+      "normal_temp": 201.30834780795618
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        201.20069458830872,
+        201.48839150843517,
+        201.35350613233814,
+        196.41788488699206,
+        207.95668606976588,
+        203.10852012205154,
+        203.0920331277787,
+        197.62508754506212,
+        200.1622376395031,
+        204.34116426730068
+      ]
+    },
+    "total_samples": 290
+  },
+  {
+    "sequence_id": "d5bab3db",
+    "vehicle_id": "SYN-7711",
+    "failure_type": "thermostat_failure",
+    "failure_occurred": true,
+    "days_to_failure": 32,
+    "pattern_metadata": {
+      "pattern": "partial",
+      "normal_temp": 202.49056447863663
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        86.12361244120665,
+        120.13660463754272,
+        142.03354163596393,
+        148.0825645820275,
+        159.49147221548324,
+        169.60347127059558,
+        165.78863929318305,
+        171.79531486943625,
+        170.66632344633604,
+        171.7233748268493
+      ]
+    },
+    "total_samples": 370
+  },
+  {
+    "sequence_id": "804e1331",
+    "vehicle_id": "SYN-3312",
+    "failure_type": "thermostat_failure",
+    "failure_occurred": true,
+    "days_to_failure": 33,
+    "pattern_metadata": {
+      "pattern": "stuck_open",
+      "normal_temp": 207.92701654554776
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        209.59687379553978,
+        209.19872244924423,
+        207.8265538962427,
+        207.91712935162332,
+        210.31770412916376,
+        214.1543563392046,
+        204.13346481041347,
+        210.13047121601923,
+        213.4224736568069,
+        210.11720372872142
+      ]
+    },
+    "total_samples": 380
+  },
+  {
+    "sequence_id": "601daccd",
+    "vehicle_id": "SYN-6149",
+    "failure_type": "thermostat_failure",
+    "failure_occurred": true,
+    "days_to_failure": 32,
+    "pattern_metadata": {
+      "pattern": "partial",
+      "normal_temp": 204.76356680768308
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        85.22049513388859,
+        117.23841064811427,
+        143.43451522684103,
+        155.7701925459221,
+        165.7507132887003,
+        169.1553376230772,
+        168.07770079841748,
+        172.9954533234415,
+        169.57163257109454,
+        173.14360566197283
+      ]
+    },
+    "total_samples": 370
+  },
+  {
+    "sequence_id": "10da1274",
+    "vehicle_id": "SYN-3569",
+    "failure_type": "thermostat_failure",
+    "failure_occurred": true,
+    "days_to_failure": 20,
+    "pattern_metadata": {
+      "pattern": "partial",
+      "normal_temp": 200.38662073251749
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        87.04530268228886,
+        118.11896635447117,
+        139.37737647399095,
+        149.42354879933862,
+        157.51757781822317,
+        163.14413182657123,
+        163.88286811025336,
+        164.094779640816,
+        165.49223218108887,
+        167.0339897929066
+      ]
+    },
+    "total_samples": 250
+  },
+  {
+    "sequence_id": "2e0f108c",
+    "vehicle_id": "SYN-7098",
+    "failure_type": "thermostat_failure",
+    "failure_occurred": true,
+    "days_to_failure": 32,
+    "pattern_metadata": {
+      "pattern": "stuck_open",
+      "normal_temp": 203.60085634836707
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        202.1783045836802,
+        202.58363596932338,
+        207.50733645271464,
+        202.2316766499331,
+        204.84626720306548,
+        202.21775660581443,
+        201.4293442291478,
+        200.24520587047212,
+        203.7139959597058,
+        199.8349635344154
+      ]
+    },
+    "total_samples": 370
+  },
+  {
+    "sequence_id": "9e9bae36",
+    "vehicle_id": "SYN-5460",
+    "failure_type": "thermostat_failure",
+    "failure_occurred": true,
+    "days_to_failure": 30,
+    "pattern_metadata": {
+      "pattern": "stuck_open",
+      "normal_temp": 203.7580968273987
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        205.33046181146315,
+        200.78758180310808,
+        202.46691807457134,
+        206.99967597358938,
+        203.2168513694229,
+        205.77197353168407,
+        205.70201120659004,
+        202.31023122453738,
+        202.34284433265358,
+        198.8450503587429
+      ]
+    },
+    "total_samples": 350
+  },
+  {
+    "sequence_id": "2abb30d8",
+    "vehicle_id": "SYN-1796",
+    "failure_type": "thermostat_failure",
+    "failure_occurred": true,
+    "days_to_failure": 28,
+    "pattern_metadata": {
+      "pattern": "intermittent",
+      "normal_temp": 208.06853443323638
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        207.65770300141102,
+        209.32066050867198,
+        223.69855401955328,
+        222.72682250630638,
+        224.09557012741692,
+        213.62248068707427,
+        205.92416081116312,
+        208.72213126518858,
+        204.706490162275,
+        202.89263160625083
+      ]
+    },
+    "total_samples": 330
+  },
+  {
+    "sequence_id": "41e3dc10",
+    "vehicle_id": "SYN-7883",
+    "failure_type": "thermostat_failure",
+    "failure_occurred": true,
+    "days_to_failure": 33,
+    "pattern_metadata": {
+      "pattern": "stuck_open",
+      "normal_temp": 207.03587763760856
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        202.18707698158383,
+        213.39729905703845,
+        206.72221862536043,
+        208.9797168547815,
+        207.71446566397452,
+        204.81015324607577,
+        206.4555097789651,
+        205.89929545950596,
+        206.1371401340129,
+        206.13229172168428
+      ]
+    },
+    "total_samples": 380
+  },
+  {
+    "sequence_id": "895978dc",
+    "vehicle_id": "SYN-7207",
+    "failure_type": "thermostat_failure",
+    "failure_occurred": true,
+    "days_to_failure": 32,
+    "pattern_metadata": {
+      "pattern": "stuck_open",
+      "normal_temp": 200.35775271343738
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        201.04320925606424,
+        202.12482752735693,
+        202.55180626757848,
+        197.28479453134568,
+        198.99331971364927,
+        206.30662787069085,
+        205.6596187429344,
+        200.85611473189888,
+        203.91027996475336,
+        202.2837419181296
+      ]
+    },
+    "total_samples": 370
+  },
+  {
+    "sequence_id": "5d3be6bf",
+    "vehicle_id": "SYN-7785",
+    "failure_type": "thermostat_failure",
+    "failure_occurred": true,
+    "days_to_failure": 34,
+    "pattern_metadata": {
+      "pattern": "stuck_closed",
+      "normal_temp": 207.12745988436606
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        207.91943604462247,
+        205.91842935483982,
+        204.8185846238026,
+        209.6656042330729,
+        202.5813264494239,
+        212.3313950576041,
+        211.08278946698982,
+        208.99222672355415,
+        209.0682425473348,
+        209.4680121045301
+      ]
+    },
+    "total_samples": 390
+  },
+  {
+    "sequence_id": "6584e0c9",
+    "vehicle_id": "SYN-4653",
+    "failure_type": "thermostat_failure",
+    "failure_occurred": true,
+    "days_to_failure": 21,
+    "pattern_metadata": {
+      "pattern": "stuck_open",
+      "normal_temp": 208.28344879172099
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        209.27368746519954,
+        207.0120659908252,
+        212.53104357376174,
+        213.89961152814422,
+        203.84249775677952,
+        207.5937757203128,
+        211.7157046632915,
+        207.82813277759317,
+        201.90192465493223,
+        211.568855064767
+      ]
+    },
+    "total_samples": 260
+  },
+  {
+    "sequence_id": "f378a5cc",
+    "vehicle_id": "SYN-8386",
+    "failure_type": "thermostat_failure",
+    "failure_occurred": true,
+    "days_to_failure": 15,
+    "pattern_metadata": {
+      "pattern": "stuck_open",
+      "normal_temp": 202.83336419455122
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        204.674817752505,
+        199.8338368433295,
+        202.3820823694497,
+        205.74204511899518,
+        200.0446644803162,
+        199.3824894515195,
+        201.92127688178556,
+        200.69417851723838,
+        202.32654467687573,
+        203.90132004035766
+      ]
+    },
+    "total_samples": 200
+  },
+  {
+    "sequence_id": "b0fb8c14",
+    "vehicle_id": "SYN-7381",
+    "failure_type": "thermostat_failure",
+    "failure_occurred": true,
+    "days_to_failure": 30,
+    "pattern_metadata": {
+      "pattern": "stuck_open",
+      "normal_temp": 205.67062797386708
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        206.60914057047697,
+        206.42720197110808,
+        202.28841266382648,
+        209.66335756715375,
+        205.4607018070102,
+        209.67732440738433,
+        202.39349523343094,
+        202.98194331605472,
+        205.34499314454393,
+        206.6148287698948
+      ]
+    },
+    "total_samples": 350
+  },
+  {
+    "sequence_id": "a68f20a7",
+    "vehicle_id": "SYN-7726",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "target_temp": 204.0861999516247
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        211.99662661423395,
+        199.84737761936816,
+        203.4881727585562,
+        199.1588580783916,
+        204.29871090918476,
+        206.67629284058495,
+        204.05433824025573,
+        203.87527187677873,
+        198.00227303260064,
+        207.01053919343133
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "f598b645",
+    "vehicle_id": "SYN-6710",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "target_temp": 206.83708587094662
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        205.68705879270553,
+        203.4222439491489,
+        209.97082682915362,
+        210.53491530261076,
+        208.9443898918469,
+        201.07094774646242,
+        215.41358747411596,
+        211.52110965800992,
+        203.60408508669698,
+        205.2704262375165
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "4d57d4fd",
+    "vehicle_id": "SYN-3151",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "target_temp": 203.31861915562064
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        208.02564668738881,
+        211.3329244088704,
+        200.40636148067645,
+        200.7188061635155,
+        202.95723653798683,
+        210.80193972787242,
+        206.59065729233902,
+        213.04973417916332,
+        201.38321045369733,
+        205.92594771505222
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "a806398a",
+    "vehicle_id": "SYN-6914",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "target_temp": 204.92797814538653
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        209.8866227247025,
+        198.86716005055982,
+        211.40575577371058,
+        203.3683804832778,
+        204.00322427952509,
+        206.89203225230258,
+        206.15608528766376,
+        205.0546064260035,
+        205.89295821966184,
+        209.70362776050217
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "34e26d9f",
+    "vehicle_id": "SYN-7527",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "target_temp": 206.487112678311
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        206.03773852167862,
+        207.41565864619744,
+        207.7646553286237,
+        215.44542145388957,
+        215.541438010328,
+        213.83638180149754,
+        208.36260345500648,
+        216.41781106157984,
+        210.5663876773163,
+        212.39060249533844
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "e59cc609",
+    "vehicle_id": "SYN-3318",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "target_temp": 204.17411819837503
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        200.34456907744158,
+        204.6268055310361,
+        205.69652167584826,
+        199.82258973544486,
+        212.3455716173734,
+        200.29199500277838,
+        212.19456407056256,
+        207.1356086010084,
+        205.00461052459735,
+        200.3205921833904
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "438f5737",
+    "vehicle_id": "SYN-4901",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "target_temp": 209.97165226463966
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        218.80597730036592,
+        209.0856809628811,
+        202.70633025340535,
+        206.15557502863402,
+        208.59531951210258,
+        208.42311156723719,
+        214.97412166007962,
+        212.00710972603977,
+        211.28058990316595,
+        208.39720082163208
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "51751368",
+    "vehicle_id": "SYN-3913",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "target_temp": 206.9414252863493
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        203.88097448670902,
+        211.35823140723514,
+        204.3934497477343,
+        214.53311564590825,
+        204.89599416916525,
+        207.45129909221825,
+        201.8377442377442,
+        211.1206514912556,
+        202.74677957127457,
+        209.81311821068357
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "51abe0fc",
+    "vehicle_id": "SYN-4333",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "target_temp": 209.37160073220826
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        212.08599468389374,
+        217.96840855103173,
+        211.59446672916343,
+        208.7620938467288,
+        213.8770544468981,
+        215.73687008000613,
+        204.89070271638633,
+        213.0652094807568,
+        209.30589851782878,
+        206.1633122805145
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "ffdeded3",
+    "vehicle_id": "SYN-3340",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "target_temp": 201.86700150668145
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        194.77261066704628,
+        204.17106836106646,
+        205.31601292609005,
+        203.39253920199755,
+        196.7238565892202,
+        204.01217036278564,
+        200.52205570981866,
+        206.36587124601684,
+        197.444574887624,
+        203.5968231496266
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "c09808fa",
+    "vehicle_id": "SYN-2006",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "target_temp": 202.51570585190996
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        208.1836537785875,
+        204.84282678207765,
+        197.22480963991742,
+        203.05947657874628,
+        207.96741805123472,
+        210.17598487304755,
+        209.481973677397,
+        205.4136420063703,
+        200.93591937551267,
+        208.01948358394148
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "9e0f39b6",
+    "vehicle_id": "SYN-6520",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "target_temp": 204.5227198356085
+    },
+    "sensor_data": {
+      "coolant_temp": [
+        206.7543261935155,
+        207.31865494799254,
+        200.56366137686612,
+        206.9345972226036,
+        214.65348304313753,
+        203.5730255822401,
+        209.73029802283577,
+        206.83491936939407,
+        210.4824518329904,
+        202.58267493445047
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "a2325d25",
+    "vehicle_id": "SYN-4887",
+    "failure_type": "fuel_system_failure",
+    "failure_occurred": true,
+    "days_to_failure": 56,
+    "pattern_metadata": {
+      "pattern": "intermittent",
+      "base_ltft": -0.141765075402686
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        0.6166467085781121,
+        -0.1026395080878757,
+        -0.34645450961109703,
+        -0.9213097850722645,
+        -0.7679935593400115,
+        -0.06683948328600361,
+        -0.5839198319299166,
+        -0.6026340015792611,
+        -0.6765832820114164,
+        0.5026186435885025
+      ],
+      "short_term_fuel_trim_bank1": [
+        0.8479164353189755,
+        -0.991005376462747,
+        -0.30659554459414756,
+        -3.5328226161342133,
+        -0.915165932285094,
+        -0.34802322243697154,
+        -0.4681132570884093,
+        0.6165293840972954,
+        0.012366026324269056,
+        1.5555091062281334
+      ]
+    },
+    "total_samples": 610
+  },
+  {
+    "sequence_id": "5859a3e3",
+    "vehicle_id": "SYN-5291",
+    "failure_type": "fuel_system_failure",
+    "failure_occurred": true,
+    "days_to_failure": 32,
+    "pattern_metadata": {
+      "pattern": "rich_drift",
+      "base_ltft": 8.603142915020179e-05
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0
+      ],
+      "short_term_fuel_trim_bank1": [
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0
+      ]
+    },
+    "total_samples": 370
+  },
+  {
+    "sequence_id": "b78443a9",
+    "vehicle_id": "SYN-2999",
+    "failure_type": "fuel_system_failure",
+    "failure_occurred": true,
+    "days_to_failure": 55,
+    "pattern_metadata": {
+      "pattern": "intermittent",
+      "base_ltft": 0.28283907542926157
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        -0.07479863031415895,
+        -0.1617274573991353,
+        0.17787737654073696,
+        0.8167977828379721,
+        1.0605480939797525,
+        0.2186868205043021,
+        1.1311570621062301,
+        1.0773214175253547,
+        -0.08848125531826118,
+        0.17045460302610083
+      ],
+      "short_term_fuel_trim_bank1": [
+        1.3959955657168284,
+        0.14169404135287886,
+        2.855607246694366,
+        -0.4803989753252681,
+        -0.35199204821969376,
+        3.7542847915936592,
+        -0.8417494861258284,
+        1.694566081346647,
+        0.12128802686075513,
+        0.8006012266697742
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "1ac89ad9",
+    "vehicle_id": "SYN-6440",
+    "failure_type": "fuel_system_failure",
+    "failure_occurred": true,
+    "days_to_failure": 31,
+    "pattern_metadata": {
+      "pattern": "intermittent",
+      "base_ltft": -0.7777511883823001
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        -0.2742319714181789,
+        -0.8320855641940014,
+        -0.30623390739677814,
+        -0.37543492191343514,
+        -1.3124068390059553,
+        -2.1166827212786585,
+        -1.1768046173312383,
+        -0.3533500451455392,
+        -0.718937203430806,
+        -1.0848997434876053
+      ],
+      "short_term_fuel_trim_bank1": [
+        1.6534220254167569,
+        0.3447057754115667,
+        -0.0587655607662963,
+        1.2425204891253987,
+        -2.3495059995711842,
+        -2.920035951702301,
+        1.6632838788152176,
+        -0.9188456160820438,
+        2.334772870184032,
+        -1.1435808299577213
+      ]
+    },
+    "total_samples": 360
+  },
+  {
+    "sequence_id": "61405d26",
+    "vehicle_id": "SYN-1205",
+    "failure_type": "fuel_system_failure",
+    "failure_occurred": true,
+    "days_to_failure": 34,
+    "pattern_metadata": {
+      "pattern": "lean_drift",
+      "base_ltft": -0.5843238399515607
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        -1.6050468040365349,
+        0.1314690010450481,
+        -0.41545396225921005,
+        0.08074413102520883,
+        -0.14101509334243667,
+        0.3898729496240063,
+        0.4699211627024604,
+        -0.9187683687639152,
+        -1.6163101223095737,
+        -0.9646045682225124
+      ],
+      "short_term_fuel_trim_bank1": [
+        0.5593554924454045,
+        2.278834931400867,
+        -2.1828742494188123,
+        0.6762441130111589,
+        -2.220389595611642,
+        -3.3427184321546504,
+        0.4941822446880918,
+        -0.06792108294124781,
+        1.0169696481323558,
+        2.0697573486811236
+      ]
+    },
+    "total_samples": 390
+  },
+  {
+    "sequence_id": "777e459d",
+    "vehicle_id": "SYN-7576",
+    "failure_type": "fuel_system_failure",
+    "failure_occurred": true,
+    "days_to_failure": 55,
+    "pattern_metadata": {
+      "pattern": "oscillating",
+      "base_ltft": 0.7634254259020061
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        -2.097464031087574,
+        3.4178442881664908,
+        5.340514174176492,
+        5.178026117176718,
+        5.765299729036984,
+        2.797728159600847,
+        1.0496407581953728,
+        0.021625662928901335,
+        -1.8596533385738945,
+        -4.267063409991076
+      ],
+      "short_term_fuel_trim_bank1": [
+        4.529530846495669,
+        13.753134678286603,
+        3.371710172496977,
+        -0.59555642724617,
+        -6.45813092413544,
+        -6.439011727357935,
+        3.600642812680954,
+        4.8005172474024205,
+        11.669027399234135,
+        2.551739545427699
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "382ac956",
+    "vehicle_id": "SYN-4999",
+    "failure_type": "fuel_system_failure",
+    "failure_occurred": true,
+    "days_to_failure": 50,
+    "pattern_metadata": {
+      "pattern": "oscillating",
+      "base_ltft": -0.4164030499722544
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        -0.3813648254331876,
+        1.3141128871000813,
+        3.7885917789339763,
+        5.228222120442876,
+        4.59084210139279,
+        2.6192466641079446,
+        1.481628006517147,
+        -1.5753540764898468,
+        -4.051886588960048,
+        -5.980878847005773
+      ],
+      "short_term_fuel_trim_bank1": [
+        -1.4927134578999792,
+        8.147728630202426,
+        9.816548745248909,
+        2.979985071139909,
+        -9.885715954585637,
+        -10.83744032481055,
+        -4.38933093665503,
+        2.9310561075271084,
+        6.3272835952046975,
+        8.785223935811619
+      ]
+    },
+    "total_samples": 550
+  },
+  {
+    "sequence_id": "25dbcbff",
+    "vehicle_id": "SYN-2271",
+    "failure_type": "fuel_system_failure",
+    "failure_occurred": true,
+    "days_to_failure": 43,
+    "pattern_metadata": {
+      "pattern": "oscillating",
+      "base_ltft": -0.9234534724934611
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        -1.6676138584225757,
+        0.7883581557876294,
+        2.7837729966419054,
+        3.020640142293505,
+        3.938842646208121,
+        2.0523798374166304,
+        -1.1332658455070992,
+        -2.250164445580214,
+        -5.112813701987611,
+        -4.453503034417999
+      ],
+      "short_term_fuel_trim_bank1": [
+        4.000836432054511,
+        4.798198796075971,
+        1.8072257848375148,
+        3.042901810933416,
+        -3.8285315180296293,
+        -8.05100820525948,
+        -5.321309239237397,
+        5.963986193069077,
+        7.825900955058923,
+        3.7419823951472315
+      ]
+    },
+    "total_samples": 480
+  },
+  {
+    "sequence_id": "a0587151",
+    "vehicle_id": "SYN-1302",
+    "failure_type": "fuel_system_failure",
+    "failure_occurred": true,
+    "days_to_failure": 35,
+    "pattern_metadata": {
+      "pattern": "oscillating",
+      "base_ltft": 0.7245779992408943
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        -0.11115874961700078,
+        3.900639095790498,
+        4.734957631469976,
+        7.113357526626135,
+        5.684575350118847,
+        4.390030364899354,
+        1.7500513819786374,
+        -2.1840958075156047,
+        -2.9617580307392184,
+        -3.610685903322008
+      ],
+      "short_term_fuel_trim_bank1": [
+        -0.10364320260451967,
+        7.359912882265017,
+        7.77563952466912,
+        1.1170826437137757,
+        -5.321192359294653,
+        -5.106116424464454,
+        0.09134745083540752,
+        2.5441773923395243,
+        2.9316580668464285,
+        4.41435440799712
+      ]
+    },
+    "total_samples": 400
+  },
+  {
+    "sequence_id": "586dd551",
+    "vehicle_id": "SYN-1485",
+    "failure_type": "fuel_system_failure",
+    "failure_occurred": true,
+    "days_to_failure": 46,
+    "pattern_metadata": {
+      "pattern": "oscillating",
+      "base_ltft": -0.10339694554316625
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        0.31027184855457357,
+        1.0097178294886915,
+        5.257170165640909,
+        4.3166777483870185,
+        4.098541243366045,
+        3.0998602773719415,
+        1.106638603064292,
+        -0.25940405150040435,
+        -5.074749731377411,
+        -4.008139814680575
+      ],
+      "short_term_fuel_trim_bank1": [
+        -2.173108139182802,
+        5.673993701178724,
+        6.96794672737921,
+        -0.15990026705293658,
+        -9.323780659097805,
+        -9.25414963072832,
+        -0.08599800932018731,
+        6.957879319413443,
+        7.133677650709426,
+        7.587535821442197
+      ]
+    },
+    "total_samples": 510
+  },
+  {
+    "sequence_id": "6009815e",
+    "vehicle_id": "SYN-5711",
+    "failure_type": "fuel_system_failure",
+    "failure_occurred": true,
+    "days_to_failure": 52,
+    "pattern_metadata": {
+      "pattern": "lean_drift",
+      "base_ltft": -0.00543645640412449
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        0.8355067668549849,
+        -0.28890700989553886,
+        0.03833864232034034,
+        0.9141929331206293,
+        -1.3294421598614705,
+        0.01843634476824788,
+        -1.096161135559823,
+        -0.27722456685795455,
+        0.3172607449848884,
+        -0.8928279340552783
+      ],
+      "short_term_fuel_trim_bank1": [
+        -2.4880532165663554,
+        0.8723338100714129,
+        0.0465388662378123,
+        0.07292485740561339,
+        2.0278535662846897,
+        -1.5125507467678536,
+        -0.3524511466654646,
+        -3.3178725005958767,
+        1.81888121980297,
+        -2.071812262564407
+      ]
+    },
+    "total_samples": 570
+  },
+  {
+    "sequence_id": "f048fc61",
+    "vehicle_id": "SYN-7743",
+    "failure_type": "fuel_system_failure",
+    "failure_occurred": true,
+    "days_to_failure": 42,
+    "pattern_metadata": {
+      "pattern": "rich_drift",
+      "base_ltft": 0.8341709570292353
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0
+      ],
+      "short_term_fuel_trim_bank1": [
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0
+      ]
+    },
+    "total_samples": 470
+  },
+  {
+    "sequence_id": "8eb4f253",
+    "vehicle_id": "SYN-5050",
+    "failure_type": "fuel_system_failure",
+    "failure_occurred": true,
+    "days_to_failure": 45,
+    "pattern_metadata": {
+      "pattern": "lean_drift",
+      "base_ltft": -0.09589068935900347
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        0.7397886443076293,
+        -1.289886721636454,
+        -0.6932447099974097,
+        -1.009084451874836,
+        -0.5258280487171,
+        -0.30069406223336403,
+        -0.24326548973170112,
+        -0.90649411153851,
+        0.34923755287438984,
+        -1.3121762298976232
+      ],
+      "short_term_fuel_trim_bank1": [
+        -0.5772176577155058,
+        1.2735182771205076,
+        -0.7864880288713387,
+        1.9883248577113557,
+        -0.9170859820045929,
+        -3.4574270722053786,
+        -0.6246885175829782,
+        3.1790078699374673,
+        -1.7258884030187382,
+        -0.932633857810059
+      ]
+    },
+    "total_samples": 500
+  },
+  {
+    "sequence_id": "4e2fb88f",
+    "vehicle_id": "SYN-2033",
+    "failure_type": "fuel_system_failure",
+    "failure_occurred": true,
+    "days_to_failure": 42,
+    "pattern_metadata": {
+      "pattern": "lean_drift",
+      "base_ltft": 0.02003675379656955
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        0.58778045695781,
+        -0.8687658707575225,
+        0.4906736326750226,
+        1.4200979477882731,
+        -0.15655309407205933,
+        0.28457297103060747,
+        -0.34547743496234773,
+        -0.20832032454627145,
+        0.12294764990435679,
+        -0.6275754076981911
+      ],
+      "short_term_fuel_trim_bank1": [
+        1.3985352712828607,
+        -1.7940037972587846,
+        2.008016644331505,
+        -1.1813909038430175,
+        -2.173841984973168,
+        -1.8430478751570731,
+        -2.237374239169107,
+        0.7253540766017772,
+        2.126860233980306,
+        -0.7286452579004423
+      ]
+    },
+    "total_samples": 470
+  },
+  {
+    "sequence_id": "ebd2ae46",
+    "vehicle_id": "SYN-1424",
+    "failure_type": "fuel_system_failure",
+    "failure_occurred": true,
+    "days_to_failure": 46,
+    "pattern_metadata": {
+      "pattern": "rich_drift",
+      "base_ltft": 0.6963536354164683
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0
+      ],
+      "short_term_fuel_trim_bank1": [
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0
+      ]
+    },
+    "total_samples": 510
+  },
+  {
+    "sequence_id": "f2d58389",
+    "vehicle_id": "SYN-8166",
+    "failure_type": "fuel_system_failure",
+    "failure_occurred": true,
+    "days_to_failure": 58,
+    "pattern_metadata": {
+      "pattern": "lean_drift",
+      "base_ltft": -0.6131689653429049
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        0.10097716988269534,
+        -1.2709581011942999,
+        0.6756042122152333,
+        0.3857523183841096,
+        -1.711933629530885,
+        -0.35240605157145644,
+        -0.9001099176847922,
+        -0.7908777452803593,
+        -0.3594160868035508,
+        -0.4853975808667633
+      ],
+      "short_term_fuel_trim_bank1": [
+        -3.034880329530582,
+        2.7671065376059674,
+        -0.7329975455813192,
+        -1.1893469725436185,
+        2.366509306896757,
+        -0.2293665045117467,
+        0.2803767215435217,
+        -0.005462120859547224,
+        1.6772075536652056,
+        -0.110067179521855
+      ]
+    },
+    "total_samples": 630
+  },
+  {
+    "sequence_id": "1019de24",
+    "vehicle_id": "SYN-8657",
+    "failure_type": "fuel_system_failure",
+    "failure_occurred": true,
+    "days_to_failure": 31,
+    "pattern_metadata": {
+      "pattern": "rich_drift",
+      "base_ltft": -0.3010491703024347
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0
+      ],
+      "short_term_fuel_trim_bank1": [
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0
+      ]
+    },
+    "total_samples": 360
+  },
+  {
+    "sequence_id": "e9e7b2a3",
+    "vehicle_id": "SYN-8882",
+    "failure_type": "fuel_system_failure",
+    "failure_occurred": true,
+    "days_to_failure": 58,
+    "pattern_metadata": {
+      "pattern": "oscillating",
+      "base_ltft": 0.5104285839279346
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        1.4238254738576417,
+        3.360927836690021,
+        4.339738901912205,
+        4.039975239503642,
+        5.367513311175655,
+        3.0987634877279024,
+        0.2882917845281119,
+        0.647657743104989,
+        -3.527749054564282,
+        -3.672468679008573
+      ],
+      "short_term_fuel_trim_bank1": [
+        2.2897128790917805,
+        13.312449000907343,
+        5.558636171019642,
+        -1.1598748183649044,
+        -1.9376235486226232,
+        -3.856346598094403,
+        -0.47312655291508476,
+        3.45343193454414,
+        5.705575535659044,
+        -1.8161367450668124
+      ]
+    },
+    "total_samples": 630
+  },
+  {
+    "sequence_id": "30d2e306",
+    "vehicle_id": "SYN-3392",
+    "failure_type": "fuel_system_failure",
+    "failure_occurred": true,
+    "days_to_failure": 35,
+    "pattern_metadata": {
+      "pattern": "oscillating",
+      "base_ltft": 0.88160141387267
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        0.7088280562684897,
+        3.474243143458107,
+        4.092299048915528,
+        7.167394445216134,
+        5.791996706124495,
+        5.030181580310229,
+        1.5997487777498485,
+        -1.6615495416909638,
+        -3.2890252149096577,
+        -3.274273643733988
+      ],
+      "short_term_fuel_trim_bank1": [
+        2.91026816680067,
+        6.667011028581404,
+        5.936649796173624,
+        -6.040419225109176,
+        -6.191945256392067,
+        -11.25511007171271,
+        -6.929721615105772,
+        5.044081579204249,
+        6.851222484115093,
+        4.971468765424886
+      ]
+    },
+    "total_samples": 400
+  },
+  {
+    "sequence_id": "ca4b74c8",
+    "vehicle_id": "SYN-5837",
+    "failure_type": "fuel_system_failure",
+    "failure_occurred": true,
+    "days_to_failure": 33,
+    "pattern_metadata": {
+      "pattern": "intermittent",
+      "base_ltft": -0.5601517417571409
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        0.4017379975951,
+        -0.6308731840540946,
+        -1.59921790473719,
+        12.028328702816852,
+        -0.710377361757534,
+        -0.44809085593538905,
+        -1.435312013618315,
+        0.1400412301201025,
+        -0.1065843818881157,
+        -0.9036330618096142
+      ],
+      "short_term_fuel_trim_bank1": [
+        4.478563432292336,
+        -0.10055454819835347,
+        -0.7190031983294555,
+        3.73809868175996,
+        1.2073450702946757,
+        -2.399225903378311,
+        0.2899702399981333,
+        0.6253704775677827,
+        2.2697990542395092,
+        -2.6909438304302147
+      ]
+    },
+    "total_samples": 380
+  },
+  {
+    "sequence_id": "95b7afea",
+    "vehicle_id": "SYN-4005",
+    "failure_type": "fuel_system_failure",
+    "failure_occurred": true,
+    "days_to_failure": 50,
+    "pattern_metadata": {
+      "pattern": "intermittent",
+      "base_ltft": 0.36831700898202024
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        0.2692676395184193,
+        0.22739370790523905,
+        0.06549281999347262,
+        0.25087083528493814,
+        -0.2531121138665381,
+        1.1393973567854907,
+        -0.24371385064594409,
+        0.8839807852967019,
+        0.9429701520559105,
+        0.5028241689472353
+      ],
+      "short_term_fuel_trim_bank1": [
+        -4.118766697182831,
+        -1.8596458468733723,
+        1.1769136686311594,
+        -1.5108113597503063,
+        1.5149713795688358,
+        -0.10862547386181794,
+        2.1369705711479994,
+        -0.490886723698127,
+        -0.7879446506018188,
+        -2.69443929443973
+      ]
+    },
+    "total_samples": 550
+  },
+  {
+    "sequence_id": "d6c798c6",
+    "vehicle_id": "SYN-9595",
+    "failure_type": "fuel_system_failure",
+    "failure_occurred": true,
+    "days_to_failure": 52,
+    "pattern_metadata": {
+      "pattern": "intermittent",
+      "base_ltft": -0.6709648937943498
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        -16.09359693642958,
+        -0.7737256269894439,
+        -0.912454949543188,
+        0.10975738521579259,
+        -0.5176335330211119,
+        -0.6663386095259973,
+        -0.6966977245317999,
+        -0.4658929931114687,
+        -0.2360634341170202,
+        -1.041831057444965
+      ],
+      "short_term_fuel_trim_bank1": [
+        -9.883352093960523,
+        -3.278054216763395,
+        -1.182518681458632,
+        -1.3416120932297124,
+        -1.637780114236215,
+        0.7090250807314156,
+        -4.442531701403085,
+        -1.0573156965535635,
+        -1.847556135044732,
+        0.376749548904262
+      ]
+    },
+    "total_samples": 570
+  },
+  {
+    "sequence_id": "bb1c6d58",
+    "vehicle_id": "SYN-6361",
+    "failure_type": "fuel_system_failure",
+    "failure_occurred": true,
+    "days_to_failure": 38,
+    "pattern_metadata": {
+      "pattern": "intermittent",
+      "base_ltft": 0.7351288819212565
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        0.15719687013547745,
+        1.7591794690995548,
+        0.03256363258695416,
+        0.6354844849572907,
+        0.637860179215376,
+        0.047344087166804494,
+        0.2988100206228741,
+        0.11399329708191186,
+        0.9154647844509196,
+        1.0086064492695976
+      ],
+      "short_term_fuel_trim_bank1": [
+        -1.9204620767141518,
+        -1.7265448807021149,
+        -0.3652882489646068,
+        1.2706003169210387,
+        0.28039278707520093,
+        -2.242567764902375,
+        -1.5458103185869447,
+        0.046439532214248555,
+        -0.4894976604797639,
+        1.9320539690975815
+      ]
+    },
+    "total_samples": 430
+  },
+  {
+    "sequence_id": "25708085",
+    "vehicle_id": "SYN-5452",
+    "failure_type": "fuel_system_failure",
+    "failure_occurred": true,
+    "days_to_failure": 56,
+    "pattern_metadata": {
+      "pattern": "oscillating",
+      "base_ltft": 0.7969575176300485
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        2.692041565736364,
+        3.2538292137598157,
+        6.9482099540839695,
+        5.096430239035784,
+        6.24280646586294,
+        4.371081419315841,
+        2.4388891688733763,
+        -1.2686723471264265,
+        -4.552284212895801,
+        -1.740247285041971
+      ],
+      "short_term_fuel_trim_bank1": [
+        3.1779240466336027,
+        1.4346787961167458,
+        9.08102923600422,
+        -2.6743859537729318,
+        -7.1693580276956554,
+        -7.553874816956534,
+        1.4640567895132803,
+        4.807278189000538,
+        13.09138781627751,
+        5.204203625108586
+      ]
+    },
+    "total_samples": 610
+  },
+  {
+    "sequence_id": "4a3f219c",
+    "vehicle_id": "SYN-5057",
+    "failure_type": "fuel_system_failure",
+    "failure_occurred": true,
+    "days_to_failure": 41,
+    "pattern_metadata": {
+      "pattern": "rich_drift",
+      "base_ltft": -0.44765525719550703
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0
+      ],
+      "short_term_fuel_trim_bank1": [
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0,
+        -25.0
+      ]
+    },
+    "total_samples": 460
+  },
+  {
+    "sequence_id": "8a8c4205",
+    "vehicle_id": "SYN-7989",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "base_ltft": 0.5631412674218894
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        -0.011980999800375591,
+        0.6228643412101742,
+        1.1340937038803147,
+        0.7335362367202349,
+        0.9120694307943885,
+        0.05193072825747669,
+        0.48877457648116884,
+        0.11095039068047108,
+        1.0513667858009539,
+        1.250628789470051
+      ],
+      "short_term_fuel_trim_bank1": [
+        -1.3681445664399619,
+        3.5679698974047094,
+        -0.6554086129857983,
+        -1.1987503272318036,
+        -0.8265616851958009,
+        -5.556208269466436,
+        -0.3148666189332175,
+        1.4867686072507285,
+        -1.5153957808302807,
+        -1.0076764724980964
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "73776386",
+    "vehicle_id": "SYN-6762",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "base_ltft": 1.8326913797656483
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        1.6297683994414953,
+        2.007550392430142,
+        1.5114902197280498,
+        1.0826025818918876,
+        2.140164863710414,
+        2.6886807746256958,
+        1.8143771612966375,
+        1.6721690348095644,
+        1.5473783035271538,
+        1.6527700494215951
+      ],
+      "short_term_fuel_trim_bank1": [
+        -1.0434993481891504,
+        -0.32319624721378726,
+        -4.161802070894515,
+        -1.70744191982104,
+        -2.55402188252821,
+        -0.28497027506018163,
+        3.4144168303829177,
+        -1.0419577562500462,
+        3.3291523796380327,
+        -2.0694850731865753
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "3c645458",
+    "vehicle_id": "SYN-8782",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "base_ltft": -0.17961344194281903
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        -0.13351823089119258,
+        0.9168580851551931,
+        -0.41211996844886367,
+        -0.6131890020159619,
+        -1.1740480112078733,
+        -0.5808450999688377,
+        -0.9421445104630536,
+        -0.2533332100914068,
+        0.46974845399817866,
+        0.6635200596856564
+      ],
+      "short_term_fuel_trim_bank1": [
+        -6.5474166835582865,
+        -3.423793854272576,
+        -1.0513678955745862,
+        -4.961709846041427,
+        0.0355120983112746,
+        0.48166464279926086,
+        -2.173500463840922,
+        1.6201854054201241,
+        1.837966078237218,
+        -2.3460095649261876
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "000fe01c",
+    "vehicle_id": "SYN-2558",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "base_ltft": 1.130962608649015
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        1.2046237750894386,
+        1.6023525048915501,
+        0.8626000410104191,
+        0.7838938799585934,
+        1.1679248449561122,
+        1.5171597173237674,
+        1.526711357203013,
+        0.9032071590174956,
+        1.0976215918153516,
+        1.103796486142896
+      ],
+      "short_term_fuel_trim_bank1": [
+        -3.880588969640872,
+        -2.401804962481952,
+        -3.930850216611022,
+        0.03778002817663533,
+        -2.396388515436368,
+        -4.084062411919271,
+        4.247479172670174,
+        5.372182109781773,
+        1.4972339690491483,
+        1.786591565731928
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "69ac2d9c",
+    "vehicle_id": "SYN-9435",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "base_ltft": -1.8068783727188316
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        -1.0605829042826196,
+        -1.6446247981842432,
+        -1.2598953061321945,
+        -2.2094878324644522,
+        -1.5346051170463504,
+        -1.1622840453708632,
+        -2.1592742197747476,
+        -2.2155132841846807,
+        -1.8291547931037164,
+        -1.8313991714218132
+      ],
+      "short_term_fuel_trim_bank1": [
+        -0.3728217570554727,
+        1.244031120762671,
+        -0.7100725142941803,
+        -0.2600585831361158,
+        -4.404500666846743,
+        -3.447255180529959,
+        0.6962904238149838,
+        3.991975412555031,
+        6.156464754212282,
+        1.0967596307744563
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "12fe2d83",
+    "vehicle_id": "SYN-7672",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "base_ltft": -1.9494137592637437
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        -1.5447653728684663,
+        -1.7176298103095626,
+        -2.1738940436970875,
+        -2.2349756874478945,
+        -1.9674881604469052,
+        -1.7962178655739378,
+        -1.8944340913535511,
+        -1.4292579753859473,
+        -1.8945141051389054,
+        -2.6267062700447115
+      ],
+      "short_term_fuel_trim_bank1": [
+        -1.323913528835712,
+        0.4443235338258751,
+        0.014152133702866145,
+        7.2304300914096284,
+        3.376185299501893,
+        -1.1464067933947784,
+        0.7278684891717865,
+        0.7556652789355334,
+        2.4206192493417515,
+        -2.6280447384955323
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "a5c7c0f6",
+    "vehicle_id": "SYN-1248",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "base_ltft": 1.3296054918200517
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        1.3150239740190222,
+        1.4742306999349717,
+        1.1156336927299053,
+        0.7044506965950286,
+        0.6160795216059778,
+        1.9432932868840709,
+        1.251449390884913,
+        0.6635006873954623,
+        1.466367672423495,
+        0.1935447430999464
+      ],
+      "short_term_fuel_trim_bank1": [
+        0.19291359974779815,
+        -0.11352457253360841,
+        2.3956213615383826,
+        5.7196224196779255,
+        -2.1841687302790107,
+        -3.6203523700523363,
+        0.5723855129437073,
+        1.343642334217248,
+        2.508749456067249,
+        4.890675132715488
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "51a65d4b",
+    "vehicle_id": "SYN-6854",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "base_ltft": 0.8323161602567977
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        0.35631703458974867,
+        0.13801897640132887,
+        1.05649880564976,
+        0.8498963998237036,
+        0.5113627178989002,
+        0.4807229638672648,
+        1.3395758444677968,
+        0.666020583010929,
+        1.391543093275549,
+        0.6821861244418154
+      ],
+      "short_term_fuel_trim_bank1": [
+        2.280893330918065,
+        4.629978021667889,
+        1.357244482015709,
+        0.8095480953862537,
+        0.8628176158113943,
+        0.5009496474601176,
+        -1.9718367026700587,
+        -3.208337626453252,
+        -3.248583488229743,
+        -4.977609284649869
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "f33c7b29",
+    "vehicle_id": "SYN-6304",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "base_ltft": -1.5686217981241355
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        -1.4431142643302628,
+        -2.10580316469016,
+        -1.085568807878512,
+        -1.567800785373705,
+        -1.2716031550214795,
+        -0.9091497488716511,
+        -1.865024359819134,
+        -2.1792711681209846,
+        -1.5336871839365975,
+        -2.1349573011443423
+      ],
+      "short_term_fuel_trim_bank1": [
+        -4.196603935973591,
+        2.4559870726104966,
+        -2.935482946616643,
+        2.5354977988045464,
+        6.108357371094115,
+        -2.139884860246095,
+        3.4860618492049857,
+        -3.771838242849232,
+        -1.7752400250351366,
+        2.104133870089114
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "eb7dd5d0",
+    "vehicle_id": "SYN-6572",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "base_ltft": -1.9678267159154639
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        -1.348183496630495,
+        -1.780278065385413,
+        -1.9446443356866656,
+        -1.2547109932872071,
+        -2.411227708474898,
+        -1.6193938934533711,
+        -2.755713187123747,
+        -1.0793954782667838,
+        -1.3645224560338112,
+        -2.144219677989727
+      ],
+      "short_term_fuel_trim_bank1": [
+        2.148752264321156,
+        -1.4162313401210045,
+        -2.280884906365972,
+        -3.6268471537049862,
+        0.7690200686359783,
+        5.423898248977683,
+        -2.4654294782867336,
+        3.15370065017638,
+        -3.757868422720488,
+        -0.7119835798337891
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "50402d0a",
+    "vehicle_id": "SYN-6426",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "base_ltft": 0.6782003953529379
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        0.9367467808013424,
+        0.48702735088308075,
+        0.4340629948259863,
+        0.4072589271920241,
+        0.9922413546917557,
+        -0.10585665164593971,
+        0.7591867606889193,
+        0.5759353834431615,
+        1.2325664634305271,
+        1.5178526364103107
+      ],
+      "short_term_fuel_trim_bank1": [
+        -0.7236588809268135,
+        -4.280852257806808,
+        1.575874252706671,
+        -2.537804297921112,
+        2.024382897230577,
+        -6.970526881312787,
+        -1.8685036477873385,
+        0.5221122704072192,
+        0.301196797393921,
+        -0.11606540446206802
+      ]
+    },
+    "total_samples": 600
+  },
+  {
+    "sequence_id": "33d83fe9",
+    "vehicle_id": "SYN-2084",
+    "failure_type": "none",
+    "failure_occurred": false,
+    "days_to_failure": null,
+    "pattern_metadata": {
+      "pattern": "healthy",
+      "base_ltft": 0.3069715636196615
+    },
+    "sensor_data": {
+      "long_term_fuel_trim_bank1": [
+        0.6587534437761682,
+        0.3853065751695182,
+        -0.010967777864996586,
+        -0.3503209423441367,
+        0.6590553111774599,
+        -0.00036157218533866553,
+        -0.10446341784105406,
+        0.3388194306790614,
+        0.5539865319651907,
+        0.009913869682464549
+      ],
+      "short_term_fuel_trim_bank1": [
+        -0.02066773022485518,
+        -5.0251872579928785,
+        4.640702726134284,
+        -3.2033667444831972,
+        -0.3288460665625189,
+        -0.7826078973767474,
+        -4.215403417356412,
+        1.0542930406147402,
+        2.221684382779098,
+        0.7344881086123636
+      ]
+    },
+    "total_samples": 600
+  }
+]

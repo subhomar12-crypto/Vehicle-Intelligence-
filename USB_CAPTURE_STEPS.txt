@@ -1,0 +1,170 @@
+================================================================================
+STEP-BY-STEP: CAPTURE NISSCOM USB ACTIVATION COMMANDS
+================================================================================
+
+We WILL make your Nisscom device work with Python!
+The secret is in the USB commands - let's capture them.
+
+================================================================================
+PHASE 1: INSTALL WIRESHARK (5 minutes)
+================================================================================
+
+1. Download Wireshark:
+   - URL opened in browser: https://www.wireshark.org/download.html
+   - Download "Windows x64 Installer"
+   - Run the installer
+
+2. During Installation:
+   *** CRITICAL: Check "USBPcap" option ***
+   - You'll see a list of components
+   - MAKE SURE "USBPcap" is CHECKED
+   - This is what lets us capture USB traffic
+
+3. Complete installation and RESTART computer
+
+================================================================================
+PHASE 2: PREPARE FOR CAPTURE (2 minutes)
+================================================================================
+
+1. IMPORTANT: Make sure car is ON and ready
+   - We need a WORKING session to capture
+
+2. Close Nisscom software (if open)
+
+3. Keep device connected to USB
+
+================================================================================
+PHASE 3: CAPTURE USB TRAFFIC (2 minutes)
+================================================================================
+
+1. Open Wireshark (should be installed now)
+
+2. You'll see a list of capture interfaces:
+   - Look for "USBPcap1" or "USB"
+   - Double-click it to start capture
+
+3. Wireshark is now recording ALL USB traffic
+
+4. Now open Nisscom software:
+   - Launch the software
+   - Connect to car (COM5)
+   - Wait for it to show data (RPM, temp, etc.)
+   - Let it run for 10 seconds
+   - Close Nisscom software
+
+5. Back in Wireshark:
+   - Click the red STOP button
+   - File → Save As
+   - Save as: C:\D Drive\Predict\nisscom_usb_capture.pcapng
+
+================================================================================
+PHASE 4: ANALYZE THE CAPTURE (I'll do this)
+================================================================================
+
+Once you have the .pcapng file, I'll analyze it to find:
+
+1. USB Control Transfers
+   - Setup packets with vendor-specific commands
+   - These configure the FTDI chip
+
+2. FTDI Configuration Commands
+   - Set baud rate
+   - Configure special pins
+   - Enable K-line mode
+
+3. Timing and Sequence
+   - Order of commands
+   - Delays between them
+
+4. The Secret Activation
+   - The command that switches device to K-line bridge mode
+
+Then I'll create Python code using pyusb that sends the exact same commands!
+
+================================================================================
+WHAT TO LOOK FOR (Preview)
+================================================================================
+
+In the capture, we're looking for packets like:
+
+  URB_CONTROL out
+    bmRequestType: 0x40 (Vendor-specific)
+    bRequest: 0x??
+    wValue: 0x????
+    wIndex: 0x????
+    Data: [bytes]
+
+These are the commands that activate the device!
+
+Common FTDI vendor commands:
+  - 0x00: Reset
+  - 0x01: Modem control
+  - 0x02: Set flow control
+  - 0x03: Set baud rate
+  - 0x04: Set data characteristics
+  - 0x09: Set latency timer
+  - Custom commands for K-line activation
+
+================================================================================
+ALTERNATIVE IF WIRESHARK DOESN'T WORK
+================================================================================
+
+If USBPcap doesn't capture properly, we can try:
+
+Plan B: Use USBlyzer (trial version, free for 14 days)
+  - Even better USB analysis
+  - Clearer display
+  - Download: http://www.usblyzer.com/
+
+Plan C: Linux VM with usbmon
+  - Virtual machine approach
+  - Built-in USB monitoring
+
+Plan D: Python USB enumeration
+  - Try different USB commands programmatically
+  - Brute-force approach (less elegant but can work)
+
+================================================================================
+CONFIDENCE LEVEL
+================================================================================
+
+SUCCESS PROBABILITY: 85%+
+
+Why I'm confident:
+✓ Device is FTDI-based (standard chip)
+✓ Nisscom software works (proof it's possible)
+✓ USB capture shows EVERYTHING
+✓ FTDI commands are well-documented
+✓ Similar devices have been reverse-engineered successfully
+
+The activation command is there - we just need to see it!
+
+================================================================================
+NEXT STEPS
+================================================================================
+
+RIGHT NOW:
+1. Install Wireshark with USBPcap
+2. Restart computer
+3. Do the capture (follow Phase 3 above)
+4. Save the .pcapng file
+
+THEN:
+1. Share the capture file with me
+   (or just tell me you have it, and I'll guide analysis)
+2. I'll extract the USB commands
+3. I'll write Python code with those commands
+4. We test on your PC
+5. Deploy to Raspberry Pi 5
+6. SUCCESS!
+
+================================================================================
+COST: $0
+TIME: 30-60 minutes total
+RESULT: Working Python control of Nisscom device
+================================================================================
+
+You've got this! The device WILL work - we're going straight to the source
+to see exactly what the software is doing.
+
+================================================================================

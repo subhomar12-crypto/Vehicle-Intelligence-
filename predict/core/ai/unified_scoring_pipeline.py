@@ -218,6 +218,41 @@ class UnifiedScoringPipeline:
             "service_records_count": len(service_records) if service_records else 0,
         }
 
+        # ── v3 enrichment: run supplementary AI modules ──────────────
+
+        # 10. Structured driving context (full detail, not just string)
+        driving_context_detail = self._get_driving_context_detail(
+            telemetry_history,
+        )
+
+        # 11. Correlation anomalies
+        correlation_anomalies = self._run_correlation_engine(
+            baseline, telemetry_history,
+        )
+
+        # 12. Isolation-forest anomaly alerts
+        anomaly_alerts = self._run_isolation_forest(telemetry_history)
+
+        # 13. DTC forensics
+        dtc_forensics = self._run_dtc_forensics(
+            dtc_codes, telemetry_history, latest_telemetry, baseline,
+        )
+
+        # 14. Pattern matcher (v3 extended — with what_if_ignored)
+        detected_patterns = self._run_pattern_matcher(
+            latest_telemetry, baseline, telemetry_history,
+        )
+
+        # 15. Survival curves per component
+        survival_curves = self._run_survival_analyzer(
+            vehicle_profile, service_records,
+        )
+
+        # 16. Intelligence level
+        intelligence_level = self._compute_intelligence_level(baseline)
+
+        # ── end v3 enrichment ────────────────────────────────────────
+
         elapsed = round(time.time() - start, 3)
         logger.info(
             "UnifiedScoringPipeline: vehicle %d, score=%d, scorers=%s, %.3fs",
@@ -235,6 +270,14 @@ class UnifiedScoringPipeline:
             "data_quality": data_quality,
             "assessment_time_ms": int(elapsed * 1000),
             "is_cold_start": lstm_raw is None and xgb_raw is None,
+            # v3 enrichment fields
+            "anomaly_alerts": anomaly_alerts,
+            "correlation_anomalies": correlation_anomalies,
+            "detected_patterns": detected_patterns,
+            "survival_curves": survival_curves,
+            "intelligence_level": intelligence_level,
+            "driving_context_detail": driving_context_detail,
+            "dtc_forensics": dtc_forensics,
             # Pass through the full cold-start result for downstream
             # enrichment (baseline, urgency, patterns, trends, etc.)
             "_cold_start_raw": cold_start_raw,
@@ -539,6 +582,252 @@ class UnifiedScoringPipeline:
                 mapped[comp] = 75.0
 
         return mapped
+
+    # ------------------------------------------------------------------
+    # v3 enrichment helpers (each wraps a module in try/except)
+    # ------------------------------------------------------------------
+
+    def _get_driving_context_detail(
+        self, telemetry_history: List[Dict],
+    ) -> Optional[Dict[str, Any]]:
+        """Return structured driving context (speed_stats, rpm_stats, etc.)."""
+        if not telemetry_history or len(telemetry_history) < 3:
+            return {"context": "unknown", "confidence": 0.0}
+        try:
+            from predict.core.ai.driving_classifier import DrivingContextClassifier
+            return DrivingContextClassifier().classify(telemetry_history)
+        except Exception as e:
+            logger.debug("DrivingContextClassifier failed: %s", e)
+            return {"context": "unknown", "confidence": 0.0}
+
+    def _run_correlation_engine(
+        self,
+        baseline: Optional[Dict],
+        telemetry_history: List[Dict],
+    ) -> List[Dict[str, Any]]:
+        """Detect sensor correlation breaks vs baseline."""
+        if not baseline or not telemetry_history or len(telemetry_history) < 10:
+            return []
+        try:
+            from predict.core.ai.correlation_engine import CorrelationEngine
+            engine = CorrelationEngine()
+
+            baseline_corr = baseline.get("correlation_matrix") or {}
+            if not baseline_corr:
+                return []
+
+            # Build current correlations from recent telemetry
+            current_corr = engine.compute_correlations(telemetry_history)
+            anomalies = engine.detect_anomalies(baseline_corr, current_corr)
+
+            return [
+                {
+                    "pair": list(a.pair) if hasattr(a, "pair") else a.get("pair", []),
+                    "baseline_r": getattr(a, "baseline_r", 0.0),
+                    "current_r": getattr(a, "current_r", 0.0),
+                    "delta": getattr(a, "delta", 0.0),
+                    "severity": getattr(a, "severity", "low"),
+                    "interpretation": getattr(a, "interpretation", ""),
+                }
+                for a in anomalies
+            ]
+        except Exception as e:
+            logger.debug("CorrelationEngine failed: %s", e)
+            return []
+
+    def _run_isolation_forest(
+        self, telemetry_history: List[Dict],
+    ) -> List[Dict[str, Any]]:
+        """Run isolation-forest anomaly detection on recent telemetry."""
+        if not telemetry_history or len(telemetry_history) < 10:
+            return []
+        try:
+            from predict.core.ai.isolation_forest_engine import IsolationForestEngine
+            engine = IsolationForestEngine()
+            feature_cols = [
+                "rpm", "speed", "coolant_temp", "battery_voltage",
+                "engine_load", "throttle_pos", "maf_rate", "intake_temp",
+                "short_term_fuel_trim", "long_term_fuel_trim",
+                "timing_advance", "injector_ms",
+            ]
+            results = engine.detect_anomalies(telemetry_history, feature_cols)
+            # Only return actual anomalies
+            return [
+                {
+                    "timestamp": getattr(r, "timestamp", 0.0),
+                    "anomaly_score": getattr(r, "anomaly_score", 0.0),
+                    "sensors": getattr(r, "sensors", []),
+                    "severity": getattr(r, "severity", "low"),
+                    "component": "",
+                    "sensor": ", ".join(getattr(r, "sensors", [])),
+                    "message": f"Anomaly detected (score: {getattr(r, 'anomaly_score', 0.0):.2f})",
+                }
+                for r in results
+                if getattr(r, "is_anomaly", False)
+            ]
+        except Exception as e:
+            logger.debug("IsolationForestEngine failed: %s", e)
+            return []
+
+    def _run_dtc_forensics(
+        self,
+        dtc_codes: Optional[List[Dict]],
+        telemetry_history: List[Dict],
+        latest_telemetry: Dict[str, Any],
+        baseline: Optional[Dict],
+    ) -> Optional[Dict[str, Any]]:
+        """Run DTC forensics analysis if DTCs are present."""
+        if not dtc_codes:
+            return None
+        try:
+            from predict.core.ai.dtc_forensics import get_dtc_forensics
+            engine = get_dtc_forensics()
+            result = engine.analyze(
+                dtc_codes=dtc_codes,
+                telemetry_history=telemetry_history,
+                latest_telemetry=latest_telemetry,
+                baseline=baseline,
+            )
+            return result.to_dict() if hasattr(result, "to_dict") else None
+        except Exception as e:
+            logger.debug("DTCForensicsEngine failed: %s", e)
+            return None
+
+    def _run_pattern_matcher(
+        self,
+        latest_telemetry: Dict[str, Any],
+        baseline: Optional[Dict],
+        telemetry_history: List[Dict],
+    ) -> List[Dict[str, Any]]:
+        """Run pattern matcher with v3 extended fields."""
+        if not latest_telemetry:
+            return []
+        try:
+            from predict.core.ai.pattern_matcher import PatternMatcher
+            matcher = PatternMatcher()
+            patterns = matcher.match(
+                telemetry=latest_telemetry,
+                context=baseline,
+                history=telemetry_history,
+            )
+            return [
+                {
+                    "name": getattr(p, "name", ""),
+                    "display_name": getattr(p, "display_name", ""),
+                    "confidence": getattr(p, "confidence", 0.0),
+                    "severity": getattr(p, "severity", "info"),
+                    "reasoning": getattr(p, "reasoning", ""),
+                    "recommendation": getattr(p, "recommendation", ""),
+                    "evidence": getattr(p, "evidence", []),
+                    "what_if_ignored": getattr(p, "what_if_ignored", ""),
+                    "affected_components": getattr(p, "affected_components", {}),
+                }
+                for p in patterns
+            ]
+        except Exception as e:
+            logger.debug("PatternMatcher failed: %s", e)
+            return []
+
+    def _run_survival_analyzer(
+        self,
+        vehicle_profile: Dict[str, Any],
+        service_records: Optional[List[Dict]],
+    ) -> Dict[str, Dict[str, Any]]:
+        """Run survival analysis per component."""
+        try:
+            from predict.core.ai.survival_analysis import SurvivalAnalyzer
+            analyzer = SurvivalAnalyzer()
+            curves: Dict[str, Dict[str, Any]] = {}
+
+            for comp in COMPONENT_IDS:
+                try:
+                    # Collect age data from service records
+                    ages = []
+                    if service_records:
+                        for sr in service_records:
+                            ct = sr.get("component_type", "")
+                            if ct == comp and sr.get("service_km"):
+                                ages.append(float(sr["service_km"]))
+
+                    if not ages:
+                        continue
+
+                    dist = analyzer.predict_failure_distribution(comp, ages)
+                    if dist:
+                        curves[comp] = {
+                            "component": comp,
+                            "p50_days": dist.get("p50_days", 0),
+                            "p80_days": dist.get("p80_days", 0),
+                            "p95_days": dist.get("p95_days", 0),
+                            "confidence": dist.get("confidence", 0.0),
+                            "timeline_days": [],
+                            "survival_probability": [],
+                        }
+                except Exception:
+                    continue
+
+            return curves
+        except Exception as e:
+            logger.debug("SurvivalAnalyzer failed: %s", e)
+            return {}
+
+    def _compute_intelligence_level(
+        self, baseline: Optional[Dict],
+    ) -> Dict[str, Any]:
+        """Compute the intelligence level based on baseline phase and data."""
+        if baseline is None:
+            return {
+                "level": "basic",
+                "title": "Basic Intelligence",
+                "features": ["Sensor thresholds", "Statistical lifespan", "DTC analysis"],
+            }
+
+        phase = baseline.get("phase", "collecting")
+        data_points = baseline.get("data_points", 0)
+
+        if data_points >= 5000:
+            return {
+                "level": "predictive",
+                "title": "Predictive Intelligence",
+                "features": [
+                    "All Expert features",
+                    "Failure prediction",
+                    "Fleet-calibrated scores",
+                    "Survival analysis",
+                ],
+            }
+        elif data_points >= 2000 or phase == "autoencoder_ready":
+            return {
+                "level": "expert",
+                "title": "Expert Intelligence",
+                "features": [
+                    "All Enhanced features",
+                    "Autoencoder anomaly detection",
+                    "Pattern recognition",
+                    "Sensor correlation analysis",
+                ],
+            }
+        elif data_points >= 500 or phase == "baseline_ready":
+            return {
+                "level": "enhanced",
+                "title": "Enhanced Intelligence",
+                "features": [
+                    "Per-vehicle baseline",
+                    "Anomaly detection",
+                    "Trend analysis",
+                    "Isolation forest scoring",
+                ],
+            }
+        else:
+            return {
+                "level": "basic",
+                "title": "Basic Intelligence",
+                "features": ["Sensor thresholds", "Statistical lifespan", "DTC analysis"],
+            }
+
+    # ------------------------------------------------------------------
+    # Component dict builder
+    # ------------------------------------------------------------------
 
     def _build_component_dicts(
         self,

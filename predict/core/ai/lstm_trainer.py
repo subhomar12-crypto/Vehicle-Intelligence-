@@ -43,10 +43,15 @@ class LSTMTrainer:
         self.learning_rate = learning_rate
         self.model = None
         self.threshold = None
-        
+        self.norm_mins = None
+        self.norm_maxs = None
+
     def build_model(self) -> tf.keras.Model:
         """Build LSTM autoencoder model.
-        
+
+        Encoder: LSTM(64) → Dropout → LSTM(32) → bottleneck
+        Decoder: LSTM(32) → Dropout → LSTM(64) → Dense(15)
+
         Returns:
             Compiled Keras model
         """
@@ -55,12 +60,24 @@ class LSTMTrainer:
             tf.keras.layers.LSTM(
                 self.lstm_units,
                 activation='tanh',
-                return_sequences=False,
+                return_sequences=True,
                 input_shape=(self.window_size, 15),
             ),
+            tf.keras.layers.Dropout(0.2),
+            tf.keras.layers.LSTM(
+                self.lstm_units // 2,
+                activation='tanh',
+                return_sequences=False,
+            ),
             tf.keras.layers.RepeatVector(self.window_size),
-            
+
             # Decoder
+            tf.keras.layers.LSTM(
+                self.lstm_units // 2,
+                activation='tanh',
+                return_sequences=True,
+            ),
+            tf.keras.layers.Dropout(0.2),
             tf.keras.layers.LSTM(
                 self.lstm_units,
                 activation='tanh',
@@ -106,8 +123,10 @@ class LSTMTrainer:
                 f"Insufficient data: need {self.window_size * 2} rows, got {len(data)}"
             )
         
-        # Normalize
+        # Normalize and store params for inference
         normalized, mins, maxs = loader.normalize(data)
+        self.norm_mins = mins
+        self.norm_maxs = maxs
         
         # Create sequences
         sequences = loader.create_sequences(normalized, self.window_size)
@@ -173,51 +192,55 @@ class LSTMTrainer:
         quantization: str = "float16",
     ) -> str:
         """Export model to TFLite format for Pi5.
-        
+
         Args:
             output_path: Path to save .tflite file
             quantization: "float16" or "int8"
-            
+
         Returns:
             Path to exported file
         """
+        import tempfile
+
         if self.model is None:
             raise ValueError("No model to export")
-        
+
         output_path = Path(output_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        
-        # Convert to TFLite
-        converter = tf.lite.TFLiteConverter.from_keras_model(self.model)
-        
-        # Apply quantization
-        if quantization == "float16":
-            converter.optimizations = [tf.lite.Optimize.DEFAULT]
-            converter.target_spec.supported_types = [tf.float16]
-        elif quantization == "int8":
-            converter.optimizations = [tf.lite.Optimize.DEFAULT]
-            # Note: Requires representative dataset for full INT8
-            # For now, use dynamic range quantization
-        else:
-            raise ValueError(f"Unknown quantization: {quantization}")
-        
-        # Enable TensorFlow ops (for LSTM)
-        converter.target_spec.supported_ops = [
-            tf.lite.OpsSet.TFLITE_BUILTINS,
-            tf.lite.OpsSet.SELECT_TF_OPS,
-        ]
-        
-        # Convert
-        logger.info(f"Converting to TFLite with {quantization} quantization...")
-        tflite_model = converter.convert()
+
+        # Save as SavedModel first (works with TF 2.16 + Keras 3.x)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            saved_model_dir = str(Path(tmpdir) / "saved_model")
+            self.model.export(saved_model_dir)
+
+            converter = tf.lite.TFLiteConverter.from_saved_model(saved_model_dir)
+
+            # Apply quantization
+            if quantization == "float16":
+                converter.optimizations = [tf.lite.Optimize.DEFAULT]
+                converter.target_spec.supported_types = [tf.float16]
+            elif quantization == "int8":
+                converter.optimizations = [tf.lite.Optimize.DEFAULT]
+            else:
+                raise ValueError(f"Unknown quantization: {quantization}")
+
+            # Enable TF ops (for LSTM)
+            converter.target_spec.supported_ops = [
+                tf.lite.OpsSet.TFLITE_BUILTINS,
+                tf.lite.OpsSet.SELECT_TF_OPS,
+            ]
+
+            logger.info(f"Converting to TFLite with {quantization} quantization...")
+            tflite_model = converter.convert()
         
         # Save
         output_path.write_bytes(tflite_model)
-        
-        # Also save normalization params
-        norm_path = output_path.with_suffix('.norm.json')
-        # Note: Normalization params should be saved separately
-        
+
+        # Auto-save normalization params if available
+        if self.norm_mins is not None and self.norm_maxs is not None:
+            norm_path = str(output_path.with_suffix('.norm.json'))
+            self.save_normalization_params(norm_path, self.norm_mins, self.norm_maxs)
+
         logger.info(f"Exported TFLite model to {output_path} ({len(tflite_model)} bytes)")
         return str(output_path)
     

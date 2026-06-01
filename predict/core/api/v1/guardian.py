@@ -51,6 +51,7 @@ from predict.core.security.jwt_handler import create_token, decode_token
 from predict.core.services.fcm_service import FCMService
 from predict.core.services.guardian_service import GuardianService
 from predict.core.config import get_config
+from predict.core.api.v1.vehicle_data import live_data_cache, online_profiles, ONLINE_TIMEOUT
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -466,10 +467,10 @@ async def get_guardian_user(
     user = await get_current_user(request)
 
     tier = user.get("tier", "free")
-    if tier not in ("premium", "admin", "enterprise", "fleet_manager"):
+    if tier not in ("pro", "premium", "admin", "enterprise", "fleet_manager"):
         raise APIError(
             status_code=403,
-            message="Guardian mode requires Premium subscription. Please upgrade to access Guardian features.",
+            message="Guardian mode requires a Pro or Premium subscription. Please upgrade to access Guardian features.",
             code=ErrorCode.FEATURE_NOT_AVAILABLE,
         )
 
@@ -480,12 +481,18 @@ async def _verify_vehicle_ownership(
     session: AsyncSession,
     user_id: int,
     profile_id: int,
+    tier: str = "free",
 ) -> Optional[VehicleGuardian]:
     """Verify user has access to vehicle via guardian link OR ownership.
 
     Returns VehicleGuardian if found, or None if authorized via ownership.
     Raises 404 if user has no access.
+    Admin/enterprise users bypass all checks.
     """
+    # Admin bypass — can view any vehicle in the fleet
+    if tier in ("admin", "enterprise"):
+        return None
+
     # Check guardian link first (most common path)
     result = await session.execute(
         select(VehicleGuardian).where(
@@ -678,6 +685,7 @@ async def list_vehicles(
             "model": vehicle.model,
             "year": vehicle.year,
             "vin": vehicle.vin,
+            "image_url": vehicle.image_url,
             "relationship": link.relationship,
             "role": link.role,
             "linked_at": link.linked_at,
@@ -724,12 +732,20 @@ async def update_driver_role(
             code=ErrorCode.INSUFFICIENT_PERMISSIONS,
         )
     
-    # Update role for all guardians of this vehicle
+    # Update role for the target guardian of this vehicle
+    from sqlalchemy import update
     await session.execute(
-        select(VehicleGuardian)
-        .where(VehicleGuardian.profile_id == profile_id)
+        update(VehicleGuardian)
+        .where(
+            and_(
+                VehicleGuardian.profile_id == profile_id,
+                VehicleGuardian.role != "owner",  # Never change owner's role
+            )
+        )
+        .values(role=request.role)
     )
-    
+    await session.commit()
+
     return {
         "success": True,
         "message": f"Role updated to {request.role}",
@@ -1605,7 +1621,7 @@ async def get_daily_stats(
     session: AsyncSession = Depends(get_db),
 ):
     """Get daily aggregated stats for a vehicle."""
-    await _verify_vehicle_ownership(session, current_user["user_id"], profile_id)
+    await _verify_vehicle_ownership(session, current_user["user_id"], profile_id, current_user.get("tier", "free"))
 
     from datetime import datetime, timedelta
     from predict.core.db.models.vehicle import DailyVehicleStats
@@ -1648,7 +1664,7 @@ async def get_guardian_service_records(
     session: AsyncSession = Depends(get_db),
 ):
     """Get service records for a vehicle (guardian access)."""
-    await _verify_vehicle_ownership(session, current_user["user_id"], profile_id)
+    await _verify_vehicle_ownership(session, current_user["user_id"], profile_id, current_user.get("tier", "free"))
 
     result = await session.execute(
         select(ServiceRecord)
@@ -1684,7 +1700,7 @@ async def add_guardian_service_record(
     session: AsyncSession = Depends(get_db),
 ):
     """Add a service record for a vehicle (guardian access)."""
-    await _verify_vehicle_ownership(session, current_user["user_id"], profile_id)
+    await _verify_vehicle_ownership(session, current_user["user_id"], profile_id, current_user.get("tier", "free"))
 
     from datetime import datetime
     
@@ -1722,7 +1738,7 @@ async def get_guardian_dtcs(
 
     Endpoint: GET /guardian/dtcs/{profile_id}
     """
-    await _verify_vehicle_ownership(session, current_user["user_id"], profile_id)
+    await _verify_vehicle_ownership(session, current_user["user_id"], profile_id, current_user.get("tier", "free"))
 
     from predict.core.db.models.dtc import DTCCodes
 
@@ -1776,7 +1792,7 @@ async def get_trips(
     Line: 710 (old code)
     """
     # Verify access (guardian link OR vehicle owner)
-    await _verify_vehicle_ownership(session, current_user["user_id"], profile_id)
+    await _verify_vehicle_ownership(session, current_user["user_id"], profile_id, current_user.get("tier", "free"))
 
     since = time.time() - (days * 24 * 3600)
     
@@ -1984,19 +2000,86 @@ async def get_predictions(
     session: AsyncSession = Depends(get_db),
 ):
     """
-    Get predictions for vehicle.
+    Get predictions for vehicle — delegates to cold-start health engine.
 
     Endpoint: GET /predictions/{profile_id}
-    Line: 857 (old code)
     """
-    # Verify access (guardian link OR vehicle owner)
-    await _verify_vehicle_ownership(session, current_user["user_id"], profile_id)
+    from predict.core.ai.cold_start_predictor import get_cold_start_predictor
+    from predict.core.db.models.vehicle import VehicleData, VehicleResearch
+    from predict.core.db.models.dtc import DTCCodes
 
-    # TODO: Get actual predictions
+    # Verify access (guardian link OR vehicle owner)
+    await _verify_vehicle_ownership(session, current_user["user_id"], profile_id, current_user.get("tier", "free"))
+
+    # Get vehicle profile
+    profile_result = await session.execute(
+        select(VehicleProfile).where(VehicleProfile.profile_id == profile_id)
+    )
+    profile = profile_result.scalar_one_or_none()
+    if not profile:
+        raise APIError(status_code=404, message="Vehicle not found", code=ErrorCode.NOT_FOUND)
+
+    vehicle_profile = {
+        "make": profile.make, "model": profile.model, "year": profile.year,
+        "vin": profile.vin, "engine_type": profile.engine_type,
+        "displacement": profile.displacement, "transmission": profile.transmission,
+        "fuel_type": profile.fuel_type,
+    }
+
+    # Get latest telemetry
+    latest_result = await session.execute(
+        select(VehicleData).where(VehicleData.profile_id == profile_id)
+        .order_by(VehicleData.timestamp.desc()).limit(1)
+    )
+    latest_record = latest_result.scalar_one_or_none()
+    latest_telemetry = {}
+    if latest_record:
+        for field in ["rpm", "speed", "coolant_temp", "battery_voltage", "engine_load",
+                       "throttle_position", "fuel_level", "intake_temp", "maf_rate"]:
+            val = getattr(latest_record, field, None)
+            if val is not None:
+                latest_telemetry[field] = val
+
+    # Get service records
+    service_result = await session.execute(
+        select(ServiceRecord).where(ServiceRecord.profile_id == profile_id)
+        .order_by(ServiceRecord.service_date.desc()).limit(20)
+    )
+    services = service_result.scalars().all()
+    service_history = [{"service_type": s.service_type, "date": s.service_date,
+                        "mileage": getattr(s, "mileage", None)} for s in services]
+
+    # Get DTCs
+    dtc_result = await session.execute(
+        select(DTCCodes).where(DTCCodes.vehicle_id == profile_id, DTCCodes.is_active == True)
+    )
+    active_dtcs = [{"code": d.code, "description": d.description} for d in dtc_result.scalars().all()]
+
+    # Get research context
+    research_result = await session.execute(
+        select(VehicleResearch).where(VehicleResearch.profile_id == profile_id)
+    )
+    research = research_result.scalar_one_or_none()
+    research_context = {}
+    if research and research.common_problems:
+        research_context["common_problems"] = research.common_problems[:5] if isinstance(research.common_problems, list) else []
+
+    # Run cold-start predictor
+    predictor = get_cold_start_predictor()
+    assessment = predictor.assess_vehicle_health(
+        vehicle_profile=vehicle_profile,
+        latest_telemetry=latest_telemetry,
+        service_history=service_history,
+        active_dtcs=active_dtcs,
+        research_context=research_context,
+    )
+
     return {
         "success": True,
-        "predictions": [],
-        "message": "Predictions feature not yet implemented",
+        "predictions": assessment.get("components", []),
+        "health_score": assessment.get("overall_health_score", 0),
+        "data_quality": assessment.get("data_quality", {}),
+        "is_cold_start": assessment.get("is_cold_start", True),
     }
 
 
@@ -2118,11 +2201,46 @@ async def get_action_log(
     Endpoint: GET /action-log
     Line: 1097 (old code)
     """
-    # TODO: Implement action log
+    from predict.core.db.models.guardian import GuardianCommand
+
+    user_id = current_user["user_id"]
+
+    stmt = (
+        select(GuardianCommand)
+        .where(GuardianCommand.user_id == user_id)
+        .order_by(GuardianCommand.created_at.desc())
+        .limit(limit)
+    )
+    result = await session.execute(stmt)
+    commands = result.scalars().all()
+
+    # Get guardian user name
+    user_repo = UserRepository(session)
+    guardian_user = await user_repo.get_by_id(user_id)
+    guardian_name = guardian_user.name if guardian_user else "Guardian"
+
+    actions = [
+        {
+            "id": str(cmd.id),
+            "guardian_name": guardian_name,
+            "guardian_id": str(user_id),
+            "action_type": cmd.command_type or "UNKNOWN",
+            "timestamp": cmd.created_at.isoformat() if cmd.created_at else "",
+            "details": {
+                "status": cmd.status,
+                "priority": cmd.priority,
+                "response": cmd.response,
+                "profile_id": cmd.profile_id,
+                "completed_at": cmd.completed_at.isoformat() if cmd.completed_at else None,
+            },
+        }
+        for cmd in commands
+    ]
+
     return {
         "success": True,
-        "actions": [],
-        "message": "Action log not yet implemented",
+        "actions": actions,
+        "count": len(actions),
     }
 
 
@@ -2384,6 +2502,85 @@ async def get_fleet_drivers(
         "success": True,
         "drivers": drivers,
     }
+
+
+@router.get("/fleet/locations", response_model=Dict[str, Any])
+async def get_fleet_locations(
+    current_user: Dict = Depends(get_guardian_user),
+    session: AsyncSession = Depends(get_db),
+):
+    """
+    Get all fleet vehicle locations for the navigation map.
+    Returns live (heartbeat < 30s) and last-known locations.
+    """
+    result = await session.execute(
+        select(VehicleGuardian)
+        .where(VehicleGuardian.user_id == current_user["user_id"])
+    )
+    links = result.scalars().all()
+    vehicle_ids = [link.profile_id for link in links]
+
+    if not vehicle_ids:
+        return {"success": True, "vehicles": []}
+
+    result = await session.execute(
+        select(VehicleProfile).where(VehicleProfile.profile_id.in_(vehicle_ids))
+    )
+    vehicles = result.scalars().all()
+
+    # Also get driver names via Guardian join
+    driver_result = await session.execute(
+        select(VehicleGuardian, Guardian)
+        .join(Guardian, VehicleGuardian.user_id == Guardian.id)
+        .where(
+            VehicleGuardian.profile_id.in_(vehicle_ids),
+            VehicleGuardian.role == "driver",
+        )
+    )
+    driver_map = {}
+    for link, guardian in driver_result.all():
+        driver_map[link.profile_id] = guardian.name
+
+    now = time.time()
+    vehicle_list = []
+    for v in vehicles:
+        pid = v.profile_id
+        is_live = pid in online_profiles and (now - online_profiles[pid]) < ONLINE_TIMEOUT
+        cache = live_data_cache.get(pid, {})
+
+        lat = None
+        lng = None
+        speed = None
+        last_seen_at = None
+
+        if is_live and cache.get("latitude") and cache.get("longitude"):
+            lat = cache["latitude"]
+            lng = cache["longitude"]
+            speed = cache.get("speed")
+            last_seen_at = online_profiles.get(pid)
+            status = "live"
+        elif v.last_latitude and v.last_longitude:
+            lat = v.last_latitude
+            lng = v.last_longitude
+            last_seen_at = v.last_location_at
+            status = "last_seen"
+        else:
+            status = "no_location"
+
+        vehicle_list.append({
+            "profile_id": pid,
+            "driver_name": driver_map.get(pid, v.name or "Unknown"),
+            "vehicle_name": f"{v.year or ''} {v.make or ''} {v.model or ''}".strip(),
+            "car_plate": v.license_plate or "",
+            "status": status,
+            "latitude": lat,
+            "longitude": lng,
+            "speed": speed,
+            "last_seen_at": last_seen_at,
+            "health_score": v.ai_health_score,
+        })
+
+    return {"success": True, "vehicles": vehicle_list}
 
 
 @router.post("/analytics/compare", response_model=Dict[str, Any])
@@ -2756,7 +2953,7 @@ async def get_latest_telemetry(
     Line: 1583 (old code)
     """
     # Verify access: check guardian link OR owner
-    await _verify_vehicle_ownership(session, current_user["user_id"], profile_id)
+    await _verify_vehicle_ownership(session, current_user["user_id"], profile_id, current_user.get("tier", "free"))
 
     # Get GPS telemetry
     telem_result = await session.execute(
@@ -3316,6 +3513,85 @@ async def request_location_guardian(
     )
 
 
+@router.get("/vehicle-location/{profile_id}", response_model=Dict[str, Any])
+async def get_vehicle_location(
+    profile_id: int,
+    current_user: Dict = Depends(get_guardian_user),
+    session: AsyncSession = Depends(get_db),
+):
+    """
+    GET /guardian/vehicle-location/{profile_id}
+
+    Returns the last known location for a vehicle (saved when OBD disconnects).
+    Sends an informational FCM notification to the driver.
+    """
+    user_id = current_user["user_id"]
+
+    # Verify guardian has access to this vehicle
+    result = await session.execute(
+        select(VehicleGuardian).where(
+            and_(
+                VehicleGuardian.profile_id == profile_id,
+                VehicleGuardian.user_id == user_id,
+            )
+        )
+    )
+    if not result.scalar_one_or_none():
+        raise APIError(
+            status_code=403,
+            code=ErrorCode.AUTH_INSUFFICIENT_PERMISSIONS,
+            message="You do not have guardian access to this vehicle",
+        )
+
+    # Get the vehicle profile with location data
+    vehicle = (await session.execute(
+        select(VehicleProfile).where(VehicleProfile.profile_id == profile_id)
+    )).scalar_one_or_none()
+    if not vehicle:
+        raise APIError(
+            status_code=404,
+            code=ErrorCode.VEHICLE_NOT_FOUND,
+            message="Vehicle not found",
+        )
+
+    if vehicle.last_latitude is None or vehicle.last_longitude is None:
+        return {
+            "success": True,
+            "has_location": False,
+            "message": "No location data available yet",
+        }
+
+    # Get guardian name for the notification
+    user_repo = UserRepository(session)
+    guardian_user = await user_repo.get_by_id(user_id)
+    guardian_name = guardian_user.name if guardian_user else "Your guardian"
+
+    # Send informational FCM notification to the driver
+    if vehicle.owner_user_id:
+        try:
+            fcm = FCMService()
+            await fcm.send_to_user(
+                user_id=vehicle.owner_user_id,
+                title="Location Viewed",
+                body=f"{guardian_name} viewed your last known vehicle location",
+                data={"type": "location_viewed", "guardian_name": guardian_name},
+            )
+        except Exception as e:
+            logger.warning(f"Failed to send location-viewed FCM: {e}")
+
+    vehicle_name = f"{vehicle.make or ''} {vehicle.model or ''} {vehicle.year or ''}".strip()
+
+    return {
+        "success": True,
+        "has_location": True,
+        "latitude": vehicle.last_latitude,
+        "longitude": vehicle.last_longitude,
+        "accuracy": vehicle.last_location_accuracy,
+        "last_updated": vehicle.last_location_at,
+        "vehicle_name": vehicle_name or "Unknown Vehicle",
+    }
+
+
 @router.post("/commands/location-response", response_model=Dict[str, Any])
 async def location_response(
     request: LocationResponsePayload,
@@ -3408,3 +3684,151 @@ async def acknowledge_alert_legacy(
     Line: 2458 (old code)
     """
     return await acknowledge_alert(alert_id, current_user, session)
+
+
+# =============================================================================
+# FLEET INTELLIGENCE ENDPOINT
+# =============================================================================
+
+@router.get("/fleet/intelligence", response_model=Dict[str, Any])
+async def get_fleet_intelligence(
+    current_user: Dict = Depends(get_guardian_user),
+    session: AsyncSession = Depends(get_db),
+):
+    """
+    Get fleet-wide intelligence analysis.
+
+    Analyzes all vehicles in the guardian's fleet for:
+    - Cross-vehicle sensor trends (e.g., multiple batteries declining)
+    - Model-specific risk propagation
+    - Relative health comparison vs fleet average
+    - Fleet efficiency insights
+
+    Returns insights with severity, recommendations, and affected vehicle IDs.
+    """
+    from predict.core.ai.fleet_intelligence import get_fleet_intelligence
+    from predict.core.ai.cold_start_predictor import get_cold_start_predictor
+    from predict.core.db.models.vehicle import VehicleData
+
+    user_id = current_user["user_id"]
+
+    # Get all vehicles this guardian monitors
+    result = await session.execute(
+        select(VehicleGuardian)
+        .where(VehicleGuardian.user_id == user_id)
+        .where(VehicleGuardian.is_active == True)
+    )
+    links = result.scalars().all()
+    vehicle_ids = [link.profile_id for link in links]
+
+    if not vehicle_ids:
+        return {"success": True, "insights": [], "fleet_health_avg": 0, "vehicle_count": 0}
+
+    # Get vehicle profiles
+    profiles_result = await session.execute(
+        select(VehicleProfile).where(VehicleProfile.profile_id.in_(vehicle_ids))
+    )
+    profiles = {p.profile_id: p for p in profiles_result.scalars().all()}
+
+    # Build fleet vehicle data for analysis
+    fleet_data = []
+    predictor = get_cold_start_predictor()
+
+    for vid in vehicle_ids:
+        profile = profiles.get(vid)
+        if not profile:
+            continue
+
+        # Get latest telemetry
+        latest_result = await session.execute(
+            select(VehicleData)
+            .where(VehicleData.profile_id == vid)
+            .order_by(desc(VehicleData.timestamp))
+            .limit(1)
+        )
+        latest = latest_result.scalar_one_or_none()
+
+        telemetry = {}
+        if latest:
+            telemetry = {
+                k: v for k, v in {
+                    "rpm": latest.rpm,
+                    "coolant_temp": latest.coolant_temp,
+                    "battery_voltage": latest.battery_voltage,
+                    "engine_load": latest.engine_load,
+                    "oil_temp": latest.oil_temp,
+                }.items() if v is not None
+            }
+
+        # Quick health assessment (lightweight — no full history)
+        try:
+            health = await predictor.assess_vehicle_health(
+                vehicle_id=vid,
+                latest_telemetry=telemetry,
+                vehicle_profile={
+                    "make": profile.make, "model": profile.model,
+                    "year": profile.year, "engine_type": profile.engine_type,
+                },
+                dtc_codes=[],
+                telemetry_history=[],
+                climate_region="qatar",
+            )
+            fleet_data.append({
+                "id": vid,
+                "make": profile.make,
+                "model": profile.model,
+                "year": profile.year,
+                "health_score": health.get("health_score", 75),
+                "components": health.get("components", {}),
+            })
+        except Exception as e:
+            logger.warning("Fleet intelligence: health failed for vehicle %d: %s", vid, e)
+            fleet_data.append({
+                "id": vid,
+                "make": profile.make,
+                "model": profile.model,
+                "year": profile.year,
+                "health_score": 75,
+                "components": {},
+            })
+
+    # Run fleet analysis
+    fi = get_fleet_intelligence()
+    result = await fi.analyze_fleet(fleet_data)
+    result["success"] = True
+
+    return result
+
+
+# =============================================================================
+# STUB ENDPOINTS — Prevent Android 404s for features not yet fully implemented
+# =============================================================================
+
+@router.get("/fuel-specs/{profile_id}", response_model=Dict[str, Any])
+async def get_guardian_fuel_specs(
+    profile_id: int,
+    current_user: Dict = Depends(get_guardian_user),
+    session: AsyncSession = Depends(get_db),
+):
+    """Stub: Return default fuel specs for a guardian vehicle."""
+    return {
+        "success": True,
+        "vehicle_id": profile_id,
+        "fuel_type": "gasoline",
+        "tank_capacity_liters": None,
+        "fuel_grade": None,
+    }
+
+@router.post("/speed-limit", response_model=Dict[str, Any])
+async def lookup_speed_limit(
+    request: Request,
+    current_user: Dict = Depends(get_guardian_user),
+):
+    """Stub: Speed limit lookup — returns null (not yet implemented)."""
+    body = await request.json()
+    return {
+        "success": True,
+        "speed_limit_kmh": None,
+        "road_name": None,
+        "source": "unavailable",
+    }

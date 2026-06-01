@@ -1,0 +1,12 @@
+{
+  "pids": [
+    "RPM",
+    "SPEED",
+    "COOLANT_TEMP",
+    "ENGINE_LOAD",
+    "ELM_VOLTAGE",
+    "FUEL_PRESSURE",
+    "INTAKE_TEMP",
+    "THROTTLE_POS"
+  ]
+}

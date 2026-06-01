@@ -1,0 +1,55 @@
+================================================================================
+USB PACKET CAPTURE GUIDE - Find Nisscom Activation Command
+================================================================================
+
+GOAL: Capture the USB commands Nisscom software sends to activate K-line mode
+
+STEPS:
+======
+
+1. INSTALL WIRESHARK
+   - Download: https://www.wireshark.org/download.html
+   - During install, CHECK "USBPcap" option
+   - Restart computer after install
+
+2. PREPARE CAPTURE
+   - Close Nisscom software
+   - Open Wireshark
+   - Click "Capture Options"
+   - Select "USBPcap1" or similar USB interface
+   - Start capture
+
+3. CAPTURE SESSION
+   - Open Nisscom software
+   - Connect to car
+   - Let it read data for 10 seconds
+   - Close Nisscom software
+   - Stop Wireshark capture
+   - Save as: nisscom_usb_capture.pcapng
+
+4. ANALYZE CAPTURE
+   - Look for "URB_CONTROL" packets
+   - Find vendor-specific commands
+   - Note setup data and wValue/wIndex
+   - These are the activation commands!
+
+5. SEND ME THE CAPTURE
+   - Share the .pcapng file
+   - I'll analyze and extract commands
+   - We'll implement in Python with pyusb
+
+WHAT WE'RE LOOKING FOR:
+=======================
+- USB Control Transfers (not bulk transfers)
+- Vendor-specific requests (bmRequestType = 0x40)
+- Commands sent BEFORE serial data starts
+- Special FTDI configuration commands
+
+These commands tell the FTDI chip to:
+  - Configure special pins
+  - Enable K-line mode
+  - Set timing parameters
+
+Once we have them, we can replicate in Python!
+
+================================================================================

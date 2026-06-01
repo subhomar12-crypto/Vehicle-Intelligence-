@@ -8,6 +8,11 @@ Creates and configures the FastAPI application with:
 - Error handlers
 """
 
+import os
+# Suppress TensorFlow noise before any TF import
+os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")  # suppress INFO/WARNING
+os.environ.setdefault("TF_ENABLE_ONEDNN_OPTS", "0")  # suppress oneDNN message
+
 import logging
 import threading
 from contextlib import asynccontextmanager
@@ -53,7 +58,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
         try:
             from predict.core.ai.llm.assistant import get_llm_assistant
             assistant = get_llm_assistant()
-            if not assistant.is_loaded and assistant.model_path.exists():
+            if not assistant.is_loaded:
                 logger.info("Preloading LLM model in background thread...")
                 assistant.load_model("qwen")
             if assistant.is_available():
@@ -70,6 +75,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     start_expiry_task()
     logger.info("Tier expiry task started")
 
+    # Start APScheduler (periodic jobs)
+    try:
+        from predict.core.jobs.scheduler import setup_scheduler
+        setup_scheduler()
+    except Exception as e:
+        logger.warning("APScheduler startup failed (non-critical): %s", e)
+
     logger.info("Application startup complete")
 
     yield
@@ -80,6 +92,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     # Stop tier expiry task
     from predict.core.tasks.tier_expiry import stop_expiry_task
     stop_expiry_task()
+
+    # Stop APScheduler
+    try:
+        from predict.core.jobs.scheduler import shutdown_scheduler
+        shutdown_scheduler()
+    except Exception:
+        pass
 
     # Close database connections
     await close_engine()
@@ -138,9 +157,11 @@ def create_app() -> FastAPI:
     from predict.core.api.static_files import (
         setup_static_files,
         setup_protected_static_routes,
+        setup_tile_server,
     )
     setup_static_files(app)
     setup_protected_static_routes(app)
+    setup_tile_server(app)
     
     # Root endpoint
     @app.get("/")
@@ -170,3 +191,7 @@ def create_app() -> FastAPI:
         }
     
     return app
+
+
+# Module-level instance for `uvicorn predict.core.api.app:app`
+app = create_app()

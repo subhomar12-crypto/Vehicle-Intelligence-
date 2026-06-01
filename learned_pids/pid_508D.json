@@ -1,0 +1,12 @@
+{
+  "hex_code": "508D",
+  "name": "Nissan_PID_508D",
+  "description": "Nissan proprietary parameter 508D",
+  "formula": "(B*256 + A)",
+  "units": "units",
+  "min_value": "0.0",
+  "max_value": "65535",
+  "category": "Nissan-UDS",
+  "vehicle_specific": true,
+  "validation_required": false
+}

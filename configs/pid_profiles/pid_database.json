@@ -1,0 +1,523 @@
+{
+  "metadata": {
+    "version": "4.0",
+    "description": "Comprehensive OBD-II PID Database",
+    "vehicle_tested": "Nissan Patrol Y61 2003",
+    "protocol": "ISO 9141-2 (Protocol 3)",
+    "total_pids": 85
+  },
+  "mode_01_pids": {
+    "0x00": {
+      "name": "PIDs Supported [01-20]",
+      "description": "Bitmap of supported PIDs 01-20",
+      "bytes": 4,
+      "formula": "Bitmap"
+    },
+    "0x01": {
+      "name": "Monitor Status Since DTCs Cleared",
+      "description": "Monitor status since DTCs cleared",
+      "bytes": 4,
+      "formula": "Bitmap"
+    },
+    "0x02": {
+      "name": "Freeze DTC",
+      "description": "DTC that caused freeze frame storage",
+      "bytes": 2,
+      "formula": "Special"
+    },
+    "0x03": {
+      "name": "Fuel System Status",
+      "description": "Fuel system status",
+      "bytes": 2,
+      "formula": "Bitmap"
+    },
+    "0x04": {
+      "name": "Calculated Engine Load",
+      "description": "Calculated engine load value",
+      "unit": "%",
+      "bytes": 1,
+      "min": 0,
+      "max": 100,
+      "formula": "A*100/255"
+    },
+    "0x05": {
+      "name": "Engine Coolant Temperature",
+      "description": "Engine coolant temperature",
+      "unit": "°C",
+      "bytes": 1,
+      "min": -40,
+      "max": 215,
+      "formula": "A-40"
+    },
+    "0x06": {
+      "name": "Short Term Fuel Trim - Bank 1",
+      "description": "Short term fuel trim bank 1",
+      "unit": "%",
+      "bytes": 1,
+      "min": -100,
+      "max": 99.2,
+      "formula": "(A-128)*100/128"
+    },
+    "0x07": {
+      "name": "Long Term Fuel Trim - Bank 1",
+      "description": "Long term fuel trim bank 1",
+      "unit": "%",
+      "bytes": 1,
+      "min": -100,
+      "max": 99.2,
+      "formula": "(A-128)*100/128"
+    },
+    "0x08": {
+      "name": "Short Term Fuel Trim - Bank 2",
+      "description": "Short term fuel trim bank 2",
+      "unit": "%",
+      "bytes": 1,
+      "min": -100,
+      "max": 99.2,
+      "formula": "(A-128)*100/128"
+    },
+    "0x09": {
+      "name": "Long Term Fuel Trim - Bank 2",
+      "description": "Long term fuel trim bank 2",
+      "unit": "%",
+      "bytes": 1,
+      "min": -100,
+      "max": 99.2,
+      "formula": "(A-128)*100/128"
+    },
+    "0x0A": {
+      "name": "Fuel Pressure",
+      "description": "Fuel pressure (gauge pressure)",
+      "unit": "kPa",
+      "bytes": 1,
+      "min": 0,
+      "max": 765,
+      "formula": "A*3"
+    },
+    "0x0B": {
+      "name": "Intake Manifold Absolute Pressure",
+      "description": "Intake manifold absolute pressure",
+      "unit": "kPa",
+      "bytes": 1,
+      "min": 0,
+      "max": 255,
+      "formula": "A"
+    },
+    "0x0C": {
+      "name": "Engine RPM",
+      "description": "Engine speed",
+      "unit": "rpm",
+      "bytes": 2,
+      "min": 0,
+      "max": 16383.75,
+      "formula": "((A*256)+B)/4"
+    },
+    "0x0D": {
+      "name": "Vehicle Speed",
+      "description": "Vehicle speed",
+      "unit": "km/h",
+      "bytes": 1,
+      "min": 0,
+      "max": 255,
+      "formula": "A"
+    },
+    "0x0E": {
+      "name": "Timing Advance",
+      "description": "Timing advance",
+      "unit": "°",
+      "bytes": 1,
+      "min": -64,
+      "max": 63.5,
+      "formula": "(A-128)/2"
+    },
+    "0x0F": {
+      "name": "Intake Air Temperature",
+      "description": "Intake air temperature",
+      "unit": "°C",
+      "bytes": 1,
+      "min": -40,
+      "max": 215,
+      "formula": "A-40"
+    },
+    "0x10": {
+      "name": "Mass Air Flow Rate",
+      "description": "MAF air flow rate",
+      "unit": "g/s",
+      "bytes": 2,
+      "min": 0,
+      "max": 655.35,
+      "formula": "((A*256)+B)/100"
+    },
+    "0x11": {
+      "name": "Throttle Position",
+      "description": "Throttle position",
+      "unit": "%",
+      "bytes": 1,
+      "min": 0,
+      "max": 100,
+      "formula": "A*100/255"
+    },
+    "0x12": {
+      "name": "Commanded Secondary Air Status",
+      "description": "Commanded secondary air status",
+      "bytes": 1,
+      "formula": "Bitmap"
+    },
+    "0x13": {
+      "name": "Oxygen Sensors Present (2 banks)",
+      "description": "Oxygen sensors present",
+      "bytes": 1,
+      "formula": "Bitmap"
+    },
+    "0x14": {
+      "name": "O2 Sensor 1 - Voltage",
+      "description": "Oxygen sensor 1 voltage",
+      "unit": "V",
+      "bytes": 2,
+      "min": 0,
+      "max": 1.275,
+      "formula": "A/200"
+    },
+    "0x15": {
+      "name": "O2 Sensor 2 - Voltage",
+      "unit": "V",
+      "bytes": 2,
+      "formula": "A/200"
+    },
+    "0x16": {
+      "name": "O2 Sensor 3 - Voltage",
+      "unit": "V",
+      "bytes": 2,
+      "formula": "A/200"
+    },
+    "0x17": {
+      "name": "O2 Sensor 4 - Voltage",
+      "unit": "V",
+      "bytes": 2,
+      "formula": "A/200"
+    },
+    "0x1C": {
+      "name": "OBD Standards",
+      "description": "OBD standards this vehicle conforms to",
+      "bytes": 1,
+      "formula": "Enum"
+    },
+    "0x1F": {
+      "name": "Run Time Since Engine Start",
+      "description": "Run time since engine start",
+      "unit": "seconds",
+      "bytes": 2,
+      "min": 0,
+      "max": 65535,
+      "formula": "(A*256)+B"
+    },
+    "0x20": {
+      "name": "PIDs Supported [21-40]",
+      "bytes": 4,
+      "formula": "Bitmap"
+    },
+    "0x21": {
+      "name": "Distance Traveled With MIL On",
+      "unit": "km",
+      "bytes": 2,
+      "formula": "(A*256)+B"
+    },
+    "0x22": {
+      "name": "Fuel Rail Pressure (relative)",
+      "unit": "kPa",
+      "bytes": 2,
+      "formula": "((A*256)+B)*0.079"
+    },
+    "0x23": {
+      "name": "Fuel Rail Gauge Pressure (diesel)",
+      "unit": "kPa",
+      "bytes": 2,
+      "formula": "((A*256)+B)*10"
+    },
+    "0x2C": {
+      "name": "Commanded EGR",
+      "unit": "%",
+      "bytes": 1,
+      "formula": "A*100/255"
+    },
+    "0x2D": {
+      "name": "EGR Error",
+      "unit": "%",
+      "bytes": 1,
+      "formula": "(A-128)*100/128"
+    },
+    "0x2E": {
+      "name": "Commanded Evaporative Purge",
+      "unit": "%",
+      "bytes": 1,
+      "formula": "A*100/255"
+    },
+    "0x2F": {
+      "name": "Fuel Tank Level Input",
+      "unit": "%",
+      "bytes": 1,
+      "formula": "A*100/255"
+    },
+    "0x30": {
+      "name": "Warm-ups Since Codes Cleared",
+      "unit": "count",
+      "bytes": 1,
+      "formula": "A"
+    },
+    "0x31": {
+      "name": "Distance Traveled Since Codes Cleared",
+      "unit": "km",
+      "bytes": 2,
+      "formula": "(A*256)+B"
+    },
+    "0x32": {
+      "name": "Evap System Vapor Pressure",
+      "unit": "Pa",
+      "bytes": 2,
+      "formula": "((A*256)+B)/4"
+    },
+    "0x33": {
+      "name": "Absolute Barometric Pressure",
+      "unit": "kPa",
+      "bytes": 1,
+      "formula": "A"
+    },
+    "0x3C": {
+      "name": "Catalyst Temperature Bank 1 Sensor 1",
+      "unit": "°C",
+      "bytes": 2,
+      "formula": "((A*256)+B)/10-40"
+    },
+    "0x3D": {
+      "name": "Catalyst Temperature Bank 2 Sensor 1",
+      "unit": "°C",
+      "bytes": 2,
+      "formula": "((A*256)+B)/10-40"
+    },
+    "0x3E": {
+      "name": "Catalyst Temperature Bank 1 Sensor 2",
+      "unit": "°C",
+      "bytes": 2,
+      "formula": "((A*256)+B)/10-40"
+    },
+    "0x3F": {
+      "name": "Catalyst Temperature Bank 2 Sensor 2",
+      "unit": "°C",
+      "bytes": 2,
+      "formula": "((A*256)+B)/10-40"
+    },
+    "0x40": {
+      "name": "PIDs Supported [41-60]",
+      "bytes": 4,
+      "formula": "Bitmap"
+    },
+    "0x42": {
+      "name": "Control Module Voltage",
+      "unit": "V",
+      "bytes": 2,
+      "formula": "((A*256)+B)/1000"
+    },
+    "0x43": {
+      "name": "Absolute Load Value",
+      "unit": "%",
+      "bytes": 2,
+      "formula": "((A*256)+B)*100/255"
+    },
+    "0x44": {
+      "name": "Commanded Air-Fuel Equivalence Ratio",
+      "unit": "ratio",
+      "bytes": 2,
+      "formula": "((A*256)+B)/32768"
+    },
+    "0x45": {
+      "name": "Relative Throttle Position",
+      "unit": "%",
+      "bytes": 1,
+      "formula": "A*100/255"
+    },
+    "0x46": {
+      "name": "Ambient Air Temperature",
+      "unit": "°C",
+      "bytes": 1,
+      "formula": "A-40"
+    },
+    "0x47": {
+      "name": "Absolute Throttle Position B",
+      "unit": "%",
+      "bytes": 1,
+      "formula": "A*100/255"
+    },
+    "0x48": {
+      "name": "Absolute Throttle Position C",
+      "unit": "%",
+      "bytes": 1,
+      "formula": "A*100/255"
+    },
+    "0x49": {
+      "name": "Accelerator Pedal Position D",
+      "unit": "%",
+      "bytes": 1,
+      "formula": "A*100/255"
+    },
+    "0x4A": {
+      "name": "Accelerator Pedal Position E",
+      "unit": "%",
+      "bytes": 1,
+      "formula": "A*100/255"
+    },
+    "0x4B": {
+      "name": "Accelerator Pedal Position F",
+      "unit": "%",
+      "bytes": 1,
+      "formula": "A*100/255"
+    },
+    "0x4C": {
+      "name": "Commanded Throttle Actuator",
+      "unit": "%",
+      "bytes": 1,
+      "formula": "A*100/255"
+    },
+    "0x4D": {
+      "name": "Time Run With MIL On",
+      "unit": "minutes",
+      "bytes": 2,
+      "formula": "(A*256)+B"
+    },
+    "0x4E": {
+      "name": "Time Since Trouble Codes Cleared",
+      "unit": "minutes",
+      "bytes": 2,
+      "formula": "(A*256)+B"
+    },
+    "0x51": {
+      "name": "Fuel Type",
+      "bytes": 1,
+      "formula": "Enum"
+    },
+    "0x52": {
+      "name": "Ethanol Fuel Percentage",
+      "unit": "%",
+      "bytes": 1,
+      "formula": "A*100/255"
+    },
+    "0x5C": {
+      "name": "Engine Oil Temperature",
+      "unit": "°C",
+      "bytes": 1,
+      "formula": "A-40"
+    },
+    "0x5D": {
+      "name": "Fuel Injection Timing",
+      "unit": "°",
+      "bytes": 2,
+      "formula": "(((A*256)+B)-26880)/128"
+    },
+    "0x5E": {
+      "name": "Engine Fuel Rate",
+      "unit": "L/h",
+      "bytes": 2,
+      "formula": "((A*256)+B)/20"
+    },
+    "0x60": {
+      "name": "PIDs Supported [61-80]",
+      "bytes": 4,
+      "formula": "Bitmap"
+    },
+    "0x61": {
+      "name": "Driver's Demand Engine Torque",
+      "unit": "%",
+      "bytes": 1,
+      "formula": "A-125"
+    },
+    "0x62": {
+      "name": "Actual Engine Torque",
+      "unit": "%",
+      "bytes": 1,
+      "formula": "A-125"
+    },
+    "0x63": {
+      "name": "Engine Reference Torque",
+      "unit": "Nm",
+      "bytes": 2,
+      "formula": "(A*256)+B"
+    },
+    "0x67": {
+      "name": "Engine Coolant Temperature Sensors",
+      "unit": "°C",
+      "bytes": 3,
+      "formula": "Special"
+    }
+  },
+  "nissan_specific": {
+    "description": "Nissan manufacturer-specific PIDs (Mode 21)",
+    "0x2101": {
+      "name": "Battery Voltage",
+      "unit": "V",
+      "formula": "A*0.08"
+    },
+    "0x2104": {
+      "name": "Ignition Timing",
+      "unit": "°",
+      "formula": "A-64"
+    },
+    "0x2106": {
+      "name": "Fuel Temperature",
+      "unit": "°C",
+      "formula": "A-40"
+    },
+    "0x2108": {
+      "name": "Idle Switch",
+      "formula": "Boolean"
+    },
+    "0x2109": {
+      "name": "A/C Switch",
+      "formula": "Boolean"
+    },
+    "0x210A": {
+      "name": "Starter Switch",
+      "formula": "Boolean"
+    }
+  },
+  "dtc_codes": {
+    "description": "Common DTC codes for Nissan Patrol Y61",
+    "P0100": "Mass Air Flow Circuit",
+    "P0105": "Manifold Absolute Pressure Circuit",
+    "P0110": "Intake Air Temperature Circuit",
+    "P0115": "Engine Coolant Temperature Circuit",
+    "P0120": "Throttle Position Sensor Circuit",
+    "P0130": "O2 Sensor Circuit Bank 1 Sensor 1",
+    "P0135": "O2 Sensor Heater Circuit Bank 1 Sensor 1",
+    "P0171": "System Too Lean Bank 1",
+    "P0172": "System Too Rich Bank 1",
+    "P0300": "Random Misfire Detected",
+    "P0301": "Cylinder 1 Misfire",
+    "P0302": "Cylinder 2 Misfire",
+    "P0303": "Cylinder 3 Misfire",
+    "P0304": "Cylinder 4 Misfire",
+    "P0305": "Cylinder 5 Misfire",
+    "P0306": "Cylinder 6 Misfire",
+    "P0325": "Knock Sensor 1 Circuit",
+    "P0335": "Crankshaft Position Sensor Circuit",
+    "P0340": "Camshaft Position Sensor Circuit",
+    "P0400": "EGR Flow",
+    "P0420": "Catalyst System Efficiency Below Threshold",
+    "P0500": "Vehicle Speed Sensor",
+    "P0505": "Idle Control System",
+    "P0600": "Serial Communication Link",
+    "P0700": "Transmission Control System"
+  },
+  "recommended_polling": {
+    "tier_1_critical": {
+      "interval_ms": 500,
+      "pids": ["0x0C", "0x0D", "0x05", "0x04", "0x11"]
+    },
+    "tier_2_important": {
+      "interval_ms": 2000,
+      "pids": ["0x0F", "0x10", "0x0B", "0x0E", "0x06", "0x07", "0x14", "0x15"]
+    },
+    "tier_3_secondary": {
+      "interval_ms": 10000,
+      "pids": ["0x2F", "0x1F", "0x33", "0x46", "0x5C", "0x42"]
+    }
+  }
+}

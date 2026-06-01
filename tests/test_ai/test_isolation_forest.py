@@ -266,6 +266,25 @@ class TestIsolationForestEngine:
         assert depths[0] >= 0
         assert depths[1] >= 0
 
+    def test_json_scores_match_sklearn(self):
+        """JSON pure-Python inference matches sklearn score_samples()."""
+        np.random.seed(42)
+
+        baseline = np.random.randn(200, 5) * 10 + 50
+        model_dict = self.engine.train_from_baseline(baseline)
+
+        # Score with sklearn
+        test_data = np.random.randn(30, 5) * 10 + 50
+        sklearn_scores = self.engine.model.score_samples(test_data)
+
+        # Score with JSON model
+        json_engine = IsolationForestEngine()
+        json_engine.load_model(model_dict)
+        json_scores = json_engine._score_samples_json(test_data)
+
+        # Scores should be close (not exact due to float precision)
+        np.testing.assert_allclose(json_scores, sklearn_scores, atol=0.05)
+
     def test_sensors_in_anomaly_result(self):
         """Anomaly results include top anomalous sensors."""
         np.random.seed(42)

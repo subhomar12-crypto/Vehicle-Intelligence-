@@ -1,0 +1,12 @@
+{
+  "hex_code": "010C",
+  "name": "Engine RPM",
+  "description": "Engine speed",
+  "formula": "(256*A + B)/4",
+  "units": "rpm",
+  "min_value": "0.0",
+  "max_value": "16383.75",
+  "category": "Engine",
+  "vehicle_specific": false,
+  "validation_required": false
+}

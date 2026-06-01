@@ -22,8 +22,17 @@ async def _get_pool():
     """Get or create ARQ pool."""
     global _pool
     if _pool is None:
-        _pool = await create_pool(RedisSettings.from_dsn(get_config().REDIS_URL))
+        config = get_config()
+        _pool = await create_pool(RedisSettings.from_dsn(config.REDIS_URL))
     return _pool
+
+
+async def close_pool():
+    """Close the ARQ pool."""
+    global _pool
+    if _pool is not None:
+        await _pool.close()
+        _pool = None
 
 
 async def enqueue_email(
@@ -82,6 +91,7 @@ async def enqueue_fcm(
     title: str,
     body: str,
     data: Optional[dict] = None,
+    channel_id: Optional[str] = None,
 ) -> str:
     """
     Enqueue FCM push notification.
@@ -96,6 +106,7 @@ async def enqueue_fcm(
         title=title,
         body=body,
         data=data,
+        channel_id=channel_id,
         _queue_name=JobQueues.FCM,
     )
     logger.info(f"Enqueued FCM notification, job_id={job.job_id}")
@@ -121,11 +132,10 @@ async def enqueue_guardian_alert(
     return job.job_id
 
 
-async def enqueue_pdf(
-    user_id: int,
-    vehicle_profile_id: int,
-    report_type: str,
-    output_path: str,
+async def enqueue_pdf_report(
+    vehicle_id: int,
+    report_type: str = "health",
+    report_data: Optional[dict] = None,
 ) -> str:
     """
     Enqueue PDF report generation.
@@ -134,15 +144,52 @@ async def enqueue_pdf(
         Job ID for tracking
     """
     pool = await _get_pool()
+    
+    if report_type == "diagnostic":
+        job = await pool.enqueue_job(
+            "generate_diagnostic_report_pdf",
+            vehicle_id=vehicle_id,
+            dtc_data=report_data or {},
+            _queue_name=JobQueues.PDF,
+        )
+    else:
+        job = await pool.enqueue_job(
+            "generate_health_report_pdf",
+            vehicle_id=vehicle_id,
+            report_data=report_data or {},
+            _queue_name=JobQueues.PDF,
+        )
+    
+    logger.info(f"Enqueued PDF generation, job_id={job.job_id}")
+    return job.job_id
+
+
+async def enqueue_enhanced_report(
+    report_id: int,
+    vehicle_id: int,
+    report_type: str,
+    user_id: int,
+    trip_id: Optional[int] = None,
+    include_ai_predictions: bool = False,
+) -> str:
+    """
+    Enqueue enhanced LLM-powered PDF report generation.
+
+    Returns:
+        Job ID for tracking
+    """
+    pool = await _get_pool()
     job = await pool.enqueue_job(
-        "generate_vehicle_report",
-        user_id=user_id,
-        vehicle_profile_id=vehicle_profile_id,
+        "generate_enhanced_report_job",
+        report_id=report_id,
+        vehicle_id=vehicle_id,
         report_type=report_type,
-        output_path=output_path,
+        user_id=user_id,
+        trip_id=trip_id,
+        include_ai_predictions=include_ai_predictions,
         _queue_name=JobQueues.PDF,
     )
-    logger.info(f"Enqueued PDF generation, job_id={job.job_id}")
+    logger.info(f"Enqueued enhanced report {report_id}, job_id={job.job_id}")
     return job.job_id
 
 
@@ -155,8 +202,55 @@ async def enqueue_backup() -> str:
     """
     pool = await _get_pool()
     job = await pool.enqueue_job(
-        "backup_database",
+        "daily_backup_task",
         _queue_name=JobQueues.BACKUP,
     )
     logger.info(f"Enqueued database backup, job_id={job.job_id}")
+    return job.job_id
+
+
+async def enqueue_parquet_flush() -> str:
+    """
+    Enqueue Parquet buffer flush.
+    
+    Returns:
+        Job ID for tracking
+    """
+    pool = await _get_pool()
+    job = await pool.enqueue_job(
+        "flush_parquet_buffer",
+        _queue_name=JobQueues.PARQUET,
+    )
+    logger.info(f"Enqueued Parquet flush, job_id={job.job_id}")
+    return job.job_id
+
+
+async def enqueue_cleanup(cleanup_type: str = "gdpr") -> str:
+    """
+    Enqueue cleanup task.
+    
+    Args:
+        cleanup_type: Type of cleanup (gdpr, sessions, exports, predictions)
+    
+    Returns:
+        Job ID for tracking
+    """
+    pool = await _get_pool()
+    
+    task_map = {
+        "gdpr": "gdpr_cleanup_task",
+        "sessions": "cleanup_old_sessions",
+        "exports": "cleanup_expired_exports",
+        "predictions": "cleanup_old_predictions",
+        "failed_ops": "cleanup_failed_operations",
+        "parquet_temp": "cleanup_parquet_temp_files",
+    }
+    
+    task_name = task_map.get(cleanup_type, "gdpr_cleanup_task")
+    
+    job = await pool.enqueue_job(
+        task_name,
+        _queue_name=JobQueues.CLEANUP,
+    )
+    logger.info(f"Enqueued {cleanup_type} cleanup, job_id={job.job_id}")
     return job.job_id

@@ -1,0 +1,12 @@
+{
+  "hex_code": "5B",
+  "name": "Discovered_PID_5B",
+  "description": "Discovered PID 5B - Raw Response: UNSUPPORTED_CONNECTION",
+  "formula": "A",
+  "units": "Raw",
+  "min_value": "0",
+  "max_value": "255",
+  "category": "Mode_01",
+  "vehicle_specific": true,
+  "validation_required": true
+}

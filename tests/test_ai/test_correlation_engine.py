@@ -40,11 +40,11 @@ class TestCorrelationEngine:
             readings, ["rpm", "speed", "maf_rate"]
         )
         
-        # Should have 3 pairs
+        # Should have 3 pairs (keys are sorted tuples)
         assert len(correlations) == 3
         assert ("rpm", "speed") in correlations
-        assert ("rpm", "maf_rate") in correlations
-        assert ("speed", "maf_rate") in correlations
+        assert ("maf_rate", "rpm") in correlations
+        assert ("maf_rate", "speed") in correlations
 
     def test_compute_correlation_matrix_values(self):
         """Correlation values are accurate."""
@@ -170,8 +170,8 @@ class TestCorrelationEngine:
 
     def test_detect_anomalies_interpretation(self):
         """Interpretation includes relevant info."""
-        baseline = {("rpm", "maf_rate"): 0.85}
-        current = {("rpm", "maf_rate"): 0.40}
+        baseline = {("maf_rate", "rpm"): 0.85}
+        current = {("maf_rate", "rpm"): 0.40}
         
         anomalies = self.engine.detect_anomalies(baseline, current)
         
@@ -210,8 +210,8 @@ class TestCorrelationEngine:
         
         anomalies = self.engine.analyze_expected_pairs(readings)
         
-        # Should detect broken rpm-maf_rate correlation
-        rpm_maf_anomalies = [a for a in anomalies if a.pair == ("rpm", "maf_rate")]
+        # Should detect broken rpm-maf_rate correlation (sorted key)
+        rpm_maf_anomalies = [a for a in anomalies if a.pair == ("maf_rate", "rpm")]
         assert len(rpm_maf_anomalies) > 0
 
     def test_get_correlation_summary(self):

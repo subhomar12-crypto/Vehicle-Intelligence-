@@ -1,0 +1,12 @@
+{
+  "hex_code": "22B0",
+  "name": "Time Remaining",
+  "description": "Time Remaining",
+  "formula": "(B * 256 + A)/10",
+  "units": "minutes",
+  "min_value": "0.0",
+  "max_value": "32767",
+  "category": "System",
+  "vehicle_specific": true,
+  "validation_required": false
+}

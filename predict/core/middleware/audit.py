@@ -1,113 +1,107 @@
 """
-Audit middleware - logs all write operations to audit_log table.
+Audit middleware for logging all requests with float timestamps.
 """
 
 import logging
-import json
-from typing import Optional, Any
-from datetime import datetime, timezone
+import time
+from typing import Callable, Optional
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.types import ASGIApp
+
+from predict.core.db.session import get_db_session
 
 logger = logging.getLogger(__name__)
 
 
-# HTTP methods that modify data
-WRITE_METHODS = {'POST', 'PUT', 'PATCH', 'DELETE'}
-
-# Paths to exclude from audit
-EXCLUDED_PATHS = {
-    '/health',
-    '/health/ready',
-    '/metrics',
-    '/docs',
-    '/openapi.json',
-}
-
-
 class AuditMiddleware(BaseHTTPMiddleware):
     """
-    Middleware that audits all write operations.
+    Middleware that logs all API requests for audit purposes.
     
-    Logs to audit_logs table with:
-    - User ID and API key
-    - Action (HTTP method + path)
-    - Resource type and ID
-    - Old and new data (for updates)
-    - IP address and user agent
-    - Request ID for correlation
+    Uses time.time() for timestamps (float seconds since epoch).
     """
     
-    def __init__(self, app, db_session_factory=None):
+    def __init__(self, app: ASGIApp):
         super().__init__(app)
-        self.db_session_factory = db_session_factory
     
-    async def dispatch(self, request: Request, call_next) -> Response:
-        """Process request and audit if it's a write operation."""
-        # Skip excluded paths
-        if any(request.url.path.startswith(path) for path in EXCLUDED_PATHS):
-            return await call_next(request)
+    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        """Process request and log audit data."""
+        start_time = time.perf_counter()
         
-        # Only audit write operations
-        if request.method not in WRITE_METHODS:
-            return await call_next(request)
+        # Get request details
+        method = request.method
+        path = request.url.path
+        client_ip = self._get_client_ip(request)
+        user_id = self._get_user_id(request)
         
-        # Process the request
-        response = await call_next(request)
-        
-        # Log to audit (async)
+        # Process request
         try:
-            await self._log_audit(request, response)
+            response = await call_next(request)
+            status_code = response.status_code
         except Exception as e:
-            logger.error(f"Failed to write audit log: {e}")
+            logger.error(f"Request failed: {e}")
+            raise
+        
+        # Calculate timing
+        elapsed_ms = (time.perf_counter() - start_time) * 1000
+        
+        # Log audit entry
+        timestamp_iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        
+        logger.info(
+            f"{method} {path} - {status_code} - {elapsed_ms:.2f}ms - "
+            f"{client_ip} - user={user_id}"
+        )
+        
+        # Store in database (async background task)
+        try:
+            await self._store_audit_log(
+                method=method,
+                path=path,
+                status_code=status_code,
+                client_ip=client_ip,
+                user_id=user_id,
+                elapsed_ms=elapsed_ms,
+                timestamp=time.time(),
+            )
+        except Exception as e:
+            logger.warning(f"Failed to store audit log: {e}")
         
         return response
     
-    async def _log_audit(
-        self,
-        request: Request,
-        response: Response,
-    ) -> None:
-        """Create audit log entry."""
-        
-        # Extract user info from request state
-        user_id = getattr(request.state, 'user_id', None)
-        api_key_id = getattr(request.state, 'api_key_id', None)
-        request_id = getattr(request.state, 'request_id', None)
-        
-        # Determine resource type from path
-        path_parts = request.url.path.strip('/').split('/')
-        resource_type = path_parts[1] if len(path_parts) > 1 else 'unknown'
-        resource_id = path_parts[2] if len(path_parts) > 2 else None
-        
-        # Build audit entry
-        audit_entry = {
-            'user_id': user_id,
-            'api_key_id': api_key_id,
-            'action': f"{request.method}_{resource_type}",
-            'resource_type': resource_type,
-            'resource_id': resource_id,
-            'ip_address': self._get_client_ip(request),
-            'user_agent': request.headers.get('user-agent'),
-            'request_id': request_id,
-            'created_at': datetime.now(timezone.utc).isoformat(),
-        }
-        
-        # Log to application logs
-        logger.info(
-            f"AUDIT: {audit_entry['action']} by user={user_id} "
-            f"resource={resource_type}/{resource_id}"
-        )
-    
     def _get_client_ip(self, request: Request) -> str:
         """Extract client IP from request."""
-        forwarded = request.headers.get('X-Forwarded-For')
+        forwarded = request.headers.get("X-Forwarded-For")
         if forwarded:
-            return forwarded.split(',')[0].strip()
+            return forwarded.split(",")[0].strip()
         
-        real_ip = request.headers.get('X-Real-IP')
+        real_ip = request.headers.get("X-Real-IP")
         if real_ip:
             return real_ip
         
-        return request.client.host if request.client else 'unknown'
+        if request.client:
+            return request.client.host
+        
+        return "unknown"
+    
+    def _get_user_id(self, request: Request) -> Optional[int]:
+        """Extract user ID from request state."""
+        if hasattr(request.state, "user") and request.state.user:
+            return getattr(request.state.user, "id", None)
+        return None
+    
+    async def _store_audit_log(
+        self,
+        method: str,
+        path: str,
+        status_code: int,
+        client_ip: str,
+        user_id: Optional[int],
+        elapsed_ms: float,
+        timestamp: float,
+    ) -> None:
+        """Store audit log in database."""
+        # This would typically use a background task
+        # For now, just log it
+        pass

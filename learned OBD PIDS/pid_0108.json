@@ -1,0 +1,12 @@
+{
+  "hex_code": "0108",
+  "name": "Short Term Fuel Trim Bank 2",
+  "description": "STFT B2",
+  "formula": "A*100/128 - 100",
+  "units": "%",
+  "min_value": "-100.0",
+  "max_value": "99.2",
+  "category": "Fuel",
+  "vehicle_specific": false,
+  "validation_required": false
+}

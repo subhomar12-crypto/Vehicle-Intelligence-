@@ -1,0 +1,12 @@
+{
+  "hex_code": "0133",
+  "name": "Barometric Pressure",
+  "description": "Baro",
+  "formula": "A",
+  "units": "kPa",
+  "min_value": "0.0",
+  "max_value": "255",
+  "category": "Sensors",
+  "vehicle_specific": false,
+  "validation_required": false
+}

@@ -1,0 +1,12 @@
+{
+  "hex_code": "06T74",
+  "name": "Mode06_Test_116",
+  "description": "Onboard diagnostic test 116",
+  "formula": "A",
+  "units": "raw",
+  "min_value": "0.0",
+  "max_value": "255",
+  "category": "Diagnostics",
+  "vehicle_specific": false,
+  "validation_required": true
+}

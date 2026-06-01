@@ -1,0 +1,12 @@
+{
+  "hex_code": "5163",
+  "name": "Nissan_PID_5163",
+  "description": "Nissan proprietary parameter 5163",
+  "formula": "(B*256 + A)",
+  "units": "units",
+  "min_value": "0.0",
+  "max_value": "65535",
+  "category": "Nissan-UDS",
+  "vehicle_specific": true,
+  "validation_required": false
+}

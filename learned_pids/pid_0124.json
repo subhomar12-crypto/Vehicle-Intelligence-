@@ -1,0 +1,12 @@
+{
+  "hex_code": "0124",
+  "name": "O2 Sensor 1 Lambda + Voltage",
+  "description": "Lambda + V",
+  "formula": "(256*A + B)/32768",
+  "units": "ratio",
+  "min_value": "0.0",
+  "max_value": "2",
+  "category": "Sensors",
+  "vehicle_specific": false,
+  "validation_required": false
+}

@@ -1,0 +1,12 @@
+{
+  "hex_code": "25A7",
+  "name": "MotorspeedB",
+  "description": "Motor Speed B",
+  "formula": "(B * 256 + A)",
+  "units": "rpm",
+  "min_value": "0.0",
+  "max_value": "8000",
+  "category": "Motor",
+  "vehicle_specific": true,
+  "validation_required": false
+}

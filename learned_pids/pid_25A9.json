@@ -1,0 +1,12 @@
+{
+  "hex_code": "25A9",
+  "name": "Main State",
+  "description": "Main State",
+  "formula": "A",
+  "units": "state",
+  "min_value": "0.0",
+  "max_value": "10",
+  "category": "System",
+  "vehicle_specific": true,
+  "validation_required": false
+}

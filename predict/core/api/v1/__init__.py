@@ -20,6 +20,8 @@ from predict.core.api.v1 import (
     driving,
     tiers,
     app_version,
+    pid_atlas,
+    share,
 )
 
 __all__ = [
@@ -40,4 +42,6 @@ __all__ = [
     "driving",
     "tiers",
     "app_version",
+    "pid_atlas",
+    "share",
 ]

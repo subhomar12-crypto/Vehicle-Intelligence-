@@ -1,0 +1,12 @@
+{
+  "hex_code": "26A2",
+  "name": "Manufacture Date",
+  "description": "Manufacture Date",
+  "formula": "(B * 256 + A)",
+  "units": "count",
+  "min_value": "0.0",
+  "max_value": "32767",
+  "category": "System",
+  "vehicle_specific": true,
+  "validation_required": false
+}

@@ -327,6 +327,40 @@ Help the user understand their car's health and what it needs. Make diagnostics 
             if not vb.get("anomalies") and not vb.get("trends"):
                 vb_parts.append("  All sensors within learned baseline ranges.")
             context_parts.append("\n".join(vb_parts))
+        if "dtc_forensics" in context:
+            df = context["dtc_forensics"]
+            df_parts = [f"DTC Forensic Analysis (severity: {df.get('overall_severity', '?').upper()}):"]
+            if df.get("affected_components"):
+                df_parts.append(f"  Affected systems: {', '.join(df['affected_components'])}")
+            for hyp in (df.get("root_cause_hypotheses") or [])[:3]:
+                conf = hyp.get("confidence", 0)
+                df_parts.append(f"  Hypothesis: {hyp.get('hypothesis', '?')} (confidence: {conf:.0%})")
+                for insp in (hyp.get("recommended_inspections") or [])[:2]:
+                    df_parts.append(f"    → {insp}")
+            for anom in (df.get("anomalies") or [])[:3]:
+                df_parts.append(f"  Anomaly: {anom.get('message', '?')}")
+            for cb in (df.get("correlation_breaks") or [])[:2]:
+                pair = cb.get("pair", ["?", "?"])
+                df_parts.append(
+                    f"  Correlation break: {pair[0]} ↔ {pair[1]} "
+                    f"(Δr={cb.get('delta', 0):.2f}, {cb.get('severity', '?')})"
+                )
+            if df.get("summary"):
+                df_parts.append(f"  Summary: {df['summary']}")
+            context_parts.append("\n".join(df_parts))
+        if "survival_curves" in context:
+            sc = context["survival_curves"]
+            sc_parts = ["Survival Analysis (component remaining useful life):"]
+            for curve in (sc if isinstance(sc, list) else [])[:5]:
+                comp = curve.get("component", "?")
+                probs = curve.get("survival_probability", [])
+                days = curve.get("timeline_days", [])
+                if probs and days and len(probs) > 1:
+                    last_prob = probs[-1]
+                    last_day = days[-1]
+                    sc_parts.append(f"  {comp}: {last_prob:.0%} chance of lasting {last_day:.0f} more days")
+            if len(sc_parts) > 1:
+                context_parts.append("\n".join(sc_parts))
         if "web_search" in context:
             context_parts.append(f"Web Search Results:\n{context['web_search']}")
 

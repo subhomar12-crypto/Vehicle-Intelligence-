@@ -1,0 +1,12 @@
+{
+  "hex_code": "015E",
+  "name": "Engine Fuel Rate",
+  "description": "Fuel rate",
+  "formula": "(256*A + B)/20",
+  "units": "L/h",
+  "min_value": "0.0",
+  "max_value": "3212.75",
+  "category": "Fuel",
+  "vehicle_specific": false,
+  "validation_required": false
+}

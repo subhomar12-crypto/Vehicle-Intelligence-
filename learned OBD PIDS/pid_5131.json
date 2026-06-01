@@ -1,0 +1,12 @@
+{
+  "hex_code": "5131",
+  "name": "Nissan_PID_5131",
+  "description": "Nissan proprietary parameter 5131",
+  "formula": "(B*256 + A)",
+  "units": "units",
+  "min_value": "0.0",
+  "max_value": "65535",
+  "category": "Nissan-UDS",
+  "vehicle_specific": true,
+  "validation_required": false
+}

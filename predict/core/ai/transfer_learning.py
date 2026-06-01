@@ -11,6 +11,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, Optional
 
+import numpy as np
 import tensorflow as tf
 from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -228,7 +229,7 @@ class TransferLearning:
         reconstruction_errors = tf.reduce_mean(
             tf.abs(val_seq - val_pred), axis=(1, 2)
         ).numpy()
-        threshold = float(tf.reduce_percentile(reconstruction_errors, 95))
+        threshold = float(np.percentile(reconstruction_errors, 95))
         
         return {
             "final_loss": float(history.history['loss'][-1]),

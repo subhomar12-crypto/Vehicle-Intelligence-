@@ -1,0 +1,12 @@
+{
+  "hex_code": "010F",
+  "name": "Intake Air Temperature",
+  "description": "IAT temp",
+  "formula": "A-40",
+  "units": "\u00b0C",
+  "min_value": "-40.0",
+  "max_value": "215",
+  "category": "Engine",
+  "vehicle_specific": false,
+  "validation_required": false
+}

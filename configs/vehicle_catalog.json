@@ -1,0 +1,255 @@
+{
+  "brands": [
+    {
+      "name": "nissan",
+      "display_name": "Nissan",
+      "models": [
+        {
+          "name": "altima",
+          "display_name": "Altima",
+          "submodels": [],
+          "years": [2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+          "pid_profile_ids": ["nissan_altima_2017"]
+        },
+        {
+          "name": "patrol",
+          "display_name": "Patrol Y61",
+          "submodels": ["y61"],
+          "years": [1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010],
+          "pid_profile_ids": ["nissan_patrol_y61_2003"]
+        },
+        {
+          "name": "patrol_y62",
+          "display_name": "Patrol Y62",
+          "submodels": ["y62"],
+          "years": [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+          "pid_profile_ids": ["nissan_patrol_y62_2014"]
+        },
+        {
+          "name": "maxima",
+          "display_name": "Maxima",
+          "submodels": [],
+          "years": [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023],
+          "pid_profile_ids": ["nissan_maxima_2016"]
+        },
+        {
+          "name": "sentra",
+          "display_name": "Sentra",
+          "submodels": [],
+          "years": [2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+          "pid_profile_ids": ["nissan_sentra_2015"]
+        }
+      ]
+    },
+    {
+      "name": "toyota",
+      "display_name": "Toyota",
+      "models": [
+        {
+          "name": "land_cruiser",
+          "display_name": "Land Cruiser",
+          "submodels": ["200_series", "300_series"],
+          "years": [2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+          "pid_profile_ids": ["toyota_land_cruiser_2010"]
+        },
+        {
+          "name": "camry",
+          "display_name": "Camry",
+          "submodels": [],
+          "years": [2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+          "pid_profile_ids": ["toyota_camry_2015"]
+        },
+        {
+          "name": "corolla",
+          "display_name": "Corolla",
+          "submodels": [],
+          "years": [2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+          "pid_profile_ids": ["toyota_corolla_2018"]
+        },
+        {
+          "name": "rav4",
+          "display_name": "RAV4",
+          "submodels": [],
+          "years": [2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+          "pid_profile_ids": ["toyota_rav4_2016"]
+        },
+        {
+          "name": "hilux",
+          "display_name": "Hilux",
+          "submodels": [],
+          "years": [2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+          "pid_profile_ids": ["toyota_hilux_2015"]
+        }
+      ]
+    },
+    {
+      "name": "honda",
+      "display_name": "Honda",
+      "models": [
+        {
+          "name": "accord",
+          "display_name": "Accord",
+          "submodels": [],
+          "years": [2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+          "pid_profile_ids": ["honda_accord_2018"]
+        },
+        {
+          "name": "civic",
+          "display_name": "Civic",
+          "submodels": [],
+          "years": [2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+          "pid_profile_ids": ["honda_civic_2016"]
+        },
+        {
+          "name": "cr_v",
+          "display_name": "CR-V",
+          "submodels": [],
+          "years": [2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+          "pid_profile_ids": ["honda_crv_2017"]
+        },
+        {
+          "name": "pilot",
+          "display_name": "Pilot",
+          "submodels": [],
+          "years": [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+          "pid_profile_ids": ["honda_pilot_2019"]
+        }
+      ]
+    },
+    {
+      "name": "chevrolet",
+      "display_name": "Chevrolet",
+      "models": [
+        {
+          "name": "silverado",
+          "display_name": "Silverado",
+          "submodels": ["1500", "2500", "3500"],
+          "years": [2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+          "pid_profile_ids": ["chevrolet_silverado_2019"]
+        },
+        {
+          "name": "tahoe",
+          "display_name": "Tahoe",
+          "submodels": [],
+          "years": [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+          "pid_profile_ids": ["chevrolet_tahoe_2020"]
+        },
+        {
+          "name": "suburban",
+          "display_name": "Suburban",
+          "submodels": [],
+          "years": [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+          "pid_profile_ids": ["chevrolet_suburban_2020"]
+        }
+      ]
+    },
+    {
+      "name": "ford",
+      "display_name": "Ford",
+      "models": [
+        {
+          "name": "f150",
+          "display_name": "F-150",
+          "submodels": [],
+          "years": [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+          "pid_profile_ids": ["ford_f150_2018"]
+        },
+        {
+          "name": "explorer",
+          "display_name": "Explorer",
+          "submodels": [],
+          "years": [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+          "pid_profile_ids": ["ford_explorer_2020"]
+        },
+        {
+          "name": "mustang",
+          "display_name": "Mustang",
+          "submodels": ["gt", "ecoboost", "shelby"],
+          "years": [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+          "pid_profile_ids": ["ford_mustang_2018"]
+        }
+      ]
+    },
+    {
+      "name": "bmw",
+      "display_name": "BMW",
+      "models": [
+        {
+          "name": "3_series",
+          "display_name": "3 Series",
+          "submodels": ["320i", "330i", "340i", "m3"],
+          "years": [2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+          "pid_profile_ids": ["bmw_3series_2019"]
+        },
+        {
+          "name": "5_series",
+          "display_name": "5 Series",
+          "submodels": ["530i", "540i", "m5"],
+          "years": [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+          "pid_profile_ids": ["bmw_5series_2017"]
+        },
+        {
+          "name": "x5",
+          "display_name": "X5",
+          "submodels": [],
+          "years": [2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+          "pid_profile_ids": ["bmw_x5_2019"]
+        }
+      ]
+    },
+    {
+      "name": "mercedes",
+      "display_name": "Mercedes-Benz",
+      "models": [
+        {
+          "name": "c_class",
+          "display_name": "C-Class",
+          "submodels": ["c200", "c300", "c43_amg", "c63_amg"],
+          "years": [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+          "pid_profile_ids": ["mercedes_cclass_2018"]
+        },
+        {
+          "name": "e_class",
+          "display_name": "E-Class",
+          "submodels": ["e300", "e450", "e53_amg", "e63_amg"],
+          "years": [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+          "pid_profile_ids": ["mercedes_eclass_2017"]
+        },
+        {
+          "name": "gle",
+          "display_name": "GLE",
+          "submodels": [],
+          "years": [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+          "pid_profile_ids": ["mercedes_gle_2020"]
+        }
+      ]
+    },
+    {
+      "name": "lexus",
+      "display_name": "Lexus",
+      "models": [
+        {
+          "name": "es",
+          "display_name": "ES",
+          "submodels": ["es300h", "es350"],
+          "years": [2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+          "pid_profile_ids": ["lexus_es_2019"]
+        },
+        {
+          "name": "rx",
+          "display_name": "RX",
+          "submodels": ["rx350", "rx450h"],
+          "years": [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+          "pid_profile_ids": ["lexus_rx_2020"]
+        },
+        {
+          "name": "lx",
+          "display_name": "LX",
+          "submodels": ["lx570", "lx600"],
+          "years": [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+          "pid_profile_ids": ["lexus_lx_2016"]
+        }
+      ]
+    }
+  ]
+}

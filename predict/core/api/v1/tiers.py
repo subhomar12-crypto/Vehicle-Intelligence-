@@ -11,11 +11,8 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from predict.core.api.deps import get_db, get_current_user
-from predict.core.db.models.user import TierPreset
+from predict.core.api.deps import get_current_user
 
 router = APIRouter()
 
@@ -58,36 +55,20 @@ DEFAULT_TIERS = [
             "fleet_management": False,
         },
         "limits": {
-            "daily_obd_requests": 50,
+            "daily_obd_requests": -1,  # unlimited
             "stored_vehicles": 1,
+            "dtc_checks_total": 2,
+            "predictions_per_day": 0,
+            "llm_chat_per_day": 0,
+            "pdfs_per_week": 0,
             "prediction_history_days": 7,
-        },
-    },
-    {
-        "name": "basic",
-        "display_name": "Basic",
-        "price_monthly": 9.99,
-        "price_yearly": 99.99,
-        "features": {
-            "obd_reading": True,
-            "dtc_reading": True,
-            "basic_predictions": True,
-            "ai_chat": False,
-            "guardian_mode": False,
-            "pdf_reports": False,
-            "fleet_management": False,
-        },
-        "limits": {
-            "daily_obd_requests": 500,
-            "stored_vehicles": 3,
-            "prediction_history_days": 30,
         },
     },
     {
         "name": "pro",
         "display_name": "Pro",
-        "price_monthly": 19.99,
-        "price_yearly": 199.99,
+        "price_monthly": 10,
+        "price_yearly": 100,
         "features": {
             "obd_reading": True,
             "dtc_reading": True,
@@ -98,16 +79,44 @@ DEFAULT_TIERS = [
             "fleet_management": False,
         },
         "limits": {
-            "daily_obd_requests": 2000,
-            "stored_vehicles": 10,
+            "daily_obd_requests": -1,  # unlimited
+            "stored_vehicles": 1,
+            "dtc_checks_total": -1,  # unlimited
+            "predictions_per_day": 2,
+            "llm_chat_per_day": 15,
+            "pdfs_per_week": 1,
             "prediction_history_days": 90,
         },
     },
     {
         "name": "premium",
         "display_name": "Premium",
-        "price_monthly": 39.99,
-        "price_yearly": 399.99,
+        "price_monthly": 25,
+        "price_yearly": 250,
+        "features": {
+            "obd_reading": True,
+            "dtc_reading": True,
+            "basic_predictions": True,
+            "ai_chat": True,
+            "guardian_mode": True,
+            "pdf_reports": True,
+            "fleet_management": False,
+        },
+        "limits": {
+            "daily_obd_requests": -1,  # unlimited
+            "stored_vehicles": 3,  # 3 vehicles (including registered vehicle)
+            "dtc_checks_total": -1,  # unlimited
+            "predictions_per_day": 5,  # per vehicle
+            "llm_chat_per_day": 25,  # per vehicle
+            "pdfs_per_week": 2,  # per vehicle
+            "prediction_history_days": 365,
+        },
+    },
+    {
+        "name": "admin",
+        "display_name": "Admin",
+        "price_monthly": 0,
+        "price_yearly": 0,
         "features": {
             "obd_reading": True,
             "dtc_reading": True,
@@ -118,9 +127,13 @@ DEFAULT_TIERS = [
             "fleet_management": True,
         },
         "limits": {
-            "daily_obd_requests": 10000,
-            "stored_vehicles": 50,
-            "prediction_history_days": 365,
+            "daily_obd_requests": -1,  # unlimited
+            "stored_vehicles": -1,  # unlimited
+            "dtc_checks_total": -1,  # unlimited
+            "predictions_per_day": -1,  # unlimited
+            "llm_chat_per_day": -1,  # unlimited
+            "pdfs_per_week": -1,  # unlimited
+            "prediction_history_days": -1,  # unlimited
         },
     },
 ]
@@ -131,31 +144,15 @@ DEFAULT_TIERS = [
 # ========================
 
 @router.get("/", response_model=List[TierResponse])
-async def list_tiers(
-    db: AsyncSession = Depends(get_db),
-):
+async def list_tiers():
     """List all available subscription tiers."""
-    # Try to get from database first
-    result = await db.execute(
-        select(TierPreset).where(TierPreset.is_active == True)
-    )
-    db_tiers = result.scalars().all()
-    
-    if db_tiers:
-        return [
-            TierResponse(
-                name=t.name,
-                display_name=t.display_name,
-                price_monthly=float(t.price_monthly),
-                price_yearly=float(t.price_yearly),
-                features=t.features or {},
-                limits=t.limits or {},
-            )
-            for t in db_tiers
-        ]
-    
-    # Fallback to defaults
     return [TierResponse(**tier) for tier in DEFAULT_TIERS]
+
+
+@router.get("/list", response_model=List[TierResponse])
+async def list_tiers_alias():
+    """Alias for list_tiers - Android compatibility."""
+    return await list_tiers()
 
 
 @router.get("/current")

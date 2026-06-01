@@ -1,0 +1,12 @@
+{
+  "hex_code": "DA",
+  "name": "Discovered_PID_DA",
+  "description": "Discovered PID DA - Raw Response: UNSUPPORTED_CONNECTION",
+  "formula": "A",
+  "units": "Raw",
+  "min_value": "0",
+  "max_value": "255",
+  "category": "Mode_01",
+  "vehicle_specific": true,
+  "validation_required": true
+}

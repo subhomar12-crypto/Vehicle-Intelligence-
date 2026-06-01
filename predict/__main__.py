@@ -57,30 +57,39 @@ def main():
         _run_desktop(args)
 
 
+def _build_kwargs(args):
+    """Build host/port kwargs, skipping None values so defaults apply."""
+    kw = {}
+    if args.host is not None:
+        kw['host'] = args.host
+    if args.port is not None:
+        kw['port'] = args.port
+    return kw
+
+
 def _run_headless(args):
     """Start server-only mode (no GUI)."""
     print("PREDICT - Starting in headless mode...")
-    # Phase 10 will implement predict.headless
     try:
         from predict.headless import start_headless
-        start_headless(host=args.host, port=args.port)
-    except ImportError:
-        print("Headless mode not yet implemented (Phase 10).")
-        print("Server scaffolding is ready. Run with --desktop for GUI mode.")
+    except ImportError as e:
+        print(f"Failed to start headless mode: {e}")
+        print("Check that all dependencies are installed (pip install -e .)")
         sys.exit(1)
+    start_headless(**_build_kwargs(args))
 
 
 def _run_desktop(args):
     """Start Desktop GUI with embedded server."""
     print("PREDICT - Starting in desktop mode...")
-    # Phase 8 will implement predict.desktop.app
     try:
         from predict.desktop.app import start_desktop
-        start_desktop(host=args.host, port=args.port)
-    except ImportError:
-        print("Desktop mode not yet implemented (Phase 8).")
-        print("GUI scaffolding is ready. Phases 1-7 build the server core first.")
+    except ImportError as e:
+        print(f"Failed to start desktop mode: {e}")
+        print("Check that all dependencies are installed (pip install -e .)")
+        print("PySide6 required: pip install PySide6")
         sys.exit(1)
+    start_desktop(**_build_kwargs(args))
 
 
 if __name__ == "__main__":

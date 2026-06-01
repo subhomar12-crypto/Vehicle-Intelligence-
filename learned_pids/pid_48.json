@@ -1,0 +1,12 @@
+{
+  "hex_code": "48",
+  "name": "Discovered_PID_48",
+  "description": "Discovered PID 48 - Raw Response: UNSUPPORTED_CONNECTION",
+  "formula": "A",
+  "units": "Raw",
+  "min_value": "0",
+  "max_value": "255",
+  "category": "Mode_01",
+  "vehicle_specific": true,
+  "validation_required": true
+}

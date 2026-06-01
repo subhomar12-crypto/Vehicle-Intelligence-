@@ -10,9 +10,12 @@ def setup_cors(app, origins: list = None):
     if origins is None:
         origins = [
             "http://localhost:3000",
+            "http://localhost:5173",
             "http://localhost:8000",
             "https://predict.previlium.com",
             "https://app.predict.previlium.com",
+            "https://predict-pp.com",
+            "https://www.predict-pp.com",
         ]
     
     app.add_middleware(

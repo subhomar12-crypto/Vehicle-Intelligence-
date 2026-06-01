@@ -1,0 +1,12 @@
+{
+  "hex_code": "011C",
+  "name": "OBD Standards",
+  "description": "OBD standard supported",
+  "formula": "A",
+  "units": "index",
+  "min_value": "0.0",
+  "max_value": "255",
+  "category": "System",
+  "vehicle_specific": false,
+  "validation_required": false
+}

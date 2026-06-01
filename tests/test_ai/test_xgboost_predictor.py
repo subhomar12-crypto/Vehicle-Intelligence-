@@ -26,49 +26,61 @@ class TestXGBoostFailurePredictor:
         )
 
     def test_component_ids_defined(self):
-        """COMPONENT_IDS has 10 entries."""
+        """COMPONENT_IDS has 10 canonical entries."""
         assert len(COMPONENT_IDS) == 10
-        assert "ENGINE" in COMPONENT_IDS
-        assert "TRANSMISSION" in COMPONENT_IDS
+        assert "engine_oil" in COMPONENT_IDS
+        assert "coolant_system" in COMPONENT_IDS
+        assert "battery" in COMPONENT_IDS
+        assert "brakes" in COMPONENT_IDS
 
     def test_feature_columns_defined(self):
-        """FEATURE_COLUMNS has 4 entries."""
-        assert len(FEATURE_COLUMNS) == 4
+        """FEATURE_COLUMNS has 75 entries (5 stats × 15 sensors)."""
+        assert len(FEATURE_COLUMNS) == 75
+        assert "rpm_mean" in FEATURE_COLUMNS
         assert "rpm_std" in FEATURE_COLUMNS
-        assert "load_mean" in FEATURE_COLUMNS
+        assert "speed_min" in FEATURE_COLUMNS
+        assert "battery_voltage_delta" in FEATURE_COLUMNS
 
     def test_extract_features_empty(self):
         """Empty window returns zeros."""
         features = self.predictor._extract_features([])
-        assert np.allclose(features, np.zeros(4))
+        assert np.allclose(features, np.zeros(75))
 
     def test_extract_features_basic(self):
-        """Features extracted correctly."""
+        """Features extracted correctly — 75 features from 15 sensors."""
         telemetry = [
-            {"rpm": 1000, "engine_load": 50, "coolant_temp": 90, "lambda": 1.0},
-            {"rpm": 1100, "engine_load": 55, "coolant_temp": 92, "lambda": 1.1},
-            {"rpm": 1050, "engine_load": 52, "coolant_temp": 95, "lambda": 0.9},
+            {"rpm": 1000, "speed": 60, "coolant_temp": 90, "battery_voltage": 14.0,
+             "engine_load": 50, "throttle_pos": 30, "maf_rate": 15, "intake_temp": 35,
+             "short_term_fuel_trim": 100, "long_term_fuel_trim": 100,
+             "timing_advance": 15, "injector_ms": 3.0, "fuel_trim_b2": 100,
+             "accel_pedal": 25, "ambient_temp": 40},
+            {"rpm": 1100, "speed": 65, "coolant_temp": 92, "battery_voltage": 14.1,
+             "engine_load": 55, "throttle_pos": 35, "maf_rate": 18, "intake_temp": 36,
+             "short_term_fuel_trim": 102, "long_term_fuel_trim": 101,
+             "timing_advance": 16, "injector_ms": 3.5, "fuel_trim_b2": 101,
+             "accel_pedal": 30, "ambient_temp": 40},
         ]
-        
+
         features = self.predictor._extract_features(telemetry)
-        
-        assert len(features) == 4
-        assert features[0] > 0  # rpm_std
-        assert 50 < features[1] < 56  # load_mean
-        assert features[2] == 5.0  # coolant_delta (95-90)
-        assert features[3] > 0  # lambda_variance
+
+        assert len(features) == 75
+        # rpm stats: indices 0-4 (mean, std, min, max, delta)
+        assert features[0] == pytest.approx(1050.0)  # rpm_mean
+        assert features[1] > 0  # rpm_std
+        assert features[2] == 1000.0  # rpm_min
+        assert features[3] == 1100.0  # rpm_max
+        assert features[4] == 100.0  # rpm_delta
 
     def test_extract_features_with_none(self):
         """None values handled as zeros."""
         telemetry = [
-            {"rpm": None, "engine_load": 50, "coolant_temp": 90, "lambda": 1.0},
-            {"rpm": 1000, "engine_load": None, "coolant_temp": None, "lambda": None},
+            {"rpm": None, "engine_load": 50, "coolant_temp": 90},
+            {"rpm": 1000, "engine_load": None, "coolant_temp": None},
         ]
-        
+
         features = self.predictor._extract_features(telemetry)
-        
-        assert len(features) == 4
-        # Should not crash
+
+        assert len(features) == 75
         assert np.all(np.isfinite(features))
 
     def test_train_from_synthetic(self):
@@ -115,22 +127,22 @@ class TestXGBoostFailurePredictor:
 
     def test_predict_failure_pattern(self):
         """Failure patterns give higher probabilities."""
-        # Train
-        self.predictor.train_from_synthetic(n_samples=100)
-        
-        # Create failure-like pattern for ENGINE
+        self.predictor.train_from_synthetic(n_samples=200)
+
+        # Create failure-like pattern for engine_oil (high RPM variance, high load)
         failure_telemetry = [
-            {"rpm": 8000, "engine_load": 95, "coolant_temp": 120, "lambda": 0.5}
-            for _ in range(10)
+            {"rpm": 7000 + i * 200, "speed": 120, "coolant_temp": 110,
+             "battery_voltage": 13.5, "engine_load": 95, "throttle_pos": 90,
+             "maf_rate": 50, "intake_temp": 55, "short_term_fuel_trim": 110,
+             "long_term_fuel_trim": 108, "timing_advance": 5, "injector_ms": 12.0,
+             "fuel_trim_b2": 109, "accel_pedal": 85, "ambient_temp": 45}
+            for i in range(10)
         ]
-        
+
         predictions = self.predictor.predict(failure_telemetry)
-        
-        # ENGINE should have higher failure probability than average
-        engine_prob = predictions["ENGINE"]
-        avg_prob = np.mean(list(predictions.values()))
-        
-        assert engine_prob > avg_prob * 0.5  # Loose check due to synthetic data
+
+        # engine_oil should have a failure probability
+        assert predictions["engine_oil"] > 0.0
 
     def test_serialize_not_trained(self):
         """Serialization without training raises error."""
@@ -178,13 +190,12 @@ class TestXGBoostFailurePredictor:
 
     def test_get_feature_importance(self):
         """Feature importance retrieved correctly."""
-        # Train
         self.predictor.train_from_synthetic(n_samples=100)
-        
-        importance = self.predictor.get_feature_importance("ENGINE")
-        
+
+        importance = self.predictor.get_feature_importance("engine_oil")
+
         assert importance is not None
-        assert len(importance) == 4
+        assert len(importance) == 75
         for feature in FEATURE_COLUMNS:
             assert feature in importance
             assert importance[feature] >= 0

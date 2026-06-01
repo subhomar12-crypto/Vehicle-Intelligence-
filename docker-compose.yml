@@ -1,0 +1,107 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://predict:predict@postgres:5432/predict
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - FATORA_API_KEY=${FATORA_API_KEY:-}
+      - FCM_CREDENTIALS_PATH=${FCM_CREDENTIALS_PATH:-}
+      - SENTRY_DSN=${SENTRY_DSN:-}
+      - LLM_MODEL_PATH=/app/data/models/gguf/qwen2.5-7b-instruct-q4_k_m.gguf
+    volumes:
+      - app-data:/app/data
+      - ./models:/app/data/models:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      migrations:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  migrations:
+    build: .
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://predict:predict@postgres:5432/predict
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: alembic upgrade head
+    restart: "no"
+
+  worker:
+    build: .
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://predict:predict@postgres:5432/predict
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+    depends_on:
+      - redis
+      - postgres
+    command: arq predict.core.jobs.worker.WorkerSettings
+    restart: unless-stopped
+    deploy:
+      replicas: 2
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: predict
+      POSTGRES_USER: predict
+      POSTGRES_PASSWORD: predict
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U predict -d predict"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - app
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  redis-data:
+  app-data:

@@ -1,0 +1,12 @@
+{
+  "hex_code": "06T3A",
+  "name": "Mode06_Test_58",
+  "description": "Onboard diagnostic test 58",
+  "formula": "A",
+  "units": "raw",
+  "min_value": "0.0",
+  "max_value": "255",
+  "category": "Diagnostics",
+  "vehicle_specific": false,
+  "validation_required": true
+}

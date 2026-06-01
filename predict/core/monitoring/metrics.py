@@ -1,255 +1,119 @@
 """
-Application metrics collection.
-
-Simple in-memory metrics for:
-- Request counts and latencies
-- Error rates
-- Business metrics (predictions, exports, etc.)
+Metrics collection service with float timestamps.
 """
 
 import logging
 import time
 from typing import Dict, Any, List, Optional
-from collections import defaultdict, deque
-from dataclasses import dataclass, field
-from datetime import datetime
-import threading
+from collections import defaultdict
 
 logger = logging.getLogger(__name__)
 
 
-@dataclass
-class MetricValue:
-    """Single metric value with timestamp."""
-    value: float
-    timestamp: float = field(default_factory=time.time)
-    labels: Dict[str, str] = field(default_factory=dict)
-
-
 class MetricsCollector:
     """
-    In-memory metrics collector.
+    Collects and aggregates application metrics.
     
-    Stores metrics in memory with configurable retention.
-    For production, integrate with Prometheus or similar.
+    Uses time.time() for all timestamps.
     """
     
-    def __init__(self, max_history: int = 10000):
+    def __init__(self):
         self._counters: Dict[str, int] = defaultdict(int)
         self._gauges: Dict[str, float] = {}
         self._histograms: Dict[str, List[float]] = defaultdict(list)
-        self._timings: Dict[str, deque] = defaultdict(lambda: deque(maxlen=max_history))
-        self._lock = threading.Lock()
         self._start_time = time.time()
+        logger.debug("MetricsCollector initialized")
     
-    def increment(
-        self,
-        name: str,
-        value: int = 1,
-        labels: Optional[Dict[str, str]] = None,
-    ) -> None:
-        """
-        Increment a counter metric.
+    def increment(self, name: str, value: int = 1, tags: Optional[Dict[str, str]] = None) -> None:
+        """Increment a counter metric."""
+        key = self._format_key(name, tags)
+        self._counters[key] += value
+    
+    def gauge(self, name: str, value: float, tags: Optional[Dict[str, str]] = None) -> None:
+        """Set a gauge metric."""
+        key = self._format_key(name, tags)
+        self._gauges[key] = value
+    
+    def histogram(self, name: str, value: float, tags: Optional[Dict[str, str]] = None) -> None:
+        """Record a histogram value."""
+        key = self._format_key(name, tags)
+        self._histograms[key].append(value)
         
-        Args:
-            name: Metric name
-            value: Amount to increment
-            labels: Optional label dict
-        """
-        with self._lock:
-            key = self._make_key(name, labels)
-            self._counters[key] += value
+        # Keep only last 1000 values
+        if len(self._histograms[key]) > 1000:
+            self._histograms[key] = self._histograms[key][-1000:]
     
-    def gauge(
-        self,
-        name: str,
-        value: float,
-        labels: Optional[Dict[str, str]] = None,
-    ) -> None:
-        """
-        Set a gauge metric.
+    def _format_key(self, name: str, tags: Optional[Dict[str, str]]) -> str:
+        """Format metric key with tags."""
+        if not tags:
+            return name
         
-        Args:
-            name: Metric name
-            value: Current value
-            labels: Optional label dict
-        """
-        with self._lock:
-            key = self._make_key(name, labels)
-            self._gauges[key] = value
+        tag_str = ",".join(f"{k}={v}" for k, v in sorted(tags.items()))
+        return f"{name}[{tag_str}]"
     
-    def timing(
-        self,
-        name: str,
-        duration_ms: float,
-        labels: Optional[Dict[str, str]] = None,
-    ) -> None:
-        """
-        Record a timing metric.
+    def get_metrics(self) -> Dict[str, Any]:
+        """Get all current metrics."""
+        # Calculate histogram statistics
+        histogram_stats = {}
+        for key, values in self._histograms.items():
+            if values:
+                import statistics
+                histogram_stats[key] = {
+                    "count": len(values),
+                    "min": min(values),
+                    "max": max(values),
+                    "mean": statistics.mean(values),
+                    "median": statistics.median(values),
+                }
         
-        Args:
-            name: Metric name
-            duration_ms: Duration in milliseconds
-            labels: Optional label dict
-        """
-        with self._lock:
-            key = self._make_key(name, labels)
-            self._timings[key].append({
-                "value": duration_ms,
-                "timestamp": time.time(),
-            })
-    
-    def timeit(self, name: str, labels: Optional[Dict[str, str]] = None):
-        """
-        Context manager for timing code blocks.
+        uptime_sec = time.time() - self._start_time
         
-        Usage:
-            with metrics.timeit("db_query"):
-                result = await db.fetch(...)
-        """
-        return _TimingContext(self, name, labels)
-    
-    def histogram(
-        self,
-        name: str,
-        value: float,
-        labels: Optional[Dict[str, str]] = None,
-    ) -> None:
-        """
-        Record a value in a histogram.
-        
-        Args:
-            name: Metric name
-            value: Value to record
-            labels: Optional label dict
-        """
-        with self._lock:
-            key = self._make_key(name, labels)
-            self._histograms[key].append(value)
-            # Keep only last 10000 values
-            if len(self._histograms[key]) > 10000:
-                self._histograms[key] = self._histograms[key][-10000:]
-    
-    def get_counter(self, name: str, labels: Optional[Dict[str, str]] = None) -> int:
-        """Get counter value."""
-        with self._lock:
-            key = self._make_key(name, labels)
-            return self._counters.get(key, 0)
-    
-    def get_gauge(self, name: str, labels: Optional[Dict[str, str]] = None) -> float:
-        """Get gauge value."""
-        with self._lock:
-            key = self._make_key(name, labels)
-            return self._gauges.get(key, 0.0)
-    
-    def get_timing_stats(
-        self,
-        name: str,
-        labels: Optional[Dict[str, str]] = None,
-    ) -> Dict[str, float]:
-        """Get timing statistics (min, max, avg, p95, p99)."""
-        with self._lock:
-            key = self._make_key(name, labels)
-            values = [v["value"] for v in self._timings[key]]
-            
-            if not values:
-                return {"count": 0}
-            
-            sorted_values = sorted(values)
-            n = len(sorted_values)
-            
-            return {
-                "count": n,
-                "min": sorted_values[0],
-                "max": sorted_values[-1],
-                "avg": sum(sorted_values) / n,
-                "p95": sorted_values[int(n * 0.95)],
-                "p99": sorted_values[int(n * 0.99)] if n >= 100 else sorted_values[-1],
-            }
-    
-    def get_all_metrics(self) -> Dict[str, Any]:
-        """Get all metrics as dictionary."""
-        with self._lock:
-            return {
-                "counters": dict(self._counters),
-                "gauges": dict(self._gauges),
-                "timings": {
-                    name: self.get_timing_stats(name)
-                    for name in self._timings.keys()
-                },
-                "uptime_seconds": time.time() - self._start_time,
-                "timestamp": datetime.utcnow().isoformat(),
-            }
+        return {
+            "counters": dict(self._counters),
+            "gauges": dict(self._gauges),
+            "histograms": histogram_stats,
+            "uptime_seconds": uptime_sec,
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "timestamp_unix": time.time(),
+        }
     
     def reset(self) -> None:
         """Reset all metrics."""
-        with self._lock:
-            self._counters.clear()
-            self._gauges.clear()
-            self._histograms.clear()
-            self._timings.clear()
-            self._start_time = time.time()
-    
-    def _make_key(self, name: str, labels: Optional[Dict[str, str]]) -> str:
-        """Create metric key from name and labels."""
-        if not labels:
-            return name
-        label_str = ",".join(f"{k}={v}" for k, v in sorted(labels.items()))
-        return f"{name}{{{label_str}}}"
-
-
-class _TimingContext:
-    """Context manager for timing code blocks."""
-    
-    def __init__(
-        self,
-        collector: MetricsCollector,
-        name: str,
-        labels: Optional[Dict[str, str]],
-    ):
-        self.collector = collector
-        self.name = name
-        self.labels = labels
-        self.start_time: Optional[float] = None
-    
-    def __enter__(self):
-        self.start_time = time.time()
-        return self
-    
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        if self.start_time:
-            duration_ms = (time.time() - self.start_time) * 1000
-            self.collector.timing(self.name, duration_ms, self.labels)
+        self._counters.clear()
+        self._gauges.clear()
+        self._histograms.clear()
+        self._start_time = time.time()
+        logger.info("Metrics reset")
 
 
 # Singleton instance
-_metrics_collector: Optional[MetricsCollector] = None
+_metrics: Optional[MetricsCollector] = None
 
 
-def get_metrics_collector() -> MetricsCollector:
-    """Get singleton MetricsCollector instance."""
-    global _metrics_collector
-    if _metrics_collector is None:
-        _metrics_collector = MetricsCollector()
-    return _metrics_collector
+def get_metrics() -> MetricsCollector:
+    """Get metrics collector singleton."""
+    global _metrics
+    if _metrics is None:
+        _metrics = MetricsCollector()
+    return _metrics
 
 
-# Convenience functions
-def increment_counter(name: str, value: int = 1, labels: Optional[Dict[str, str]] = None) -> None:
-    """Increment a counter metric."""
-    get_metrics_collector().increment(name, value, labels)
+def record_request_duration(duration_ms: float, endpoint: str, status_code: int) -> None:
+    """Record API request duration."""
+    metrics = get_metrics()
+    metrics.histogram("http_request_duration_ms", duration_ms, {
+        "endpoint": endpoint,
+        "status": str(status_code),
+    })
+    metrics.increment("http_requests_total", tags={
+        "endpoint": endpoint,
+        "status": str(status_code),
+    })
 
 
-def set_gauge(name: str, value: float, labels: Optional[Dict[str, str]] = None) -> None:
-    """Set a gauge metric."""
-    get_metrics_collector().gauge(name, value, labels)
-
-
-def record_timing(name: str, duration_ms: float, labels: Optional[Dict[str, str]] = None) -> None:
-    """Record a timing metric."""
-    get_metrics_collector().timing(name, duration_ms, labels)
-
-
-def timeit(name: str, labels: Optional[Dict[str, str]] = None):
-    """Context manager for timing."""
-    return get_metrics_collector().timeit(name, labels)
+def record_prediction(component: str, risk_score: float, confidence: float) -> None:
+    """Record prediction metrics."""
+    metrics = get_metrics()
+    metrics.increment("predictions_total", tags={"component": component})
+    metrics.histogram("prediction_risk_score", risk_score, tags={"component": component})
+    metrics.histogram("prediction_confidence", confidence, tags={"component": component})

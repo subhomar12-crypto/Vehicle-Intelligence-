@@ -1,0 +1,12 @@
+{
+  "hex_code": "22AC",
+  "name": "KW Input",
+  "description": "Kilowatt Input",
+  "formula": "(B * 256 + A)/100",
+  "units": "kW",
+  "min_value": "0.0",
+  "max_value": "32767",
+  "category": "Electrical",
+  "vehicle_specific": true,
+  "validation_required": false
+}

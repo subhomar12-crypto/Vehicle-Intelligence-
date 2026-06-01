@@ -1,0 +1,12 @@
+{
+  "hex_code": "0131",
+  "name": "Distance Since DTC Cleared",
+  "description": "Distance",
+  "formula": "256*A + B",
+  "units": "km",
+  "min_value": "0.0",
+  "max_value": "65535",
+  "category": "Diagnostics",
+  "vehicle_specific": false,
+  "validation_required": false
+}

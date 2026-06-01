@@ -1,0 +1,12 @@
+{
+  "hex_code": "010B",
+  "name": "Intake Manifold Pressure",
+  "description": "MAP sensor",
+  "formula": "A",
+  "units": "kPa",
+  "min_value": "0.0",
+  "max_value": "255",
+  "category": "Engine",
+  "vehicle_specific": false,
+  "validation_required": false
+}

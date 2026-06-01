@@ -5,7 +5,6 @@ Preserves exact OBD_RANGES from original validation_middleware.py.
 
 import logging
 from typing import Dict, Any, Optional, List
-from datetime import datetime
 
 from fastapi import Request
 

@@ -86,11 +86,36 @@ class TierUpgradeRequest(Base):
     owner_email: Mapped[Optional[str]] = mapped_column(String(255))
     tier_price: Mapped[Optional[str]] = mapped_column(String(50))
     tier_features: Mapped[Optional[str]] = mapped_column(Text)
+    company_name: Mapped[Optional[str]] = mapped_column(String(255))
+    fleet_size: Mapped[Optional[str]] = mapped_column(String(50))
 
     __table_args__ = (
         Index("idx_upgrade_requests_status", "status"),
         Index("idx_upgrade_requests_owner", "owner_id"),
     )
+
+
+class Subscription(Base):
+    """User subscriptions via Google Play Billing or PayPal."""
+    __tablename__ = "subscriptions"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    tier: Mapped[str] = mapped_column(String(20), nullable=False)
+    # Payment source: "google" or "paypal"
+    payment_source: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    # Google Play fields
+    google_purchase_token: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    google_product_id: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    google_order_id: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    # PayPal fields
+    paypal_subscription_id: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    paypal_plan_id: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    status: Mapped[str] = mapped_column(String(20), server_default="active")
+    started_at: Mapped[float] = mapped_column(Float, nullable=False)
+    expires_at: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    cancelled_at: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    created_at: Mapped[float] = mapped_column(Float, nullable=False)
 
 
 class SubscriptionAuditLog(Base):
@@ -108,3 +133,28 @@ class SubscriptionAuditLog(Base):
     timestamp: Mapped[float] = mapped_column(Float, nullable=False)
     ip_address: Mapped[Optional[str]] = mapped_column(String(45))
     user_agent: Mapped[Optional[str]] = mapped_column(Text)
+
+
+class Fleet(Base):
+    """Fleet groups for fleet management."""
+    __tablename__ = "fleets"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[Optional[str]] = mapped_column(Text)
+    owner_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, server_default="true")
+    created_at: Mapped[float] = mapped_column(Float, nullable=False)
+    updated_at: Mapped[Optional[float]] = mapped_column(Float)
+
+
+class FleetMember(Base):
+    """Fleet membership linking users to fleets."""
+    __tablename__ = "fleet_members"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    fleet_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    role: Mapped[str] = mapped_column(String(20), server_default="driver")
+    is_active: Mapped[bool] = mapped_column(Boolean, server_default="true")
+    joined_at: Mapped[float] = mapped_column(Float, nullable=False)

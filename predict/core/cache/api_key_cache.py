@@ -88,3 +88,18 @@ async def invalidate_user_keys(user_id: int) -> None:
     # TODO: Implement user-key mapping for bulk invalidation
     # For now, keys will expire naturally
     logger.info(f"Invalidating keys for user {user_id}")
+
+
+def invalidate_all_api_keys() -> None:
+    """
+    Invalidate ALL cached API keys (admin only).
+    
+    Used for system-wide cache clearing.
+    """
+    # Clear local cache immediately
+    from predict.core.cache.redis_client import cache
+    cache._local_cache.clear()
+    logger.info("All local API key caches cleared")
+    
+    # Note: Redis pattern deletion would require redis-cli or SCAN
+    # For now, we rely on TTL expiration

@@ -1,0 +1,12 @@
+{
+  "hex_code": "06T0C",
+  "name": "Mode06_Test_12",
+  "description": "Onboard diagnostic test 12",
+  "formula": "A",
+  "units": "raw",
+  "min_value": "0.0",
+  "max_value": "255",
+  "category": "Diagnostics",
+  "vehicle_specific": false,
+  "validation_required": true
+}

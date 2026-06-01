@@ -1,0 +1,9 @@
+{
+    "metadata": {
+        "version": "1.0",
+        "description": "Nissan Patrol Y62 2017 OBD-II PID Database (CAN)",
+        "vehicle_tested": "Nissan Patrol Y62 2017",
+        "protocol": "ISO 15765-4 (CAN 11/500)",
+        "total_pids": 85
+    }
+}

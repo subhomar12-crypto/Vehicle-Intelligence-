@@ -1,0 +1,12 @@
+{
+  "hex_code": "0122",
+  "name": "Fuel Rail Pressure",
+  "description": "Fuel rail pressure",
+  "formula": "(256*A + B)*0.079",
+  "units": "MPa",
+  "min_value": "0.0",
+  "max_value": "52",
+  "category": "Fuel",
+  "vehicle_specific": false,
+  "validation_required": false
+}

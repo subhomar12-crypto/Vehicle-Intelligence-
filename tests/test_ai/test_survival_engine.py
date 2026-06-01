@@ -188,16 +188,37 @@ class TestSurvivalEngine:
     def test_load_success(self):
         """Models load successfully."""
         self.engine.train_from_synthetic(n_samples=100)
-        
+
         with tempfile.TemporaryDirectory() as tmpdir:
             self.engine.serialize(tmpdir)
-            
+
             # Create new engine and load
             new_engine = SurvivalEngine()
             new_engine.load(tmpdir)
-            
+
             assert new_engine.is_trained is True
             assert len(new_engine.models) == 10
+
+    def test_predict_after_load(self):
+        """Predictions work after serialize/load round-trip."""
+        self.engine.train_from_synthetic(n_samples=100)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            self.engine.serialize(tmpdir)
+
+            new_engine = SurvivalEngine()
+            new_engine.load(tmpdir)
+
+            # Survival curve should work
+            curve = new_engine.predict_survival_curve("engine_oil", days_ahead=365)
+            assert curve is not None
+            assert len(curve["survival_probability"]) > 0
+            assert curve["survival_probability"][0] > 0
+
+            # Remaining life should work
+            remaining = new_engine.predict_mean_remaining_life("engine_oil")
+            assert remaining is not None
+            assert remaining > 0
 
     def test_get_survival_probability_at_time(self):
         """Get survival probability at specific time."""

@@ -1,0 +1,12 @@
+{
+  "hex_code": "0162",
+  "name": "Actual Engine Torque",
+  "description": "Actual torque",
+  "formula": "A - 125",
+  "units": "Nm",
+  "min_value": "-125.0",
+  "max_value": "130",
+  "category": "Engine",
+  "vehicle_specific": false,
+  "validation_required": false
+}

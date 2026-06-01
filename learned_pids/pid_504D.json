@@ -1,0 +1,12 @@
+{
+  "hex_code": "504D",
+  "name": "Nissan_PID_504D",
+  "description": "Nissan proprietary parameter 504D",
+  "formula": "(B*256 + A)",
+  "units": "units",
+  "min_value": "0.0",
+  "max_value": "65535",
+  "category": "Nissan-UDS",
+  "vehicle_specific": true,
+  "validation_required": false
+}

@@ -258,7 +258,6 @@ class PricingTab(QWidget):
 
         self._setup_ui()
         self._connect_signals()
-        QTimer.singleShot(800, self._load_data)
 
     # ----------------------------------------------------------------
     # UI Setup

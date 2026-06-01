@@ -69,11 +69,8 @@ class LSTMDataLoader:
         if len(data) < window_size:
             return np.array([])
 
-        sequences = []
-        for i in range(len(data) - window_size + 1):
-            sequences.append(data[i:i + window_size])
-
-        return np.array(sequences, dtype=np.float32)
+        windows = np.lib.stride_tricks.sliding_window_view(data, (window_size, data.shape[1]))
+        return windows.squeeze(axis=1).astype(np.float32, copy=False)
 
     def normalize(self, data: np.ndarray) -> tuple:
         """Per-column min-max normalization. Returns (normalized_data, min_vals, max_vals)."""

@@ -1,0 +1,12 @@
+{
+  "hex_code": "0111",
+  "name": "Throttle Position",
+  "description": "Throttle position",
+  "formula": "A*100/255",
+  "units": "%",
+  "min_value": "0.0",
+  "max_value": "100",
+  "category": "Engine",
+  "vehicle_specific": false,
+  "validation_required": false
+}

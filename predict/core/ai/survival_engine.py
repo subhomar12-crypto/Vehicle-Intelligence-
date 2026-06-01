@@ -268,24 +268,24 @@ class SurvivalEngine:
         # Generate timeline
         timeline = np.linspace(0, days_ahead, 50)
         
-        if hasattr(model, 'predict_survival_function'):
-            # lifelines KaplanMeierFitter
-            sf = model.predict_survival_function(timeline)
-            probabilities = sf.values.flatten().tolist()
-        elif hasattr(model, 'survival_function_'):
-            # lifelines fitted model
+        if hasattr(model, 'survival_function_'):
+            # lifelines KaplanMeierFitter — interpolate fitted SF to timeline
             sf = model.survival_function_
-            # Interpolate to timeline
-            probabilities = []
-            for t in timeline:
-                # Find closest time point
-                idx = np.argmin(np.abs(sf.index - t))
-                probabilities.append(float(sf.iloc[idx]))
+            timeline_orig = sf.index.values
+            probs_orig = sf.values.flatten()
+            probabilities = np.interp(timeline, timeline_orig, probs_orig,
+                                      left=1.0, right=0.0).tolist()
+        elif isinstance(model, dict) and "timeline" in model:
+            # Loaded from serialized JSON
+            timeline_orig = np.array(model["timeline"])
+            probs_orig = np.array(model["survival_prob"])
+            probabilities = np.interp(timeline, timeline_orig, probs_orig,
+                                      left=1.0, right=0.0).tolist()
         elif isinstance(model, dict) and model.get("dist") == "exponential":
-            # Synthetic exponential model
+            # Synthetic exponential model (scipy fallback)
             from scipy import stats
             scale = model["scale"]
-            probabilities = [stats.expon.sf(t, scale=scale) for t in timeline]
+            probabilities = [float(stats.expon.sf(t, scale=scale)) for t in timeline]
         else:
             return None
         
@@ -315,18 +315,17 @@ class SurvivalEngine:
         
         model = self.models[component]
         
-        if hasattr(model, 'predict_median'):
-            # lifelines model
-            median_life = model.predict_median([current_age_days])
-            if isinstance(median_life, (list, np.ndarray)):
-                median_life = median_life[0]
-            remaining = max(0, int(median_life) - current_age_days)
-            return remaining
+        if hasattr(model, 'median_survival_time_'):
+            # lifelines KaplanMeierFitter
+            median_life = float(model.median_survival_time_)
+            return max(0, int(median_life) - current_age_days)
+        elif isinstance(model, dict) and model.get("median_survival") is not None:
+            # Loaded from serialized JSON
+            return max(0, int(model["median_survival"]) - current_age_days)
         elif isinstance(model, dict) and model.get("dist") == "exponential":
             # Exponential model: memoryless property
-            scale = model["scale"]
-            return int(scale)
-        
+            return int(model["scale"])
+
         # Default: estimate from survival curve
         curve = self.predict_survival_curve(component, days_ahead=2000)
         if curve:

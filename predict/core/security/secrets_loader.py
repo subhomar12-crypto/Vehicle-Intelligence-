@@ -59,7 +59,7 @@ class Secrets(BaseSettings):
     SENTRY_ENVIRONMENT: str = Field(default="production")
 
     # LLM
-    LLM_MODEL_PATH: str = Field(default="models/gguf/qwen2.5-7b-instruct-q4_k_m.gguf")
+    LLM_MODEL_PATH: str = Field(default="models/gguf/Qwen3.5-4B-Q5_K_M.gguf")
     LLM_CONTEXT_SIZE: int = Field(default=4096)
     LLM_GPU_LAYERS: int = Field(default=0)
 

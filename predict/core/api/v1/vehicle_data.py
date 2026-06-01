@@ -189,6 +189,7 @@ class BulkUploadRequest(BaseModel):
 
 class GenericSensorReading(BaseModel):
     """Single sensor reading with arbitrary sensor keys."""
+    reading_id: Optional[str] = None  # UUID for Pi5 dedup (nullable for phone uploads)
     timestamp: float = Field(..., gt=0)
     sensors: Dict[str, float]
 
@@ -200,6 +201,16 @@ class GenericBatchUploadRequest(BaseModel):
     readings: List[GenericSensorReading] = Field(..., max_length=1000)
     source: str = "android"
     app_version: Optional[str] = None
+    # Pi5 header fields (optional — phone uploads don't send these)
+    device_type: Optional[str] = None
+    device_id: Optional[str] = None
+    firmware_version: Optional[str] = None
+    cpu_temp: Optional[float] = None
+    ram_used_mb: Optional[int] = None
+    sd_free_gb: Optional[float] = None
+    wifi_signal_dbm: Optional[int] = None
+    odometer_km: Optional[int] = None
+    buffer_remaining: Optional[int] = None
 
 class HeartbeatRequest(BaseModel):
     """Lightweight heartbeat — keeps Guardian live, no DB write."""
@@ -356,18 +367,51 @@ async def store_vehicle_data(
     return record
 
 
+_ai_analysis_last: dict[int, float] = {}
+_AI_ANALYSIS_INTERVAL = 300  # 5 minutes between analyses per vehicle
+
 async def trigger_ai_analysis(
     profile_id: int,
     user_id: int,
     session: AsyncSession,
 ) -> None:
-    """Trigger AI analysis on new data (background task)."""
+    """Trigger AI analysis on new data (rate-limited to once per 5 min per vehicle)."""
+    import time as _time
+    now = _time.time()
+    last = _ai_analysis_last.get(profile_id, 0)
+    if now - last < _AI_ANALYSIS_INTERVAL:
+        return  # Skip — too recent
+    _ai_analysis_last[profile_id] = now
     try:
         prediction_service = PredictionService()
         result = await prediction_service.get_vehicle_prediction(profile_id, session)
-        logger.info(f"AI analysis triggered for profile {profile_id}: {result.get('status', 'unknown')}")
+        logger.info(f"AI analysis for profile {profile_id}: {result.get('status', 'unknown')}")
     except Exception as e:
-        logger.error(f"AI analysis failed for profile {profile_id}: {e}")
+        logger.warning(f"AI analysis skipped for profile {profile_id}: {e}")
+
+
+_pi5_notif_last: dict[int, float] = {}
+
+async def _maybe_send_pi5_notification(
+    user_id: int, vehicle_id: int, count: int, odometer_km: int | None
+):
+    """Rate-limited FCM push for Pi5 uploads (1 per 15 min per vehicle)."""
+    now = time.time()
+    if now - _pi5_notif_last.get(vehicle_id, 0) < 900:
+        return
+    _pi5_notif_last[vehicle_id] = now
+    try:
+        from predict.core.services.fcm_service import FCMService
+        fcm = FCMService()
+        await fcm.send_to_user(
+            user_id=user_id,
+            title="Pi5 Data Synced",
+            body=f"{count} readings uploaded ({odometer_km or '?'} km)",
+            data={"type": "PI5_UPLOAD", "vehicle_id": str(vehicle_id)},
+            channel_id="pi5_status",
+        )
+    except Exception as e:
+        logger.debug("Pi5 FCM notification failed (non-fatal): %s", e)
 
 
 async def _run_vehicle_learner(profile_id: int, readings: List[Dict]) -> None:
@@ -1365,6 +1409,7 @@ async def batch_v2_upload(
 
     # --- Process readings ---
     stored_count = 0
+    duplicates = 0
     errors = []
     current_time = time.time()
 
@@ -1376,10 +1421,22 @@ async def batch_v2_upload(
 
     for i, reading in enumerate(request.readings):
         try:
+            # Dedup by reading_id (Pi5 readings have UUID, phone readings don't)
+            if reading.reading_id:
+                existing = await session.execute(
+                    select(VehicleData.id).where(
+                        VehicleData.reading_id == reading.reading_id
+                    ).limit(1)
+                )
+                if existing.scalar():
+                    duplicates += 1
+                    continue
+
             # Build VehicleData record from known sensors
             record_kwargs = {
                 "profile_id": profile_id,
                 "timestamp": reading.timestamp,
+                "reading_id": reading.reading_id,  # UUID for Pi5 dedup, None for phone
                 "source": request.source or "android",
                 "raw_json": json.dumps({
                     "batch_id": request.batch_id,
@@ -1454,6 +1511,40 @@ async def batch_v2_upload(
         }
         online_profiles[profile_id] = time.time()
         await broadcast_vehicle_data(profile_id, live_data_cache[profile_id])
+
+    # --- Pi5: odometer sync (highest value wins) ---
+    if request.odometer_km:
+        if profile and (profile.mileage_km is None or request.odometer_km > (profile.mileage_km or 0)):
+            profile.mileage_km = request.odometer_km
+            await session.commit()
+
+    # --- Pi5: device status upsert ---
+    if request.device_type == "pi5" and request.device_id:
+        try:
+            from predict.core.db.models.pi5_device import Pi5Device
+            result = await session.execute(
+                select(Pi5Device).where(Pi5Device.device_id == request.device_id)
+            )
+            device = result.scalar_one_or_none()
+            if device:
+                device.last_seen = time.time()
+                device.cpu_temp = request.cpu_temp
+                device.ram_used_mb = request.ram_used_mb
+                device.sd_free_gb = request.sd_free_gb
+                device.wifi_signal_dbm = request.wifi_signal_dbm
+                device.buffer_remaining = request.buffer_remaining
+                device.odometer_km = request.odometer_km
+                device.firmware_version = request.firmware_version
+                await session.commit()
+        except Exception as e:
+            logger.debug("Pi5 device upsert failed (non-fatal): %s", e)
+
+    # --- Pi5: FCM push notification (rate-limited) ---
+    user_id_for_fcm = current_user.get("user_id") or current_user.get("id")
+    if request.device_type == "pi5" and user_id_for_fcm:
+        await _maybe_send_pi5_notification(
+            user_id_for_fcm, request.profile_id, stored_count, request.odometer_km
+        )
 
     # --- Update DailyVehicleStats (loop ALL readings for correct aggregates) ---
     try:
@@ -1561,6 +1652,7 @@ async def batch_v2_upload(
         "success": True,
         "batch_id": request.batch_id,
         "stored": stored_count,
+        "duplicates": duplicates,
         "errors": errors if errors else None,
     }
 

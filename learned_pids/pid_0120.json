@@ -1,0 +1,12 @@
+{
+  "hex_code": "0120",
+  "name": "PIDs Supported 21-40",
+  "description": "Bitmask",
+  "formula": "A B C D",
+  "units": "",
+  "min_value": "",
+  "max_value": "System",
+  "category": "No",
+  "vehicle_specific": false,
+  "validation_required": false
+}

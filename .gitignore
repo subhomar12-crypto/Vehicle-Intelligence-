@@ -24,6 +24,11 @@ secrets.json
 .env.*
 !.env.example
 
+# Config files with real credentials (use .example versions instead)
+config/email_config.json
+config/remote_server.json
+config/settings.json
+
 # -------------------------------------------
 # APPLICATION DATA
 # -------------------------------------------
@@ -106,6 +111,9 @@ ehthumbs.db
 Thumbs.db
 desktop.ini
 
+# Windows reserved device name (cannot be indexed by git)
+nul
+
 # -------------------------------------------
 # BUILD AND DISTRIBUTION
 # -------------------------------------------
@@ -142,6 +150,10 @@ models/registry.json
 
 # USB captures
 *.pcapng
+
+# Large map tile files (>100MB, exceeds GitHub limit)
+*.pmtiles
+tiles/
 
 # Temp Office files
 ~$*

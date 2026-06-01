@@ -1,0 +1,12 @@
+{
+  "hex_code": "25A8",
+  "name": "RMS Current",
+  "description": "RMS Current",
+  "formula": "(B * 256 + A)/10",
+  "units": "A",
+  "min_value": "0.0",
+  "max_value": "1000",
+  "category": "Electrical",
+  "vehicle_specific": true,
+  "validation_required": false
+}

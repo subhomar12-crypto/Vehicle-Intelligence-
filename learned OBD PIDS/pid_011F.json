@@ -1,0 +1,12 @@
+{
+  "hex_code": "011F",
+  "name": "Engine Run Time",
+  "description": "Engine runtime",
+  "formula": "256*A + B",
+  "units": "s",
+  "min_value": "0.0",
+  "max_value": "65535",
+  "category": "Engine",
+  "vehicle_specific": false,
+  "validation_required": false
+}

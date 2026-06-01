@@ -1,0 +1,1810 @@
+================================================================================
+  PREDICT MOBILE APP - ANDROID INTEGRATION GUIDE
+  Complete API Implementation Guide for Android Developers
+================================================================================
+
+📋 TABLE OF CONTENTS
+────────────────────────────────────────────────────────────────────────────
+1. Overview
+2. Server Configuration
+3. Authentication
+4. Core Data Streaming (Existing)
+5. NEW FEATURES - API Endpoints
+6. Data Models (Kotlin)
+7. Implementation Examples
+8. Error Handling
+9. Offline Mode
+10. Testing Checklist
+11. Conflict Prevention Guidelines
+
+================================================================================
+1. OVERVIEW
+================================================================================
+
+Base URL: http://YOUR_DESKTOP_IP:8000
+Report Server: http://YOUR_DESKTOP_IP:8001
+
+New Features Added:
+✅ Vehicle Profile Management (Create profiles from mobile)
+✅ Fuel Tracking
+✅ Trip Analytics
+✅ Driving Score
+✅ Maintenance Reminders
+✅ Custom Alerts
+✅ Geofencing
+✅ Two-Way Communication
+✅ Fleet Comparison
+✅ Data Export
+✅ AI Alerts
+
+================================================================================
+2. SERVER CONFIGURATION
+================================================================================
+
+Add to your AndroidManifest.xml:
+────────────────────────────────────────────────────────────────────────────
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+Network Security Config (res/xml/network_security_config.xml):
+────────────────────────────────────────────────────────────────────────────
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">YOUR_DESKTOP_IP</domain>
+        <domain includeSubdomains="true">localhost</domain>
+    </domain-config>
+</network-security-config>
+
+================================================================================
+3. AUTHENTICATION
+================================================================================
+
+All requests MUST include the API key in headers:
+
+Headers:
+────────────────────────────────────────────────────────────────────────────
+X-API-Key: YOUR_PROFILE_API_KEY
+Content-Type: application/json
+
+Example (Retrofit):
+────────────────────────────────────────────────────────────────────────────
+@Headers("X-API-Key: \${apiKey}")
+@POST("/api/data")
+suspend fun sendData(@Body data: OBDData): Response<DataResponse>
+
+================================================================================
+4. CORE DATA STREAMING (EXISTING - DO NOT CHANGE)
+================================================================================
+
+⚠️ IMPORTANT: Keep existing OBD data streaming endpoint unchanged!
+
+POST /api/data
+────────────────────────────────────────────────────────────────────────────
+Body (JSON):
+{
+  "api_key": "profile_api_key_here",
+  "obd": {
+    "engine": {
+      "rpm": 2500,
+      "coolant_temp": 85,
+      "oil_temp": 90
+    },
+    "vehicle": {
+      "speed_kmh": 60
+    },
+    "fuel": {
+      "fuel_level_pct": 75
+    }
+  },
+  "gps": {
+    "latitude": 30.0444,
+    "longitude": 31.2357,
+    "altitude": 23.5,
+    "speed_mps": 16.67
+  },
+  "metadata": {
+    "timestamp": "2025-12-15T10:30:45",
+    "profile_name": "My Nissan",
+    "vehicle_id": "profile_123"
+  }
+}
+
+Response:
+{
+  "status": "success",
+  "message": "Data received"
+}
+
+================================================================================
+5. NEW FEATURES - API ENDPOINTS
+================================================================================
+
+5.1 VEHICLE PROFILE MANAGEMENT
+────────────────────────────────────────────────────────────────────────────
+
+▶ Create New Profile
+POST /api/profile/create
+
+Request Body:
+{
+  "name": "My Tesla Model 3",
+  "make": "Tesla",
+  "model": "Model 3",
+  "year": 2023,
+  "vin": "5YJ3E1EA1KF123456",
+  "license_plate": "ABC 1234",
+  "category": "Personal",
+  "engine_type": "Electric",
+  "transmission": "Automatic",
+  "fuel_type": "Electric",
+  "drivetrain": "AWD",
+  "color": "Pearl White",
+  "purchase_date": "2023-06-15",
+  "last_service_date": "2025-11-20",
+  "dealer_info": "Tesla Service Center - Downtown",
+  "warranty_info": "8 years / 160,000 km battery warranty",
+  "insurance_details": "Policy #12345 - Acme Insurance",
+  "is_favorite": true
+}
+
+Response:
+{
+  "success": true,
+  "profile_id": 5,
+  "profile": {
+    "profile_id": 5,
+    "name": "My Tesla Model 3",
+    "make": "Tesla",
+    "model": "Model 3",
+    "year": 2023,
+    "ai_health_score": 95.0,
+    ... (all other fields)
+  }
+}
+
+Note: Only "name" is required. All other fields are optional.
+
+▶ Get All Profiles
+GET /api/profile/list
+
+Response:
+{
+  "success": true,
+  "profiles": [
+    {
+      "profile_id": 1,
+      "name": "My Nissan",
+      "make": "Nissan",
+      "model": "Altima",
+      "year": 2020,
+      "is_connected": true,
+      "is_favorite": false,
+      ...
+    },
+    {
+      "profile_id": 2,
+      "name": "Work Truck",
+      ...
+    }
+  ],
+  "count": 2
+}
+
+▶ Get Profile Details
+GET /api/profile/{profile_id}
+
+Response:
+{
+  "success": true,
+  "profile": {
+    "profile_id": 1,
+    "name": "My Nissan",
+    "make": "Nissan",
+    "model": "Altima",
+    "year": 2020,
+    "vin": "1N4AL3AP8LC123456",
+    "license_plate": "XYZ 789",
+    ... (all profile fields)
+  }
+}
+
+Error Response (Profile Not Found):
+{
+  "detail": "Profile not found"
+}
+
+────────────────────────────────────────────────────────────────────────────
+
+5.2 FUEL TRACKING
+────────────────────────────────────────────────────────────────────────────
+
+▶ Log Fillup
+POST /api/fuel/fillup
+
+Request Body:
+{
+  "profile_id": 1,
+  "profile_name": "My Nissan",
+  "liters": 45.5,
+  "cost": 120.50,
+  "odometer_km": 45000,
+  "full_tank": true,
+  "fuel_grade": "Regular",
+  "station_name": "Shell Station"
+}
+
+Response:
+{
+  "success": true,
+  "fillup_data": {
+    "fillup_id": "fillup_MyNissan_20251215_103045",
+    "liters": 45.5,
+    "gallons": 12.02,
+    "cost": 120.50,
+    "cost_per_liter": 2.648,
+    "calculated_metrics": {
+      "distance_since_last_km": 500,
+      "fuel_efficiency_mpg": 35.2,
+      "fuel_efficiency_l_per_100km": 6.7,
+      "cost_per_km": 0.24
+    }
+  }
+}
+
+▶ Get Fillup History
+GET /api/fuel/history/{profile_id}?days=90
+
+Response:
+{
+  "fillups": [
+    {
+      "fillup_id": "...",
+      "timestamp": "2025-12-15T10:30:45",
+      "liters": 45.5,
+      "cost": 120.50,
+      "odometer_km": 45000,
+      "calculated_metrics": { ... }
+    }
+  ]
+}
+
+▶ Get Fuel Statistics
+GET /api/fuel/statistics/{profile_id}?days=90
+
+Response:
+{
+  "period_days": 90,
+  "fillup_count": 12,
+  "total_fuel_liters": 540,
+  "total_cost": 1440.00,
+  "avg_fuel_efficiency_mpg": 34.5,
+  "best_mpg": 38.2,
+  "worst_mpg": 30.1
+}
+
+────────────────────────────────────────────────────────────────────────────
+
+5.3 TRIP ANALYTICS
+────────────────────────────────────────────────────────────────────────────
+
+▶ Get Trip History
+GET /api/trips/history/{profile_id}?profile_name=My%20Nissan&limit=10
+
+Response:
+{
+  "trips": [
+    {
+      "trip_id": "trip_MyNissan_20251215_080000",
+      "start_time": "2025-12-15T08:00:00",
+      "end_time": "2025-12-15T08:45:00",
+      "distance_km": 25.5,
+      "duration_min": 45,
+      "avg_speed_kmh": 34,
+      "max_speed_kmh": 80,
+      "fuel_efficiency": 6.5
+    }
+  ]
+}
+
+▶ Get Trip Statistics
+GET /api/trips/statistics/{profile_id}?profile_name=My%20Nissan&days=30
+
+Response:
+{
+  "total_trips": 45,
+  "total_distance_km": 1250,
+  "total_duration_hours": 38.5,
+  "avg_trip_distance_km": 27.8,
+  "avg_speed_kmh": 32.5
+}
+
+────────────────────────────────────────────────────────────────────────────
+
+5.4 DRIVING SCORE
+────────────────────────────────────────────────────────────────────────────
+
+▶ Get Current Driving Score
+GET /api/driving/score/{profile_id}
+
+Response:
+{
+  "profile_id": 1,
+  "profile_name": "My Nissan",
+  "driving_score": 87.5,
+  "rating": "Good",
+  "emoji": "✅",
+  "events": {
+    "harsh_brakes": 2,
+    "rapid_accels": 1,
+    "speeding_events": 0
+  },
+  "recent_events": [
+    {
+      "type": "harsh_brake",
+      "severity": "moderate",
+      "deceleration_ms2": -3.5,
+      "timestamp": "2025-12-15T10:25:30"
+    }
+  ]
+}
+
+────────────────────────────────────────────────────────────────────────────
+
+5.4 MAINTENANCE REMINDERS
+────────────────────────────────────────────────────────────────────────────
+
+▶ Get Active Reminders
+GET /api/maintenance/reminders/{profile_id}?current_odometer_km=45000
+
+Response:
+{
+  "reminders": [
+    {
+      "service_type": "oil_change",
+      "name": "Oil Change",
+      "severity": "warning",
+      "urgency": "urgent",
+      "is_overdue": false,
+      "km_remaining": 500,
+      "days_remaining": 7,
+      "message": "Oil Change due in 500 km or 7 days",
+      "recommended_actions": [
+        "Schedule oil change service",
+        "Check engine oil level"
+      ]
+    }
+  ]
+}
+
+▶ Get Reminder Summary
+GET /api/maintenance/summary/{profile_id}?current_odometer_km=45000
+
+Response:
+{
+  "total_reminders": 3,
+  "overdue_count": 0,
+  "urgent_count": 1,
+  "warning_count": 2,
+  "has_critical": true,
+  "urgent_reminders": [ ... ]
+}
+
+────────────────────────────────────────────────────────────────────────────
+
+5.6 CUSTOM ALERTS
+────────────────────────────────────────────────────────────────────────────
+
+▶ Create Alert Rule
+POST /api/alerts/create
+
+Request Body:
+{
+  "profile_id": 1,
+  "name": "High Coolant Temperature",
+  "parameter": "coolant_temp",
+  "condition": "greater_than",
+  "threshold": 105,
+  "threshold2": null,
+  "severity": "critical",
+  "enabled": true,
+  "message_template": "Coolant temp is {value}°C (threshold: {threshold}°C)"
+}
+
+Response:
+{
+  "success": true,
+  "rule_id": "rule_1_20251215_103045",
+  "rule": { ... }
+}
+
+▶ Get Alert Rules
+GET /api/alerts/rules/{profile_id}
+
+Response:
+{
+  "rules": [
+    {
+      "rule_id": "rule_1_20251215_103045",
+      "name": "High Coolant Temperature",
+      "parameter": "coolant_temp",
+      "condition": "greater_than",
+      "threshold": 105,
+      "severity": "critical",
+      "enabled": true
+    }
+  ]
+}
+
+▶ Toggle Alert Rule
+PUT /api/alerts/rule/{profile_id}/{rule_id}/toggle?enabled=true
+
+Response:
+{
+  "success": true
+}
+
+▶ Delete Alert Rule
+DELETE /api/alerts/rule/{profile_id}/{rule_id}
+
+Response:
+{
+  "success": true
+}
+
+────────────────────────────────────────────────────────────────────────────
+
+5.7 GEOFENCING
+────────────────────────────────────────────────────────────────────────────
+
+▶ Check Geofence (Send GPS Location)
+POST /api/geofence/check
+
+Request Body:
+{
+  "profile_id": 1,
+  "profile_name": "My Nissan",
+  "latitude": 27.0,
+  "longitude": 30.0
+}
+
+Response:
+{
+  "events": [
+    {
+      "event_type": "zone_entry",
+      "zone_name": "Sahara Desert - Egypt",
+      "zone_type": "desert",
+      "severity": "high",
+      "timestamp": "2025-12-15T10:30:45",
+      "message": "Entered desert zone"
+    }
+  ]
+}
+
+⚠️ IMPORTANT: Send GPS location with every OBD data update!
+Include in your POST /api/data payload under "gps" field.
+
+▶ Create Custom Geofence
+POST /api/geofence/create
+
+Request Body:
+{
+  "geofence_id": "my_home",
+  "name": "Home Zone",
+  "center_lat": 30.0444,
+  "center_lon": 31.2357,
+  "radius_km": 0.5,
+  "zone_type": "custom",
+  "severity": "info"
+}
+
+Response:
+{
+  "success": true
+}
+
+▶ Get Active Zones
+GET /api/geofence/active/{profile_id}
+
+Response:
+{
+  "zones": [
+    {
+      "zone_name": "Sahara Desert - Egypt",
+      "entry_time": "2025-12-15T09:00:00",
+      "time_spent_minutes": 90,
+      "distance_from_center_km": 25.5
+    }
+  ]
+}
+
+────────────────────────────────────────────────────────────────────────────
+
+5.8 TWO-WAY COMMUNICATION (Desktop → Mobile Commands)
+────────────────────────────────────────────────────────────────────────────
+
+⚠️ IMPLEMENT POLLING: Check for commands every 5 seconds!
+
+▶ Poll for Pending Commands
+GET /api/commands/pending/{profile_id}
+
+Response:
+{
+  "commands": [
+    {
+      "command_id": "cmd_20251215_103045_abc123",
+      "command_type": "diagnostic_scan",
+      "parameters": {
+        "scan_type": "full"
+      },
+      "priority": "high",
+      "timeout_seconds": 60,
+      "created_at": "2025-12-15T10:30:45"
+    }
+  ]
+}
+
+Command Types You Must Handle:
+- "diagnostic_scan" → Trigger OBD diagnostic scan
+- "clear_codes" → Clear fault codes
+- "status_update" → Send current vehicle status
+- "push_notification" → Display notification to user
+- "update_settings" → Update app settings
+
+▶ Send Command Response
+POST /api/commands/response?command_id=cmd_20251215_103045_abc123
+
+Request Body:
+{
+  "status": "completed",
+  "result": {
+    "scan_results": [ ... ],
+    "codes_found": 0
+  }
+}
+
+Response:
+{
+  "success": true
+}
+
+▶ Send Request to Desktop (Mobile → Desktop)
+POST /api/request/desktop?profile_id=1&request_type=generate_pdf
+
+Request Body (parameters):
+{
+  "report_type": "week",
+  "delivery_method": "email",
+  "email": "user@example.com"
+}
+
+Response:
+{
+  "success": true,
+  "request_id": "req_20251215_103045_xyz789",
+  "message": "Request received by desktop"
+}
+
+────────────────────────────────────────────────────────────────────────────
+
+5.9 FLEET COMPARISON (Multi-Vehicle)
+────────────────────────────────────────────────────────────────────────────
+
+▶ Get Fleet Overview
+GET /api/fleet/overview?days=30
+
+Response:
+{
+  "total_vehicles": 3,
+  "health_overview": {
+    "average_health": 85.5,
+    "critical_vehicles": 0,
+    "warning_vehicles": 1
+  },
+  "fuel_overview": {
+    "fleet_avg_mpg": 32.5,
+    "total_fuel_cost": 4500.00
+  }
+}
+
+▶ Compare Specific Vehicles
+POST /api/fleet/compare?days=30
+
+Request Body:
+[1, 2, 3]  // profile_ids array
+
+Response:
+{
+  "vehicles": [
+    {
+      "profile_id": 1,
+      "name": "My Nissan",
+      "health_score": 87.5,
+      "fuel_efficiency_mpg": 34.2,
+      "driving_score": 85.0
+    }
+  ],
+  "insights": [
+    "My Nissan has the best health score (87.5%)",
+    "Toyota is most fuel efficient (38.5 MPG)"
+  ]
+}
+
+────────────────────────────────────────────────────────────────────────────
+
+5.10 DATA EXPORT
+────────────────────────────────────────────────────────────────────────────
+
+▶ Export Data
+POST /api/export/data
+
+Request Body:
+{
+  "profile_id": 1,
+  "profile_name": "My Nissan",
+  "export_type": "all",  // "obd", "trips", "fuel", "all"
+  "days": 30,
+  "format": "csv"  // "csv" or "excel"
+}
+
+Response:
+{
+  "success": true,
+  "file_path": "D:/Predict/exports/obd_data_MyNissan_1_20251215_103045.csv",
+  "format": "csv",
+  "records": 15000
+}
+
+⚠️ After export, download the file from desktop or receive via email.
+
+────────────────────────────────────────────────────────────────────────────
+
+5.11 AI ALERTS
+────────────────────────────────────────────────────────────────────────────
+
+▶ Get AI Alert History
+GET /api/ai/alerts/{profile_id}?limit=50
+
+Response:
+{
+  "alerts": [
+    {
+      "alert_id": "alert_20251215_103045_1",
+      "alert_type": "health_score",
+      "severity": "warning",
+      "title": "⚠️ WARNING: Low Vehicle Health",
+      "message": "My Nissan health score is 45%. Service recommended soon.",
+      "health_score": 45.0,
+      "timestamp": "2025-12-15T10:30:45"
+    }
+  ]
+}
+
+▶ Get Active AI Alerts
+GET /api/ai/alerts/active/{profile_id}
+
+Response:
+{
+  "alerts": [
+    {
+      "alert_id": "...",
+      "severity": "critical",
+      "title": "🔴 CRITICAL: Engine Health Alert",
+      "message": "...",
+      "timestamp": "2025-12-15T10:30:45"
+    }
+  ]
+}
+
+================================================================================
+6. DATA MODELS (KOTLIN)
+================================================================================
+
+Create these data classes in your Android app:
+────────────────────────────────────────────────────────────────────────────
+
+// VehicleProfile.kt
+data class VehicleProfile(
+    val profile_id: Int? = null,
+    val name: String,
+    val make: String? = null,
+    val model: String? = null,
+    val year: Int? = null,
+    val vin: String? = null,
+    val license_plate: String? = null,
+    val category: String? = "Personal",
+    val engine_type: String? = null,
+    val transmission: String? = null,
+    val fuel_type: String? = null,
+    val drivetrain: String? = null,
+    val color: String? = null,
+    val purchase_date: String? = null,
+    val last_service_date: String? = null,
+    val dealer_info: String? = null,
+    val warranty_info: String? = null,
+    val insurance_details: String? = null,
+    val is_connected: Boolean? = false,
+    val is_favorite: Boolean? = false,
+    val ai_health_score: Double? = null
+)
+
+// CreateProfileRequest.kt
+data class CreateProfileRequest(
+    val name: String,
+    val make: String? = "",
+    val model: String? = "",
+    val year: Int? = null,
+    val vin: String? = "",
+    val license_plate: String? = "",
+    val category: String? = "Personal",
+    val engine_type: String? = "",
+    val transmission: String? = "",
+    val fuel_type: String? = "",
+    val drivetrain: String? = "",
+    val color: String? = "",
+    val purchase_date: String? = "",
+    val last_service_date: String? = "",
+    val dealer_info: String? = "",
+    val warranty_info: String? = "",
+    val insurance_details: String? = "",
+    val is_favorite: Boolean? = false
+)
+
+// ProfileResponse.kt
+data class ProfileResponse(
+    val success: Boolean,
+    val profile_id: Int?,
+    val profile: VehicleProfile?
+)
+
+// ProfileListResponse.kt
+data class ProfileListResponse(
+    val success: Boolean,
+    val profiles: List<VehicleProfile>,
+    val count: Int
+)
+
+// Fillup.kt
+data class Fillup(
+    val profile_id: Int,
+    val profile_name: String,
+    val liters: Double,
+    val cost: Double,
+    val odometer_km: Double,
+    val full_tank: Boolean = true,
+    val fuel_grade: String = "Regular",
+    val station_name: String? = null
+)
+
+// FillupResponse.kt
+data class FillupResponse(
+    val success: Boolean,
+    val fillup_data: FillupData?
+)
+
+data class FillupData(
+    val fillup_id: String,
+    val liters: Double,
+    val gallons: Double,
+    val cost: Double,
+    val cost_per_liter: Double,
+    val calculated_metrics: CalculatedMetrics?
+)
+
+data class CalculatedMetrics(
+    val distance_since_last_km: Double,
+    val fuel_efficiency_mpg: Double,
+    val fuel_efficiency_l_per_100km: Double,
+    val cost_per_km: Double
+)
+
+// Trip.kt
+data class Trip(
+    val trip_id: String,
+    val start_time: String,
+    val end_time: String,
+    val distance_km: Double,
+    val duration_min: Double,
+    val avg_speed_kmh: Double,
+    val max_speed_kmh: Double,
+    val fuel_efficiency: Double?
+)
+
+// DrivingScore.kt
+data class DrivingScore(
+    val profile_id: Int,
+    val driving_score: Double,
+    val rating: String,
+    val emoji: String,
+    val events: DrivingEvents,
+    val recent_events: List<DrivingEvent>
+)
+
+data class DrivingEvents(
+    val harsh_brakes: Int,
+    val rapid_accels: Int,
+    val speeding_events: Int
+)
+
+data class DrivingEvent(
+    val type: String,
+    val severity: String,
+    val deceleration_ms2: Double?,
+    val timestamp: String
+)
+
+// MaintenanceReminder.kt
+data class MaintenanceReminder(
+    val service_type: String,
+    val name: String,
+    val severity: String,
+    val urgency: String,
+    val is_overdue: Boolean,
+    val km_remaining: Double?,
+    val days_remaining: Int?,
+    val message: String,
+    val recommended_actions: List<String>
+)
+
+// CustomAlert.kt
+data class CustomAlertRule(
+    val profile_id: Int,
+    val name: String,
+    val parameter: String,
+    val condition: String,
+    val threshold: Double,
+    val threshold2: Double? = null,
+    val severity: String,
+    val enabled: Boolean = true,
+    val message_template: String? = null
+)
+
+// Command.kt
+data class Command(
+    val command_id: String,
+    val command_type: String,
+    val parameters: Map<String, Any>,
+    val priority: String,
+    val timeout_seconds: Int,
+    val created_at: String
+)
+
+// GeofenceCheck.kt
+data class GeofenceCheck(
+    val profile_id: Int,
+    val profile_name: String,
+    val latitude: Double,
+    val longitude: Double
+)
+
+data class GeofenceEvent(
+    val event_type: String,
+    val zone_name: String,
+    val zone_type: String,
+    val severity: String,
+    val timestamp: String,
+    val message: String
+)
+
+================================================================================
+7. IMPLEMENTATION EXAMPLES (KOTLIN)
+================================================================================
+
+7.1 RETROFIT SERVICE INTERFACE
+────────────────────────────────────────────────────────────────────────────
+
+interface PredictApiService {
+
+    // Existing - DO NOT CHANGE
+    @POST("/api/data")
+    suspend fun sendOBDData(
+        @Header("X-API-Key") apiKey: String,
+        @Body data: OBDDataPayload
+    ): Response<DataResponse>
+
+    // ==================== VEHICLE PROFILE MANAGEMENT ====================
+
+    @POST("/api/profile/create")
+    suspend fun createProfile(
+        @Header("X-API-Key") apiKey: String,
+        @Body profile: CreateProfileRequest
+    ): Response<ProfileResponse>
+
+    @GET("/api/profile/list")
+    suspend fun getAllProfiles(
+        @Header("X-API-Key") apiKey: String
+    ): Response<ProfileListResponse>
+
+    @GET("/api/profile/{profileId}")
+    suspend fun getProfile(
+        @Header("X-API-Key") apiKey: String,
+        @Path("profileId") profileId: Int
+    ): Response<ProfileResponse>
+
+    // ==================== FUEL TRACKING ====================
+    @POST("/api/fuel/fillup")
+    suspend fun logFillup(
+        @Header("X-API-Key") apiKey: String,
+        @Body fillup: Fillup
+    ): Response<FillupResponse>
+
+    @GET("/api/fuel/history/{profileId}")
+    suspend fun getFillupHistory(
+        @Header("X-API-Key") apiKey: String,
+        @Path("profileId") profileId: Int,
+        @Query("days") days: Int = 90
+    ): Response<FillupHistoryResponse>
+
+    @GET("/api/fuel/statistics/{profileId}")
+    suspend fun getFuelStatistics(
+        @Header("X-API-Key") apiKey: String,
+        @Path("profileId") profileId: Int,
+        @Query("days") days: Int = 90
+    ): Response<FuelStatisticsResponse>
+
+    // Trip Analytics
+    @GET("/api/trips/history/{profileId}")
+    suspend fun getTripHistory(
+        @Header("X-API-Key") apiKey: String,
+        @Path("profileId") profileId: Int,
+        @Query("profile_name") profileName: String,
+        @Query("limit") limit: Int = 10
+    ): Response<TripHistoryResponse>
+
+    @GET("/api/trips/statistics/{profileId}")
+    suspend fun getTripStatistics(
+        @Header("X-API-Key") apiKey: String,
+        @Path("profileId") profileId: Int,
+        @Query("profile_name") profileName: String,
+        @Query("days") days: Int = 30
+    ): Response<TripStatisticsResponse>
+
+    // Driving Score
+    @GET("/api/driving/score/{profileId}")
+    suspend fun getDrivingScore(
+        @Header("X-API-Key") apiKey: String,
+        @Path("profileId") profileId: Int
+    ): Response<DrivingScore>
+
+    // Maintenance Reminders
+    @GET("/api/maintenance/reminders/{profileId}")
+    suspend fun getMaintenanceReminders(
+        @Header("X-API-Key") apiKey: String,
+        @Path("profileId") profileId: Int,
+        @Query("current_odometer_km") odometerKm: Double
+    ): Response<MaintenanceRemindersResponse>
+
+    // Custom Alerts
+    @POST("/api/alerts/create")
+    suspend fun createAlertRule(
+        @Header("X-API-Key") apiKey: String,
+        @Body rule: CustomAlertRule
+    ): Response<AlertRuleResponse>
+
+    @GET("/api/alerts/rules/{profileId}")
+    suspend fun getAlertRules(
+        @Header("X-API-Key") apiKey: String,
+        @Path("profileId") profileId: Int
+    ): Response<AlertRulesResponse>
+
+    // Geofencing
+    @POST("/api/geofence/check")
+    suspend fun checkGeofence(
+        @Header("X-API-Key") apiKey: String,
+        @Body location: GeofenceCheck
+    ): Response<GeofenceEventsResponse>
+
+    // Two-Way Communication
+    @GET("/api/commands/pending/{profileId}")
+    suspend fun getPendingCommands(
+        @Header("X-API-Key") apiKey: String,
+        @Path("profileId") profileId: Int
+    ): Response<CommandsResponse>
+
+    @POST("/api/commands/response")
+    suspend fun sendCommandResponse(
+        @Header("X-API-Key") apiKey: String,
+        @Query("command_id") commandId: String,
+        @Body response: Map<String, Any>
+    ): Response<ApiResponse>
+}
+
+────────────────────────────────────────────────────────────────────────────
+
+7.2 REPOSITORY IMPLEMENTATION
+────────────────────────────────────────────────────────────────────────────
+
+class PredictRepository(
+    private val apiService: PredictApiService,
+    private val apiKey: String
+) {
+
+    // ==================== VEHICLE PROFILE MANAGEMENT ====================
+
+    suspend fun createProfile(profile: CreateProfileRequest): Result<ProfileResponse> {
+        return try {
+            val response = apiService.createProfile(apiKey, profile)
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception("Failed to create profile: ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getAllProfiles(): Result<ProfileListResponse> {
+        return try {
+            val response = apiService.getAllProfiles(apiKey)
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception("Failed to get profiles"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getProfile(profileId: Int): Result<ProfileResponse> {
+        return try {
+            val response = apiService.getProfile(apiKey, profileId)
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception("Profile not found"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // ==================== FUEL TRACKING ====================
+    suspend fun logFillup(fillup: Fillup): Result<FillupResponse> {
+        return try {
+            val response = apiService.logFillup(apiKey, fillup)
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception("Failed to log fillup"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // Driving Score
+    suspend fun getDrivingScore(profileId: Int): Result<DrivingScore> {
+        return try {
+            val response = apiService.getDrivingScore(apiKey, profileId)
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception("Failed to get driving score"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // Poll for commands (call this every 5 seconds)
+    suspend fun pollCommands(profileId: Int): Result<List<Command>> {
+        return try {
+            val response = apiService.getPendingCommands(apiKey, profileId)
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!.commands)
+            } else {
+                Result.success(emptyList())
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+}
+
+────────────────────────────────────────────────────────────────────────────
+
+7.3 BACKGROUND COMMAND POLLING (WORKER)
+────────────────────────────────────────────────────────────────────────────
+
+class CommandPollingWorker(
+    context: Context,
+    params: WorkerParameters
+) : CoroutineWorker(context, params) {
+
+    override suspend fun doWork(): Result {
+        val repository = PredictRepository(/* ... */)
+        val profileId = inputData.getInt("profile_id", 0)
+
+        return try {
+            val commandsResult = repository.pollCommands(profileId)
+
+            commandsResult.getOrNull()?.forEach { command ->
+                handleCommand(command)
+            }
+
+            Result.success()
+        } catch (e: Exception) {
+            Result.retry()
+        }
+    }
+
+    private suspend fun handleCommand(command: Command) {
+        when (command.command_type) {
+            "diagnostic_scan" -> {
+                // Trigger OBD diagnostic scan
+                performDiagnosticScan(command)
+            }
+            "clear_codes" -> {
+                // Clear fault codes
+                clearFaultCodes(command)
+            }
+            "push_notification" -> {
+                // Show notification
+                showNotification(command.parameters)
+            }
+            "status_update" -> {
+                // Send current status
+                sendStatusUpdate()
+            }
+        }
+    }
+}
+
+// Schedule periodic command polling
+val commandPollingRequest = PeriodicWorkRequestBuilder<CommandPollingWorker>(
+    5, TimeUnit.SECONDS  // Poll every 5 seconds
+)
+    .setInputData(workDataOf("profile_id" to profileId))
+    .build()
+
+WorkManager.getInstance(context)
+    .enqueueUniquePeriodicWork(
+        "command_polling",
+        ExistingPeriodicWorkPolicy.KEEP,
+        commandPollingRequest
+    )
+
+────────────────────────────────────────────────────────────────────────────
+
+7.4 GPS LOCATION TRACKING
+────────────────────────────────────────────────────────────────────────────
+
+class LocationTracker(private val context: Context) {
+
+    private val fusedLocationClient: FusedLocationProviderClient =
+        LocationServices.getFusedLocationProviderClient(context)
+
+    fun startLocationUpdates(onLocationUpdate: (Double, Double) -> Unit) {
+        val locationRequest = LocationRequest.create().apply {
+            interval = 10000  // 10 seconds
+            fastestInterval = 5000
+            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        }
+
+        val locationCallback = object : LocationCallback() {
+            override fun onLocationResult(result: LocationResult) {
+                result.lastLocation?.let { location ->
+                    onLocationUpdate(location.latitude, location.longitude)
+                }
+            }
+        }
+
+        if (ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            fusedLocationClient.requestLocationUpdates(
+                locationRequest,
+                locationCallback,
+                Looper.getMainLooper()
+            )
+        }
+    }
+}
+
+// Usage: Include GPS in every OBD data packet
+val obdData = OBDDataPayload(
+    api_key = apiKey,
+    obd = ObdData(...),
+    gps = GpsData(
+        latitude = latitude,
+        longitude = longitude,
+        altitude = altitude,
+        speed_mps = speed
+    ),
+    metadata = Metadata(...)
+)
+
+────────────────────────────────────────────────────────────────────────────
+
+7.5 PRACTICAL USAGE: PROFILE MANAGEMENT
+────────────────────────────────────────────────────────────────────────────
+
+▶ Example 1: Create New Vehicle Profile from Mobile App
+
+// ViewModel
+class AddVehicleViewModel(private val repository: PredictRepository) : ViewModel() {
+
+    fun createNewProfile(
+        name: String,
+        make: String,
+        model: String,
+        year: Int,
+        vin: String
+    ) {
+        viewModelScope.launch {
+            val profileRequest = CreateProfileRequest(
+                name = name,
+                make = make,
+                model = model,
+                year = year,
+                vin = vin,
+                category = "Personal",
+                is_favorite = false
+            )
+
+            val result = repository.createProfile(profileRequest)
+            result.fold(
+                onSuccess = { response ->
+                    if (response.success) {
+                        // Profile created successfully
+                        val newProfileId = response.profile_id
+                        val aiHealthScore = response.profile?.ai_health_score
+
+                        Log.d("Profile", "Created profile ID: $newProfileId")
+                        Log.d("Profile", "AI Health Score: $aiHealthScore")
+
+                        // Navigate to profile details or show success message
+                        _profileCreated.value = response.profile
+                    }
+                },
+                onFailure = { error ->
+                    Log.e("Profile", "Failed to create profile: ${error.message}")
+                    _error.value = "Failed to create profile"
+                }
+            )
+        }
+    }
+}
+
+▶ Example 2: Load Profile List on App Start
+
+class ProfileListViewModel(private val repository: PredictRepository) : ViewModel() {
+
+    private val _profiles = MutableLiveData<List<VehicleProfile>>()
+    val profiles: LiveData<List<VehicleProfile>> = _profiles
+
+    fun loadProfiles() {
+        viewModelScope.launch {
+            val result = repository.getAllProfiles()
+            result.fold(
+                onSuccess = { response ->
+                    if (response.success) {
+                        _profiles.value = response.profiles
+                        Log.d("Profiles", "Loaded ${response.count} profiles")
+                    }
+                },
+                onFailure = { error ->
+                    Log.e("Profiles", "Failed to load profiles: ${error.message}")
+                }
+            )
+        }
+    }
+}
+
+▶ Example 3: Profile Selection Screen (Composable UI)
+
+@Composable
+fun ProfileSelectionScreen(
+    profiles: List<VehicleProfile>,
+    onProfileSelected: (Int) -> Unit,
+    onAddNewProfile: () -> Unit
+) {
+    LazyColumn {
+        items(profiles) { profile ->
+            ProfileCard(
+                profile = profile,
+                onClick = { onProfileSelected(profile.profile_id ?: 0) }
+            )
+        }
+
+        item {
+            Button(
+                onClick = onAddNewProfile,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add")
+                Text("Add New Vehicle")
+            }
+        }
+    }
+}
+
+@Composable
+fun ProfileCard(profile: VehicleProfile, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .clickable(onClick = onClick),
+        elevation = 4.dp
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = profile.name,
+                    style = MaterialTheme.typography.h6
+                )
+                Text(
+                    text = "${profile.year} ${profile.make} ${profile.model}",
+                    style = MaterialTheme.typography.body2,
+                    color = Color.Gray
+                )
+                profile.ai_health_score?.let { score ->
+                    Text(
+                        text = "Health: ${score.toInt()}%",
+                        style = MaterialTheme.typography.body2,
+                        color = when {
+                            score >= 80 -> Color.Green
+                            score >= 60 -> Color.Yellow
+                            else -> Color.Red
+                        }
+                    )
+                }
+            }
+
+            if (profile.is_favorite == true) {
+                Icon(
+                    Icons.Default.Star,
+                    contentDescription = "Favorite",
+                    tint = Color(0xFFFFD700)
+                )
+            }
+
+            if (profile.is_connected == true) {
+                Icon(
+                    Icons.Default.Bluetooth,
+                    contentDescription = "Connected",
+                    tint = Color.Blue,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
+        }
+    }
+}
+
+▶ Example 4: Add Vehicle Form (Composable UI)
+
+@Composable
+fun AddVehicleScreen(
+    viewModel: AddVehicleViewModel,
+    onSuccess: () -> Unit
+) {
+    var name by remember { mutableStateOf("") }
+    var make by remember { mutableStateOf("") }
+    var model by remember { mutableStateOf("") }
+    var year by remember { mutableStateOf("") }
+    var vin by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
+        Text(
+            text = "Add New Vehicle",
+            style = MaterialTheme.typography.h5,
+            modifier = Modifier.padding(bottom = 24.dp)
+        )
+
+        OutlinedTextField(
+            value = name,
+            onValueChange = { name = it },
+            label = { Text("Vehicle Name *") },
+            placeholder = { Text("e.g., My Tesla Model 3") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = make,
+            onValueChange = { make = it },
+            label = { Text("Make") },
+            placeholder = { Text("e.g., Tesla") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = model,
+            onValueChange = { model = it },
+            label = { Text("Model") },
+            placeholder = { Text("e.g., Model 3") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = year,
+            onValueChange = { year = it },
+            label = { Text("Year") },
+            placeholder = { Text("e.g., 2023") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = vin,
+            onValueChange = { vin = it },
+            label = { Text("VIN") },
+            placeholder = { Text("Vehicle Identification Number") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Button(
+            onClick = {
+                if (name.isNotBlank()) {
+                    viewModel.createNewProfile(
+                        name = name,
+                        make = make,
+                        model = model,
+                        year = year.toIntOrNull() ?: 0,
+                        vin = vin
+                    )
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = name.isNotBlank()
+        ) {
+            Text("Create Profile")
+        }
+
+        Text(
+            text = "* Required field. Only vehicle name is mandatory.",
+            style = MaterialTheme.typography.caption,
+            color = Color.Gray,
+            modifier = Modifier.padding(top = 8.dp)
+        )
+    }
+
+    // Observe profile creation result
+    LaunchedEffect(viewModel.profileCreated) {
+        viewModel.profileCreated.collect { profile ->
+            if (profile != null) {
+                onSuccess()
+            }
+        }
+    }
+}
+
+▶ Example 5: Complete App Flow Integration
+
+// MainActivity.kt - Full integration example
+class MainActivity : ComponentActivity() {
+
+    private lateinit var repository: PredictRepository
+    private var currentProfileId: Int? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        // Initialize API service and repository
+        val retrofit = Retrofit.Builder()
+            .baseUrl("http://YOUR_DESKTOP_IP:8000")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        val apiService = retrofit.create(PredictApiService::class.java)
+        repository = PredictRepository(apiService, "YOUR_API_KEY")
+
+        setContent {
+            PredictTheme {
+                AppNavigation(repository)
+            }
+        }
+
+        // Load profiles on app start
+        loadProfiles()
+    }
+
+    private fun loadProfiles() {
+        lifecycleScope.launch {
+            repository.getAllProfiles().fold(
+                onSuccess = { response ->
+                    if (response.profiles.isEmpty()) {
+                        // No profiles exist, show add vehicle screen
+                        showAddVehicleScreen()
+                    } else {
+                        // Show profile selection screen
+                        showProfileSelection(response.profiles)
+                    }
+                },
+                onFailure = {
+                    // Handle error
+                    showError("Failed to load profiles")
+                }
+            )
+        }
+    }
+}
+
+▶ Key Points for Profile Management:
+
+1. ✅ **Always check if profiles exist on app start**
+   - If no profiles exist, direct user to create one
+   - Otherwise, show profile selection screen
+
+2. ✅ **Profile is required for all features**
+   - Cannot log fillups, view trips, or use any feature without a profile
+   - Store selected profile_id locally for session persistence
+
+3. ✅ **AI Health Score is calculated automatically**
+   - Desktop server calculates health score on profile creation
+   - Display this score prominently in the UI
+
+4. ✅ **Support multiple vehicles**
+   - Users can create multiple profiles
+   - Allow easy switching between profiles
+
+5. ✅ **Offline-first approach**
+   - Cache profile list locally
+   - Sync with server periodically
+   - Allow profile creation even when offline (queue for later sync)
+
+================================================================================
+8. ERROR HANDLING
+================================================================================
+
+8.1 HTTP Status Codes
+────────────────────────────────────────────────────────────────────────────
+200 - Success
+400 - Bad Request (invalid parameters)
+401 - Unauthorized (invalid API key)
+404 - Not Found (endpoint/resource not found)
+500 - Internal Server Error
+
+8.2 Error Response Format
+────────────────────────────────────────────────────────────────────────────
+{
+  "success": false,
+  "error": "Error message here"
+}
+
+8.3 Retry Logic
+────────────────────────────────────────────────────────────────────────────
+Implement exponential backoff for failed requests:
+
+suspend fun <T> retryWithBackoff(
+    maxRetries: Int = 3,
+    initialDelay: Long = 1000,
+    maxDelay: Long = 10000,
+    factor: Double = 2.0,
+    block: suspend () -> T
+): T {
+    var currentDelay = initialDelay
+    repeat(maxRetries) { attempt ->
+        try {
+            return block()
+        } catch (e: Exception) {
+            if (attempt == maxRetries - 1) throw e
+            delay(currentDelay)
+            currentDelay = (currentDelay * factor).toLong().coerceAtMost(maxDelay)
+        }
+    }
+    throw Exception("Should not reach here")
+}
+
+================================================================================
+9. OFFLINE MODE
+================================================================================
+
+9.1 Local Database (Room)
+────────────────────────────────────────────────────────────────────────────
+Store data locally when offline, sync when online:
+
+@Entity(tableName = "pending_fillups")
+data class PendingFillup(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val fillupJson: String,
+    val timestamp: Long
+)
+
+@Dao
+interface PendingDataDao {
+    @Insert
+    suspend fun insertPendingFillup(fillup: PendingFillup)
+
+    @Query("SELECT * FROM pending_fillups")
+    suspend fun getAllPendingFillups(): List<PendingFillup>
+
+    @Delete
+    suspend fun deletePendingFillup(fillup: PendingFillup)
+}
+
+9.2 Sync Logic
+────────────────────────────────────────────────────────────────────────────
+// Check connection status
+fun isOnline(): Boolean {
+    val connectivityManager = context.getSystemService(
+        Context.CONNECTIVITY_SERVICE
+    ) as ConnectivityManager
+    val network = connectivityManager.activeNetwork ?: return false
+    val capabilities = connectivityManager.getNetworkCapabilities(network)
+    return capabilities != null
+}
+
+// Sync pending data when online
+suspend fun syncPendingData() {
+    if (!isOnline()) return
+
+    val pendingFillups = dao.getAllPendingFillups()
+
+    pendingFillups.forEach { pending ->
+        try {
+            val fillup = gson.fromJson(pending.fillupJson, Fillup::class.java)
+            repository.logFillup(fillup)
+            dao.deletePendingFillup(pending)
+        } catch (e: Exception) {
+            // Keep for next sync
+        }
+    }
+}
+
+================================================================================
+10. TESTING CHECKLIST
+================================================================================
+
+Before releasing your Android app, test:
+
+✅ OBD Data Streaming
+   □ Continuous data transmission (every 2 seconds)
+   □ GPS included in every packet
+   □ API key authentication works
+
+✅ Fuel Tracking
+   □ Log fillup successfully
+   □ View fillup history
+   □ Statistics display correctly
+
+✅ Trip Analytics
+   □ Trips detected automatically
+   □ Trip history loads
+   □ Statistics accurate
+
+✅ Driving Score
+   □ Real-time score updates
+   □ Events logged correctly
+   □ Rating displayed
+
+✅ Maintenance Reminders
+   □ Reminders load correctly
+   □ Urgency levels displayed
+   □ Overdue items highlighted
+
+✅ Custom Alerts
+   □ Create alert rule works
+   □ Alert triggers correctly
+   □ Notifications received
+
+✅ Geofencing
+   □ Zone entry/exit detected
+   □ Notifications received
+   □ Desert warnings work
+
+✅ Two-Way Communication
+   □ Commands polled every 5 seconds
+   □ Commands executed correctly
+   □ Responses sent back
+   □ Notifications displayed
+
+✅ Offline Mode
+   □ Data queued when offline
+   □ Auto-sync when online
+   □ No data loss
+
+✅ Error Handling
+   □ Invalid API key handled
+   □ Network errors handled
+   □ Retry logic works
+
+================================================================================
+11. CONFLICT PREVENTION GUIDELINES
+================================================================================
+
+⚠️ CRITICAL: Follow these rules to avoid conflicts!
+────────────────────────────────────────────────────────────────────────────
+
+1. DO NOT modify existing OBD data streaming endpoint
+   - Keep POST /api/data unchanged
+   - Do not change existing payload structure
+
+2. ALWAYS include GPS data in OBD packets
+   - Add "gps" field to every POST /api/data
+   - Required for trip analytics and geofencing
+
+3. ALWAYS send API key in headers
+   - Use X-API-Key header (not in body)
+   - One API key per vehicle profile
+
+4. Poll for commands every 5 seconds
+   - Use WorkManager for background polling
+   - Do not poll faster than 5 seconds (rate limit)
+
+5. Handle all command types
+   - Implement handlers for all command_type values
+   - Send response for every command
+
+6. Use correct parameter names
+   - Match exact field names from API docs
+   - Use snake_case (not camelCase)
+
+7. Timestamps in ISO format
+   - Use: "2025-12-15T10:30:45"
+   - Include timezone if possible
+
+8. Test with real data
+   - Do not use placeholder values
+   - Test all features before release
+
+9. Implement offline mode
+   - Queue data when offline
+   - Auto-sync when connection restored
+
+10. Error handling
+    - Catch all exceptions
+    - Retry failed requests
+    - Log errors for debugging
+
+================================================================================
+12. SUPPORT & DEBUGGING
+================================================================================
+
+Desktop Logs Location:
+────────────────────────────────────────────────────────────────────────────
+D:/Predict/logs/
+predict_app.log
+
+API Test Tool:
+────────────────────────────────────────────────────────────────────────────
+Use Postman or cURL to test endpoints before implementing in Android.
+
+Example cURL:
+curl -X GET http://YOUR_IP:8000/api/driving/score/1 \
+  -H "X-API-Key: YOUR_API_KEY"
+
+Common Issues:
+────────────────────────────────────────────────────────────────────────────
+1. "401 Unauthorized" → Check API key in header
+2. "404 Not Found" → Verify endpoint URL
+3. "Network error" → Check desktop IP address
+4. "No data" → Ensure vehicle profile is selected
+5. Commands not working → Check polling interval
+
+================================================================================
+END OF ANDROID INTEGRATION GUIDE
+================================================================================
+
+For questions or issues, check:
+- Desktop app logs (D:/Predict/logs/)
+- Mobile app logs (Logcat)
+- API responses (use network inspector)
+
+Good luck with your Android implementation! 🚀

@@ -1,0 +1,12 @@
+{
+  "hex_code": "25A1",
+  "name": "KSI",
+  "description": "Key Switch Input",
+  "formula": "(B * 256 + A)/100",
+  "units": "V",
+  "min_value": "0.0",
+  "max_value": "150",
+  "category": "Electrical",
+  "vehicle_specific": true,
+  "validation_required": false
+}

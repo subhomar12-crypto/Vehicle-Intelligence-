@@ -46,9 +46,9 @@ def upgrade() -> None:
         sa.Column('is_active', sa.Boolean(), default=True),
         sa.Column('is_verified', sa.Boolean(), default=False),
         sa.Column('tier', sa.String(20), default='free'),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
-        sa.Column('updated_at', sa.DateTime(timezone=True), onupdate=sa.func.now()),
-        sa.Column('last_login', sa.DateTime(timezone=True), nullable=True),
+        sa.Column('created_at', sa.Float(), nullable=False),
+        sa.Column('updated_at', sa.Float(), nullable=False),
+        sa.Column('last_login', sa.Float(), nullable=True),
         sa.Column('metadata', postgresql.JSONB(), default={}),
     )
     
@@ -64,9 +64,9 @@ def upgrade() -> None:
         sa.Column('apps', postgresql.JSONB(), default=['obd']),
         sa.Column('rate_limit', sa.Integer(), default=100),
         sa.Column('is_active', sa.Boolean(), default=True),
-        sa.Column('expires_at', sa.DateTime(timezone=True), nullable=True),
-        sa.Column('last_used_at', sa.DateTime(timezone=True), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('expires_at', sa.Float(), nullable=True),
+        sa.Column('last_used_at', sa.Float(), nullable=True),
+        sa.Column('created_at', sa.Float(), nullable=False),
         sa.Column('profile_id', sa.Integer(), nullable=True, index=True),
     )
     
@@ -76,9 +76,9 @@ def upgrade() -> None:
         sa.Column('user_id', sa.Integer(), sa.ForeignKey('users.id', ondelete='CASCADE'), nullable=False),
         sa.Column('feature', sa.String(50), nullable=False),
         sa.Column('is_enabled', sa.Boolean(), default=True),
-        sa.Column('expires_at', sa.DateTime(timezone=True), nullable=True),
+        sa.Column('expires_at', sa.Float(), nullable=True),
         sa.Column('metadata', postgresql.JSONB(), default={}),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -87,8 +87,8 @@ def upgrade() -> None:
         sa.Column('api_key_id', sa.Integer(), sa.ForeignKey('api_keys.id', ondelete='CASCADE'), nullable=False),
         sa.Column('endpoint', sa.String(100), nullable=False),
         sa.Column('requests_count', sa.Integer(), default=0),
-        sa.Column('window_start', sa.DateTime(timezone=True), nullable=False),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('window_start', sa.Float(), nullable=False),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -98,8 +98,8 @@ def upgrade() -> None:
         sa.Column('feature', sa.String(50), nullable=False),
         sa.Column('count', sa.Integer(), default=0),
         sa.Column('period', sa.String(20), nullable=False),  # daily, monthly
-        sa.Column('reset_at', sa.DateTime(timezone=True), nullable=False),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('reset_at', sa.Float(), nullable=False),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -112,7 +112,7 @@ def upgrade() -> None:
         sa.Column('features', postgresql.JSONB(), default={}),
         sa.Column('limits', postgresql.JSONB(), default={}),
         sa.Column('is_active', sa.Boolean(), default=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -122,7 +122,7 @@ def upgrade() -> None:
         sa.Column('driver_user_id', sa.Integer(), sa.ForeignKey('users.id', ondelete='CASCADE'), nullable=False),
         sa.Column('vehicle_profile_id', sa.Integer(), nullable=True),
         sa.Column('is_active', sa.Boolean(), default=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -132,9 +132,9 @@ def upgrade() -> None:
         sa.Column('feature', sa.String(50), nullable=False),
         sa.Column('is_enabled', sa.Boolean(), nullable=False),
         sa.Column('reason', sa.Text(), nullable=True),
-        sa.Column('expires_at', sa.DateTime(timezone=True), nullable=True),
+        sa.Column('expires_at', sa.Float(), nullable=True),
         sa.Column('created_by', sa.Integer(), sa.ForeignKey('users.id'), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -147,7 +147,7 @@ def upgrade() -> None:
         sa.Column('price_yearly', sa.Numeric(10, 2), nullable=False),
         sa.Column('tax_rate', sa.Numeric(5, 4), default=0),
         sa.Column('is_active', sa.Boolean(), default=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
         sa.UniqueConstraint('country_code', 'tier_name', name='unique_country_tier'),
     )
     
@@ -171,15 +171,15 @@ def upgrade() -> None:
         sa.Column('fuel_type', sa.String(20), nullable=True),
         sa.Column('transmission', sa.String(20), nullable=True),
         sa.Column('metadata', postgresql.JSONB(), default={}),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
-        sa.Column('updated_at', sa.DateTime(timezone=True), onupdate=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
+        sa.Column('updated_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
         'vehicle_data',
         sa.Column('id', sa.Integer(), primary_key=True),
         sa.Column('profile_id', sa.Integer(), sa.ForeignKey('vehicle_profiles.id', ondelete='CASCADE'), nullable=False),
-        sa.Column('timestamp', sa.DateTime(timezone=True), nullable=False, index=True),
+        sa.Column('timestamp', sa.Float(), nullable=False, index=True),
         sa.Column('rpm', sa.Integer(), nullable=True),
         sa.Column('speed', sa.Integer(), nullable=True),
         sa.Column('coolant_temp', sa.Integer(), nullable=True),
@@ -190,7 +190,7 @@ def upgrade() -> None:
         sa.Column('intake_temp', sa.Integer(), nullable=True),
         sa.Column('throttle_pos', sa.Numeric(5, 2), nullable=True),
         sa.Column('raw_data', postgresql.JSONB(), default={}),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -198,12 +198,12 @@ def upgrade() -> None:
         sa.Column('id', sa.Integer(), primary_key=True),
         sa.Column('profile_id', sa.Integer(), sa.ForeignKey('vehicle_profiles.id', ondelete='CASCADE'), nullable=False),
         sa.Column('session_id', sa.String(36), nullable=False, index=True),
-        sa.Column('timestamp', sa.DateTime(timezone=True), nullable=False),
+        sa.Column('timestamp', sa.Float(), nullable=False),
         sa.Column('pid', sa.String(10), nullable=False),
         sa.Column('value', sa.Numeric(12, 4), nullable=True),
         sa.Column('unit', sa.String(10), nullable=True),
         sa.Column('is_calculated', sa.Boolean(), default=False),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -211,7 +211,7 @@ def upgrade() -> None:
         sa.Column('id', sa.Integer(), primary_key=True),
         sa.Column('profile_id', sa.Integer(), sa.ForeignKey('vehicle_profiles.id', ondelete='CASCADE'), nullable=False),
         sa.Column('session_id', sa.String(36), nullable=False, index=True),
-        sa.Column('timestamp', sa.DateTime(timezone=True), nullable=False, index=True),
+        sa.Column('timestamp', sa.Float(), nullable=False, index=True),
         sa.Column('latitude', sa.Numeric(10, 8), nullable=True),
         sa.Column('longitude', sa.Numeric(11, 8), nullable=True),
         sa.Column('altitude', sa.Numeric(8, 2), nullable=True),
@@ -220,7 +220,7 @@ def upgrade() -> None:
         sa.Column('acceleration_x', sa.Numeric(6, 3), nullable=True),
         sa.Column('acceleration_y', sa.Numeric(6, 3), nullable=True),
         sa.Column('acceleration_z', sa.Numeric(6, 3), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -237,7 +237,7 @@ def upgrade() -> None:
         sa.Column('provider', sa.String(100), nullable=True),
         sa.Column('notes', sa.Text(), nullable=True),
         sa.Column('receipt_url', sa.String(255), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     # ========================
@@ -257,7 +257,7 @@ def upgrade() -> None:
         sa.Column('solutions', postgresql.JSONB(), default=[]),
         sa.Column('related_pids', postgresql.JSONB(), default=[]),
         sa.Column('estimated_repair_cost', postgresql.JSONB(), default={}),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -266,12 +266,12 @@ def upgrade() -> None:
         sa.Column('profile_id', sa.Integer(), sa.ForeignKey('vehicle_profiles.id', ondelete='CASCADE'), nullable=False),
         sa.Column('dtc_code_id', sa.Integer(), sa.ForeignKey('dtc_codes.id'), nullable=False),
         sa.Column('status', sa.String(10), nullable=False),  # active, pending, cleared
-        sa.Column('first_seen_at', sa.DateTime(timezone=True), nullable=False),
-        sa.Column('last_seen_at', sa.DateTime(timezone=True), nullable=False),
-        sa.Column('cleared_at', sa.DateTime(timezone=True), nullable=True),
+        sa.Column('first_seen_at', sa.Float(), nullable=False),
+        sa.Column('last_seen_at', sa.Float(), nullable=False),
+        sa.Column('cleared_at', sa.Float(), nullable=True),
         sa.Column('freeze_frame', postgresql.JSONB(), default={}),
         sa.Column('mileage_at_detection', sa.Integer(), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     # ========================
@@ -284,8 +284,8 @@ def upgrade() -> None:
         sa.Column('user_id', sa.Integer(), sa.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, unique=True),
         sa.Column('notification_settings', postgresql.JSONB(), default={}),
         sa.Column('alert_thresholds', postgresql.JSONB(), default={}),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
-        sa.Column('updated_at', sa.DateTime(timezone=True), onupdate=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
+        sa.Column('updated_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -295,8 +295,8 @@ def upgrade() -> None:
         sa.Column('vehicle_profile_id', sa.Integer(), sa.ForeignKey('vehicle_profiles.id', ondelete='CASCADE'), nullable=False),
         sa.Column('driver_user_id', sa.Integer(), sa.ForeignKey('users.id'), nullable=True),
         sa.Column('is_active', sa.Boolean(), default=True),
-        sa.Column('monitoring_start', sa.DateTime(timezone=True), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('monitoring_start', sa.Float(), nullable=True),
+        sa.Column('created_at', sa.Float(), nullable=False),
         sa.UniqueConstraint('guardian_id', 'vehicle_profile_id', name='unique_guardian_vehicle'),
     )
     
@@ -310,9 +310,9 @@ def upgrade() -> None:
         sa.Column('message', sa.Text(), nullable=False),
         sa.Column('data', postgresql.JSONB(), default={}),
         sa.Column('is_read', sa.Boolean(), default=False),
-        sa.Column('read_at', sa.DateTime(timezone=True), nullable=True),
+        sa.Column('read_at', sa.Float(), nullable=True),
         sa.Column('sent_via', postgresql.JSONB(), default=[]),  # push, email, sms
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -323,9 +323,9 @@ def upgrade() -> None:
         sa.Column('status', sa.String(20), default='pending'),  # pending, sent, acknowledged, completed, failed
         sa.Column('parameters', postgresql.JSONB(), default={}),
         sa.Column('response', postgresql.JSONB(), nullable=True),
-        sa.Column('sent_at', sa.DateTime(timezone=True), nullable=True),
-        sa.Column('completed_at', sa.DateTime(timezone=True), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('sent_at', sa.Float(), nullable=True),
+        sa.Column('completed_at', sa.Float(), nullable=True),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -337,8 +337,8 @@ def upgrade() -> None:
         sa.Column('latitude', sa.Numeric(10, 8), nullable=True),
         sa.Column('longitude', sa.Numeric(11, 8), nullable=True),
         sa.Column('accuracy', sa.Numeric(6, 2), nullable=True),
-        sa.Column('responded_at', sa.DateTime(timezone=True), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('responded_at', sa.Float(), nullable=True),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -348,21 +348,21 @@ def upgrade() -> None:
         sa.Column('consent_type', sa.String(50), nullable=False),
         sa.Column('version', sa.String(10), nullable=False),
         sa.Column('is_granted', sa.Boolean(), default=False),
-        sa.Column('granted_at', sa.DateTime(timezone=True), nullable=True),
-        sa.Column('revoked_at', sa.DateTime(timezone=True), nullable=True),
+        sa.Column('granted_at', sa.Float(), nullable=True),
+        sa.Column('revoked_at', sa.Float(), nullable=True),
         sa.Column('ip_address', sa.String(45), nullable=True),
         sa.Column('user_agent', sa.Text(), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
         'guardian_telemetry',
         sa.Column('id', sa.Integer(), primary_key=True),
         sa.Column('vehicle_guardian_id', sa.Integer(), sa.ForeignKey('vehicle_guardians.id', ondelete='CASCADE'), nullable=False),
-        sa.Column('timestamp', sa.DateTime(timezone=True), nullable=False),
+        sa.Column('timestamp', sa.Float(), nullable=False),
         sa.Column('event_type', sa.String(50), nullable=False),
         sa.Column('data', postgresql.JSONB(), default={}),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -371,12 +371,12 @@ def upgrade() -> None:
         sa.Column('vehicle_guardian_id', sa.Integer(), sa.ForeignKey('vehicle_guardians.id', ondelete='CASCADE'), nullable=False),
         sa.Column('event_type', sa.String(50), nullable=False),  # harsh_braking, harsh_acceleration, speeding, etc.
         sa.Column('severity', sa.String(10), nullable=False),
-        sa.Column('timestamp', sa.DateTime(timezone=True), nullable=False),
+        sa.Column('timestamp', sa.Float(), nullable=False),
         sa.Column('latitude', sa.Numeric(10, 8), nullable=True),
         sa.Column('longitude', sa.Numeric(11, 8), nullable=True),
         sa.Column('speed', sa.Integer(), nullable=True),
         sa.Column('data', postgresql.JSONB(), default={}),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     # ========================
@@ -389,8 +389,8 @@ def upgrade() -> None:
         sa.Column('profile_id', sa.Integer(), sa.ForeignKey('vehicle_profiles.id', ondelete='CASCADE'), nullable=False),
         sa.Column('driver_id', sa.Integer(), sa.ForeignKey('users.id'), nullable=True),
         sa.Column('session_id', sa.String(36), unique=True, nullable=False),
-        sa.Column('start_time', sa.DateTime(timezone=True), nullable=False),
-        sa.Column('end_time', sa.DateTime(timezone=True), nullable=True),
+        sa.Column('start_time', sa.Float(), nullable=False),
+        sa.Column('end_time', sa.Float(), nullable=True),
         sa.Column('start_latitude', sa.Numeric(10, 8), nullable=True),
         sa.Column('start_longitude', sa.Numeric(11, 8), nullable=True),
         sa.Column('end_latitude', sa.Numeric(10, 8), nullable=True),
@@ -403,7 +403,7 @@ def upgrade() -> None:
         sa.Column('harsh_events_count', sa.Integer(), default=0),
         sa.Column('score', sa.Integer(), nullable=True),
         sa.Column('is_completed', sa.Boolean(), default=False),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -411,11 +411,11 @@ def upgrade() -> None:
         sa.Column('id', sa.Integer(), primary_key=True),
         sa.Column('trip_id', sa.Integer(), sa.ForeignKey('trips.id', ondelete='CASCADE'), nullable=False),
         sa.Column('event_type', sa.String(50), nullable=False),
-        sa.Column('timestamp', sa.DateTime(timezone=True), nullable=False),
+        sa.Column('timestamp', sa.Float(), nullable=False),
         sa.Column('latitude', sa.Numeric(10, 8), nullable=True),
         sa.Column('longitude', sa.Numeric(11, 8), nullable=True),
         sa.Column('data', postgresql.JSONB(), default={}),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -428,8 +428,8 @@ def upgrade() -> None:
         sa.Column('total_trips', sa.Integer(), default=0),
         sa.Column('total_distance_km', sa.Numeric(10, 2), default=0),
         sa.Column('avg_score', sa.Numeric(4, 2), default=0),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
-        sa.Column('updated_at', sa.DateTime(timezone=True), onupdate=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
+        sa.Column('updated_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -438,7 +438,7 @@ def upgrade() -> None:
         sa.Column('vehicle_profile_id', sa.Integer(), sa.ForeignKey('vehicle_profiles.id', ondelete='CASCADE'), nullable=False),
         sa.Column('driver_id', sa.Integer(), sa.ForeignKey('drivers.id', ondelete='CASCADE'), nullable=False),
         sa.Column('is_primary', sa.Boolean(), default=False),
-        sa.Column('assigned_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('assigned_at', sa.Float(), nullable=False),
         sa.UniqueConstraint('vehicle_profile_id', 'driver_id', name='unique_vehicle_driver'),
     )
     
@@ -448,11 +448,11 @@ def upgrade() -> None:
         sa.Column('driver_id', sa.Integer(), sa.ForeignKey('drivers.id', ondelete='CASCADE'), nullable=False),
         sa.Column('vehicle_profile_id', sa.Integer(), sa.ForeignKey('vehicle_profiles.id', ondelete='CASCADE'), nullable=False),
         sa.Column('trip_id', sa.Integer(), sa.ForeignKey('trips.id'), nullable=True),
-        sa.Column('started_at', sa.DateTime(timezone=True), nullable=False),
-        sa.Column('ended_at', sa.DateTime(timezone=True), nullable=True),
+        sa.Column('started_at', sa.Float(), nullable=False),
+        sa.Column('ended_at', sa.Float(), nullable=True),
         sa.Column('start_mileage', sa.Integer(), nullable=True),
         sa.Column('end_mileage', sa.Integer(), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -463,9 +463,9 @@ def upgrade() -> None:
         sa.Column('tier', sa.String(20), default='fleet_driver'),
         sa.Column('max_uses', sa.Integer(), default=1),
         sa.Column('uses_count', sa.Integer(), default=0),
-        sa.Column('expires_at', sa.DateTime(timezone=True), nullable=True),
+        sa.Column('expires_at', sa.Float(), nullable=True),
         sa.Column('is_active', sa.Boolean(), default=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -483,7 +483,7 @@ def upgrade() -> None:
         sa.Column('speeding_count', sa.Integer(), default=0),
         sa.Column('idle_time_minutes', sa.Integer(), default=0),
         sa.Column('fuel_efficiency', sa.Numeric(5, 2), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -492,7 +492,7 @@ def upgrade() -> None:
         sa.Column('guardian_id', sa.Integer(), sa.ForeignKey('guardians.id', ondelete='CASCADE'), nullable=False),
         sa.Column('trip_id', sa.Integer(), sa.ForeignKey('trips.id', ondelete='CASCADE'), nullable=False),
         sa.Column('notification_sent', sa.Boolean(), default=False),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
         sa.UniqueConstraint('guardian_id', 'trip_id', name='unique_guardian_trip'),
     )
     
@@ -514,8 +514,8 @@ def upgrade() -> None:
         sa.Column('explanation', sa.Text(), nullable=True),
         sa.Column('is_feedback_provided', sa.Boolean(), default=False),
         sa.Column('feedback_outcome', sa.String(20), nullable=True),  # confirmed, false_positive
-        sa.Column('feedback_at', sa.DateTime(timezone=True), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('feedback_at', sa.Float(), nullable=True),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -526,10 +526,10 @@ def upgrade() -> None:
         sa.Column('label_type', sa.String(50), nullable=False),
         sa.Column('component', sa.String(50), nullable=False),
         sa.Column('outcome', sa.String(20), nullable=False),  # failure, normal, repair_prevented
-        sa.Column('labeled_at', sa.DateTime(timezone=True), nullable=False),
+        sa.Column('labeled_at', sa.Float(), nullable=False),
         sa.Column('mileage_at_label', sa.Integer(), nullable=True),
         sa.Column('notes', sa.Text(), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -539,9 +539,9 @@ def upgrade() -> None:
         sa.Column('feature_name', sa.String(100), nullable=False),
         sa.Column('feature_value', sa.Numeric(12, 6), nullable=False),
         sa.Column('aggregation_window', sa.String(20), nullable=False),  # hourly, daily, weekly
-        sa.Column('window_start', sa.DateTime(timezone=True), nullable=False),
-        sa.Column('window_end', sa.DateTime(timezone=True), nullable=False),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('window_start', sa.Float(), nullable=False),
+        sa.Column('window_end', sa.Float(), nullable=False),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -556,8 +556,8 @@ def upgrade() -> None:
         sa.Column('baseline_value', sa.Numeric(12, 6), nullable=False),
         sa.Column('std_deviation', sa.Numeric(12, 6), nullable=True),
         sa.Column('sample_size', sa.Integer(), nullable=False),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
-        sa.Column('updated_at', sa.DateTime(timezone=True), onupdate=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
+        sa.Column('updated_at', sa.Float(), nullable=False),
         sa.UniqueConstraint('make', 'model', 'year_start', 'year_end', 'component', name='unique_fleet_baseline'),
     )
     
@@ -575,7 +575,7 @@ def upgrade() -> None:
         sa.Column('critical_low', sa.Numeric(12, 4), nullable=True),
         sa.Column('critical_high', sa.Numeric(12, 4), nullable=True),
         sa.Column('is_enabled', sa.Boolean(), default=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     # ========================
@@ -590,9 +590,9 @@ def upgrade() -> None:
         sa.Column('token', sa.String(64), unique=True, nullable=False),
         sa.Column('status', sa.String(20), default='pending'),  # pending, accepted, declined, expired
         sa.Column('tier', sa.String(20), default='fleet_driver'),
-        sa.Column('expires_at', sa.DateTime(timezone=True), nullable=False),
-        sa.Column('accepted_at', sa.DateTime(timezone=True), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('expires_at', sa.Float(), nullable=False),
+        sa.Column('accepted_at', sa.Float(), nullable=True),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -608,7 +608,7 @@ def upgrade() -> None:
         sa.Column('is_active', sa.Boolean(), default=True),
         sa.Column('notify_on_enter', sa.Boolean(), default=True),
         sa.Column('notify_on_exit', sa.Boolean(), default=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -618,8 +618,8 @@ def upgrade() -> None:
         sa.Column('event_type', sa.String(10), nullable=False),  # enter, exit
         sa.Column('latitude', sa.Numeric(10, 8), nullable=False),
         sa.Column('longitude', sa.Numeric(11, 8), nullable=False),
-        sa.Column('timestamp', sa.DateTime(timezone=True), nullable=False),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('timestamp', sa.Float(), nullable=False),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -630,8 +630,8 @@ def upgrade() -> None:
         sa.Column('requested_tier', sa.String(20), nullable=False),
         sa.Column('payment_reference', sa.String(100), nullable=True),
         sa.Column('status', sa.String(20), default='pending'),  # pending, processing, completed, failed
-        sa.Column('processed_at', sa.DateTime(timezone=True), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('processed_at', sa.Float(), nullable=True),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -643,7 +643,7 @@ def upgrade() -> None:
         sa.Column('new_value', postgresql.JSONB(), nullable=True),
         sa.Column('performed_by', sa.Integer(), sa.ForeignKey('users.id'), nullable=True),
         sa.Column('ip_address', sa.String(45), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     # ========================
@@ -663,7 +663,7 @@ def upgrade() -> None:
         sa.Column('ip_address', sa.String(45), nullable=True),
         sa.Column('user_agent', sa.Text(), nullable=True),
         sa.Column('request_id', sa.String(36), nullable=True, index=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -672,10 +672,10 @@ def upgrade() -> None:
         sa.Column('user_id', sa.Integer(), sa.ForeignKey('users.id', ondelete='CASCADE'), nullable=False),
         sa.Column('code_hash', sa.String(255), nullable=False),
         sa.Column('purpose', sa.String(20), nullable=False),  # email, phone, password_reset
-        sa.Column('expires_at', sa.DateTime(timezone=True), nullable=False),
-        sa.Column('used_at', sa.DateTime(timezone=True), nullable=True),
+        sa.Column('expires_at', sa.Float(), nullable=False),
+        sa.Column('used_at', sa.Float(), nullable=True),
         sa.Column('attempts', sa.Integer(), default=0),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -685,9 +685,9 @@ def upgrade() -> None:
         sa.Column('session_token', sa.String(64), unique=True, nullable=False),
         sa.Column('purpose', sa.String(20), nullable=False),
         sa.Column('is_verified', sa.Boolean(), default=False),
-        sa.Column('verified_at', sa.DateTime(timezone=True), nullable=True),
-        sa.Column('expires_at', sa.DateTime(timezone=True), nullable=False),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('verified_at', sa.Float(), nullable=True),
+        sa.Column('expires_at', sa.Float(), nullable=False),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -699,8 +699,8 @@ def upgrade() -> None:
         sa.Column('request_body_hash', sa.String(64), nullable=True),
         sa.Column('response_status', sa.Integer(), nullable=False),
         sa.Column('response_body', postgresql.JSONB(), nullable=True),
-        sa.Column('expires_at', sa.DateTime(timezone=True), nullable=False),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('expires_at', sa.Float(), nullable=False),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -712,10 +712,10 @@ def upgrade() -> None:
         sa.Column('error_code', sa.String(50), nullable=True),
         sa.Column('retry_count', sa.Integer(), default=0),
         sa.Column('max_retries', sa.Integer(), default=3),
-        sa.Column('next_retry_at', sa.DateTime(timezone=True), nullable=True),
+        sa.Column('next_retry_at', sa.Float(), nullable=True),
         sa.Column('status', sa.String(20), default='pending'),  # pending, retrying, failed, resolved
-        sa.Column('resolved_at', sa.DateTime(timezone=True), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('resolved_at', sa.Float(), nullable=True),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -729,7 +729,7 @@ def upgrade() -> None:
         sa.Column('date_range_end', sa.Date(), nullable=True),
         sa.Column('schedule', sa.String(20), nullable=True),  # once, daily, weekly, monthly
         sa.Column('is_active', sa.Boolean(), default=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     op.create_table(
@@ -740,10 +740,10 @@ def upgrade() -> None:
         sa.Column('file_path', sa.String(255), nullable=True),
         sa.Column('file_size_bytes', sa.Integer(), nullable=True),
         sa.Column('record_count', sa.Integer(), nullable=True),
-        sa.Column('started_at', sa.DateTime(timezone=True), nullable=True),
-        sa.Column('completed_at', sa.DateTime(timezone=True), nullable=True),
+        sa.Column('started_at', sa.Float(), nullable=True),
+        sa.Column('completed_at', sa.Float(), nullable=True),
         sa.Column('error_message', sa.Text(), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column('created_at', sa.Float(), nullable=False),
     )
     
     # Create indexes for performance

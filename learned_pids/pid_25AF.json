@@ -1,0 +1,12 @@
+{
+  "hex_code": "25AF",
+  "name": "SOC %",
+  "description": "State of Charge",
+  "formula": "A",
+  "units": "%",
+  "min_value": "0.0",
+  "max_value": "100",
+  "category": "Battery",
+  "vehicle_specific": true,
+  "validation_required": false
+}

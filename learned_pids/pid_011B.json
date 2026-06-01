@@ -1,0 +1,12 @@
+{
+  "hex_code": "011B",
+  "name": "O2 Sensor 4 Voltage Bank 2",
+  "description": "O2 B2S4",
+  "formula": "A/200",
+  "units": "V",
+  "min_value": "0.0",
+  "max_value": "1.275",
+  "category": "Sensors",
+  "vehicle_specific": false,
+  "validation_required": false
+}

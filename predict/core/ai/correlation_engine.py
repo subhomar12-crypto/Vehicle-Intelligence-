@@ -91,7 +91,8 @@ class CorrelationEngine:
                 # Pearson correlation
                 corr = np.corrcoef(clean1, clean2)[0, 1]
                 if not np.isnan(corr):
-                    correlations[(s1, s2)] = float(corr)
+                    key = tuple(sorted([s1, s2]))
+                    correlations[key] = float(corr)
 
         return correlations
 
@@ -127,15 +128,17 @@ class CorrelationEngine:
                 else:
                     severity = "low"
 
-                # Generate interpretation
+                # Generate interpretation (use frozenset for order-independent lookup)
                 s1, s2 = pair
+                pair_set = frozenset(pair)
                 if delta < 0:
                     interpretation = f"{s1} ↔ {s2}: correlation dropped from {baseline_r:.2f} to {current_r:.2f}"
-                    if pair in [("rpm", "maf_rate"), ("rpm", "injector_ms")]:
-                        interpretation += f" — {s2} sensor may be degrading"
-                    elif pair == ("speed", "rpm"):
+                    if pair_set in [frozenset(("rpm", "maf_rate")), frozenset(("rpm", "injector_ms"))]:
+                        other = s2 if s1 == "rpm" else s1
+                        interpretation += f" — {other} sensor may be degrading"
+                    elif pair_set == frozenset(("speed", "rpm")):
                         interpretation += " — potential clutch/transmission issue"
-                    elif pair == ("throttle_pos", "engine_load"):
+                    elif pair_set == frozenset(("throttle_pos", "engine_load")):
                         interpretation += " — throttle or load sensor fault"
                 else:
                     interpretation = f"{s1} ↔ {s2}: correlation increased from {baseline_r:.2f} to {current_r:.2f}"
@@ -176,8 +179,8 @@ class CorrelationEngine:
         # Compute current correlations
         current_corr = self.compute_correlation_matrix(readings, sensors)
 
-        # Build baseline from expected values
-        baseline_corr = {(s1, s2): expected for s1, s2, expected in EXPECTED_PAIRS}
+        # Build baseline from expected values (sorted keys to match compute_correlation_matrix)
+        baseline_corr = {tuple(sorted([s1, s2])): expected for s1, s2, expected in EXPECTED_PAIRS}
 
         # Detect anomalies
         return self.detect_anomalies(baseline_corr, current_corr)

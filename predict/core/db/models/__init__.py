@@ -37,6 +37,9 @@ from predict.core.db.models.prediction_feedback import (
     ComponentAccuracyStats, FleetPenaltyAdjustment,
 )
 from predict.core.db.models.pricing import PartsPrice, ServicePrice
+from predict.core.db.models.health_snapshot import HealthSnapshot
+from predict.core.db.models.share import ShareToken
+from predict.core.db.models.pi5_device import Pi5Device
 from predict.core.db.models.model_registry import (
     ModelVersion, BaseModelEntry, TrainingJob,
 )
@@ -75,4 +78,10 @@ __all__ = [
     "PartsPrice", "ServicePrice",
     # Model registry
     "ModelVersion", "BaseModelEntry", "TrainingJob",
+    # Health snapshots
+    "HealthSnapshot",
+    # Share tokens
+    "ShareToken",
+    # Pi5 devices
+    "Pi5Device",
 ]

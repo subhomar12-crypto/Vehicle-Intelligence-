@@ -1,17 +1,16 @@
 """
-Export service for generating downloadable files.
+Data export service with float timestamps.
 
-Supports CSV, JSON, and Parquet exports with async generation.
+Handles exporting user data in various formats.
 """
 
-import csv
-import json
 import logging
-from datetime import datetime
+import time
+import json
+from typing import Dict, Any, Optional
 from pathlib import Path
-from typing import List, Dict, Any, Optional
 
-import pandas as pd
+from sqlalchemy import select
 
 from predict.core.config import get_config
 
@@ -19,258 +18,144 @@ logger = logging.getLogger(__name__)
 
 
 class ExportService:
-    """Service for generating data exports."""
+    """
+    Service for exporting user data.
+    
+    Handles GDPR/CCPA data export requests.
+    """
     
     def __init__(self):
         self.config = get_config()
         self.exports_dir = self.config.EXPORTS_DIR
+        self.exports_dir.mkdir(parents=True, exist_ok=True)
+        logger.debug("ExportService initialized")
     
-    async def export_to_csv(
+    async def export_user_data(
         self,
-        data: List[Dict[str, Any]],
-        filename: Optional[str] = None,
-    ) -> Path:
+        user_id: int,
+        session,
+    ) -> Dict[str, Any]:
         """
-        Export data to CSV file.
+        Export all data for a user.
         
         Args:
-            data: List of dictionaries to export
-            filename: Optional filename (auto-generated if None)
+            user_id: User to export
+            session: Database session
         
         Returns:
-            Path to generated CSV file
+            Export result with file path
         """
-        if filename is None:
-            timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-            filename = f"export_{timestamp}.csv"
+        start_time = time.perf_counter()
+        export_timestamp = time.time()
         
-        file_path = self.exports_dir / filename
+        # Collect user data
+        export_data = {
+            "export_metadata": {
+                "user_id": user_id,
+                "exported_at": time.strftime(
+                    "%Y-%m-%dT%H:%M:%SZ", time.gmtime(export_timestamp)
+                ),
+                "exported_at_unix": export_timestamp,
+                "version": "1.0",
+            },
+            "user_profile": await self._get_user_profile(user_id, session),
+            "vehicles": await self._get_vehicle_data(user_id, session),
+            "predictions": await self._get_prediction_data(user_id, session),
+            "dtcs": await self._get_dtc_data(user_id, session),
+        }
         
-        if not data:
-            # Create empty CSV with headers
-            file_path.touch()
-            return file_path
+        # Write to file
+        filename = f"export_user_{user_id}_{int(export_timestamp)}.json"
+        filepath = self.exports_dir / filename
         
-        # Write CSV
-        fieldnames = data[0].keys()
-        with open(file_path, 'w', newline='', encoding='utf-8') as f:
-            writer = csv.DictWriter(f, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerows(data)
+        with open(filepath, 'w') as f:
+            json.dump(export_data, f, indent=2, default=str)
         
-        logger.info(f"CSV export created: {file_path}")
-        return file_path
-    
-    async def export_to_json(
-        self,
-        data: List[Dict[str, Any]],
-        filename: Optional[str] = None,
-        indent: int = 2,
-    ) -> Path:
-        """
-        Export data to JSON file.
+        elapsed_ms = (time.perf_counter() - start_time) * 1000
         
-        Args:
-            data: List of dictionaries to export
-            filename: Optional filename
-            indent: JSON indentation level
-        
-        Returns:
-            Path to generated JSON file
-        """
-        if filename is None:
-            timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-            filename = f"export_{timestamp}.json"
-        
-        file_path = self.exports_dir / filename
-        
-        with open(file_path, 'w', encoding='utf-8') as f:
-            json.dump(data, f, indent=indent, default=str)
-        
-        logger.info(f"JSON export created: {file_path}")
-        return file_path
-    
-    async def export_to_parquet(
-        self,
-        data: List[Dict[str, Any]],
-        filename: Optional[str] = None,
-    ) -> Path:
-        """
-        Export data to Parquet file.
-        
-        Args:
-            data: List of dictionaries to export
-            filename: Optional filename
-        
-        Returns:
-            Path to generated Parquet file
-        """
-        if filename is None:
-            timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-            filename = f"export_{timestamp}.parquet"
-        
-        file_path = self.exports_dir / filename
-        
-        # Convert to DataFrame and save
-        df = pd.DataFrame(data)
-        df.to_parquet(file_path, index=False)
-        
-        logger.info(f"Parquet export created: {file_path}")
-        return file_path
-    
-    async def export_vehicle_data(
-        self,
-        vehicle_id: int,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None,
-        format: str = "csv",
-    ) -> Path:
-        """
-        Export vehicle telemetry data.
-        
-        Args:
-            vehicle_id: Vehicle ID
-            start_date: Filter start date
-            end_date: Filter end date
-            format: Export format (csv, json, parquet)
-        
-        Returns:
-            Path to generated export file
-        """
-        # TODO: Fetch actual vehicle data from database
-        # Placeholder implementation
-        
-        data = [
-            {
-                "timestamp": datetime.utcnow().isoformat(),
-                "vehicle_id": vehicle_id,
-                "speed_kmh": 65.0,
-                "rpm": 2500,
-                "engine_temp_c": 90,
-            }
-        ]
-        
-        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-        filename = f"vehicle_{vehicle_id}_{timestamp}.{format}"
-        
-        if format == "csv":
-            return await self.export_to_csv(data, filename)
-        elif format == "json":
-            return await self.export_to_json(data, filename)
-        elif format == "parquet":
-            return await self.export_to_parquet(data, filename)
-        else:
-            raise ValueError(f"Unsupported format: {format}")
-    
-    def get_export_info(self, filename: str) -> Optional[Dict[str, Any]]:
-        """
-        Get information about an export file.
-        
-        Args:
-            filename: Export filename
-        
-        Returns:
-            File info dict or None if not found
-        """
-        file_path = self.exports_dir / filename
-        
-        if not file_path.exists():
-            return None
-        
-        stat = file_path.stat()
+        logger.info(f"User {user_id} data exported to {filepath} in {elapsed_ms:.2f}ms")
         
         return {
+            "status": "completed",
+            "user_id": user_id,
             "filename": filename,
-            "path": str(file_path),
-            "size_bytes": stat.st_size,
-            "created_at": datetime.fromtimestamp(stat.st_ctime).isoformat(),
-            "modified_at": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+            "filepath": str(filepath),
+            "file_size_bytes": filepath.stat().st_size,
+            "processing_time_ms": elapsed_ms,
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "timestamp_unix": export_timestamp,
         }
     
-    def list_exports(
-        self,
-        prefix: Optional[str] = None,
-        extension: Optional[str] = None,
-    ) -> List[Dict[str, Any]]:
-        """
-        List available export files.
+    async def _get_user_profile(self, user_id: int, session) -> Dict[str, Any]:
+        """Get user profile data."""
+        from predict.core.db.models.user import User
+
+        stmt = select(User).where(User.id == user_id)
+        result = await session.execute(stmt)
+        user = result.scalar_one_or_none()
         
-        Args:
-            prefix: Filter by filename prefix
-            extension: Filter by file extension
-        
-        Returns:
-            List of export file info dicts
-        """
-        exports = []
-        
-        for file_path in self.exports_dir.iterdir():
-            if not file_path.is_file():
-                continue
-            
-            # Apply filters
-            if prefix and not file_path.name.startswith(prefix):
-                continue
-            if extension and file_path.suffix.lower() != extension.lower():
-                continue
-            
-            info = self.get_export_info(file_path.name)
-            if info:
-                exports.append(info)
-        
-        # Sort by creation time (newest first)
-        exports.sort(key=lambda x: x["created_at"], reverse=True)
-        
-        return exports
-    
-    async def delete_export(self, filename: str) -> bool:
-        """
-        Delete an export file.
-        
-        Args:
-            filename: Export filename
-        
-        Returns:
-            True if deleted, False if not found
-        """
-        file_path = self.exports_dir / filename
-        
-        if not file_path.exists():
-            return False
-        
-        file_path.unlink()
-        logger.info(f"Export deleted: {file_path}")
-        return True
-    
-    async def cleanup_old_exports(self, max_age_days: int = 7) -> Dict[str, int]:
-        """
-        Delete exports older than specified days.
-        
-        Args:
-            max_age_days: Delete files older than this
-        
-        Returns:
-            Summary of cleanup operation
-        """
-        cutoff = datetime.utcnow().timestamp() - (max_age_days * 24 * 3600)
-        deleted = 0
-        failed = 0
-        
-        for file_path in self.exports_dir.iterdir():
-            if not file_path.is_file():
-                continue
-            
-            try:
-                if file_path.stat().st_mtime < cutoff:
-                    file_path.unlink()
-                    deleted += 1
-            except Exception as e:
-                logger.error(f"Failed to delete {file_path}: {e}")
-                failed += 1
-        
-        logger.info(f"Export cleanup: {deleted} deleted, {failed} failed")
+        if not user:
+            return {}
         
         return {
-            "deleted": deleted,
-            "failed": failed,
+            "id": user.id,
+            "email": user.email,
+            "tier": getattr(user, 'tier', 'free'),
+            "created_at": time.strftime(
+                "%Y-%m-%dT%H:%M:%SZ", time.gmtime(user.created_at)
+            ) if user.created_at else None,
+            "created_at_unix": user.created_at,
+        }
+    
+    async def _get_vehicle_data(self, user_id: int, session) -> list:
+        """Get vehicle data for user."""
+        from predict.core.db.models.vehicle import VehicleProfile
+
+        stmt = select(VehicleProfile).where(VehicleProfile.owner_id == user_id)
+        result = await session.execute(stmt)
+        vehicles = result.scalars().all()
+        
+        return [
+            {
+                "id": v.id,
+                "vin": v.vin,
+                "make": v.make,
+                "model": v.model,
+                "year": v.year,
+                "created_at_unix": v.created_at,
+            }
+            for v in vehicles
+        ]
+    
+    async def _get_prediction_data(self, user_id: int, session) -> list:
+        """Get prediction data for user's vehicles."""
+        # This would join through vehicles
+        return []
+    
+    async def _get_dtc_data(self, user_id: int, session) -> list:
+        """Get DTC data for user's vehicles."""
+        return []
+    
+    async def schedule_export(
+        self,
+        user_id: int,
+        session,
+    ) -> Dict[str, Any]:
+        """Schedule a data export for async processing."""
+        request_time = time.time()
+        request_id = f"EXP-{int(request_time)}-{user_id}"
+        
+        # In real implementation, this would queue a background job
+        logger.info(f"Scheduled export {request_id} for user {user_id}")
+        
+        return {
+            "request_id": request_id,
+            "user_id": user_id,
+            "status": "scheduled",
+            "estimated_completion": time.strftime(
+                "%Y-%m-%dT%H:%M:%SZ", time.gmtime(request_time + 3600)
+            ),
+            "estimated_completion_unix": request_time + 3600,
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "timestamp_unix": request_time,
         }

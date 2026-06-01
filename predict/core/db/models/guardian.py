@@ -38,7 +38,8 @@ class VehicleGuardian(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     profile_id: Mapped[int] = mapped_column(Integer, nullable=False)
-    guardian_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    guardian_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)  # Legacy, kept for existing data
+    user_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)  # NEW: links to User.id for unified auth
     relationship: Mapped[Optional[str]] = mapped_column(String(50))
     permissions: Mapped[str] = mapped_column(String(20), server_default="full")
     role: Mapped[str] = mapped_column(String(20), server_default="driver")
@@ -77,7 +78,8 @@ class GuardianCommand(Base):
     __tablename__ = "guardian_commands"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    guardian_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    guardian_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)  # Legacy
+    user_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)  # NEW: links to User.id
     profile_id: Mapped[int] = mapped_column(Integer, nullable=False)
     command_type: Mapped[str] = mapped_column(String(50), nullable=False)
     payload: Mapped[Optional[str]] = mapped_column(Text)
@@ -104,7 +106,8 @@ class LocationRequest(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     request_id: Mapped[str] = mapped_column(String(36), unique=True, nullable=False)
-    guardian_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    guardian_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)  # Legacy
+    user_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)  # NEW: links to User.id
     profile_id: Mapped[int] = mapped_column(Integer, nullable=False)
     reason: Mapped[Optional[str]] = mapped_column(Text)
     requested_at: Mapped[float] = mapped_column(Float, nullable=False)

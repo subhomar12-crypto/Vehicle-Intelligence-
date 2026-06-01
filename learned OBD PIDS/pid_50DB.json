@@ -1,0 +1,12 @@
+{
+  "hex_code": "50DB",
+  "name": "Nissan_PID_50DB",
+  "description": "Nissan proprietary parameter 50DB",
+  "formula": "(B*256 + A)",
+  "units": "units",
+  "min_value": "0.0",
+  "max_value": "65535",
+  "category": "Nissan-UDS",
+  "vehicle_specific": true,
+  "validation_required": false
+}

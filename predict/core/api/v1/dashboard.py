@@ -1,67 +1,106 @@
 """
-Desktop dashboard monitoring endpoints.
-
-Handles:
-- System metrics (CPU, memory, requests/sec)
-- Active users
-- Circuit breaker status
-- Health checks
+Dashboard API routes with float timestamps.
 """
 
 import logging
-from datetime import datetime, timezone
+import time
+from typing import Optional
 
 from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from predict.core.api.deps import get_current_user, require_admin
+from predict.core.db.session import get_db as get_db_session
+from predict.core.security.auth import get_current_user
 
 logger = logging.getLogger(__name__)
+router = APIRouter(tags=["Dashboard"])
 
-router = APIRouter()
 
-
-@router.get("/metrics")
-async def get_dashboard_metrics(
-    current_user: dict = Depends(require_admin),
+@router.get("/summary")
+async def get_dashboard_summary(
+    session: AsyncSession = Depends(get_db_session),
+    current_user = Depends(get_current_user),
 ):
-    """Get system metrics for dashboard."""
-    # TODO: Implement real metrics collection
+    """Get dashboard summary data."""
+    # Get vehicle count
+    from predict.core.db.models.vehicle import VehicleProfile
+    from sqlalchemy import select, func
+    
+    stmt = select(func.count(VehicleProfile.profile_id))
+    result = await session.execute(stmt)
+    vehicle_count = result.scalar() or 0
+    
+    # Get active DTC count
+    from predict.core.db.models.dtc import DTCCodes
+
+    stmt = select(func.count(DTCCodes.id)).where(DTCCodes.is_active == 1)
+    result = await session.execute(stmt)
+    active_dtc_count = result.scalar() or 0
+    
+    # Get recent predictions
+    from predict.core.db.models.prediction import Prediction
+    
+    stmt = (
+        select(func.count(Prediction.id))
+        .where(Prediction.created_at > time.time() - 86400)  # Last 24 hours
+    )
+    result = await session.execute(stmt)
+    predictions_24h = result.scalar() or 0
+    
     return {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "cpu_percent": 0.0,
-        "memory_percent": 0.0,
-        "requests_per_second": 0.0,
-        "active_connections": 0,
+        "vehicles": {
+            "total": vehicle_count,
+            "active": vehicle_count,
+        },
+        "dtcs": {
+            "active": active_dtc_count,
+        },
+        "predictions": {
+            "last_24h": predictions_24h,
+        },
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "timestamp_unix": time.time(),
     }
 
 
-@router.get("/active-users")
-async def get_active_users(
-    current_user: dict = Depends(require_admin),
-):
-    """Get currently active users."""
-    # TODO: Implement active user tracking
-    return {"active_users": 0, "active_sessions": []}
-
-
-@router.get("/circuit-breakers")
-async def get_circuit_breaker_status(
-    current_user: dict = Depends(require_admin),
-):
-    """Get circuit breaker status for all services."""
-    # TODO: Implement circuit breaker monitoring
-    return {
-        "fatora": {"status": "closed", "failures": 0},
-        "fcm": {"status": "closed", "failures": 0},
-        "email": {"status": "closed", "failures": 0},
-    }
-
-
-@router.get("/recent-errors")
-async def get_recent_errors(
+@router.get("/alerts")
+async def get_dashboard_alerts(
     limit: int = 10,
-    current_user: dict = Depends(require_admin),
+    session: AsyncSession = Depends(get_db_session),
+    current_user = Depends(get_current_user),
 ):
-    """Get recent errors for monitoring."""
-    # TODO: Implement error retrieval
-    return {"errors": []}
+    """Get recent alerts for dashboard."""
+    # Get high-risk predictions
+    from predict.core.db.models.prediction import Prediction
+    from sqlalchemy import select
+    
+    stmt = (
+        select(Prediction)
+        .where(Prediction.failure_probability > 0.7)
+        .where(Prediction.status == "active")
+        .order_by(Prediction.created_at.desc())
+        .limit(limit)
+    )
+    
+    result = await session.execute(stmt)
+    predictions = result.scalars().all()
+    
+    alerts = []
+    for pred in predictions:
+        alerts.append({
+            "id": pred.id,
+            "vehicle_id": pred.profile_id,
+            "component": pred.component,
+            "risk_score": pred.failure_probability,
+            "detected_at": time.strftime(
+                "%Y-%m-%dT%H:%M:%SZ", time.gmtime(pred.created_at)
+            ) if pred.created_at else None,
+            "detected_at_unix": pred.created_at,
+        })
+    
+    return {
+        "alerts": alerts,
+        "count": len(alerts),
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "timestamp_unix": time.time(),
+    }

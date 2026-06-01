@@ -1,0 +1,13 @@
+{
+  "hex_code": "C8",
+  "name": "Discovered_PID_C8",
+  "description": "Discovered PID C8 - Raw Response: UNSUPPORTED_CONNECTION",
+  "formula": "A",
+  "units": "Raw",
+  "min_value": "0",
+  "max_value": "255",
+  "category": "Mode_01",
+  "vehicle_specific": true,
+  "validation_required": true,
+  "raw_response": "UNSUPPORTED_CONNECTION"
+}

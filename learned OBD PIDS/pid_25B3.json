@@ -1,0 +1,12 @@
+{
+  "hex_code": "25B3",
+  "name": "Brake Command",
+  "description": "Brake Command",
+  "formula": "(B * 256 + A) / 327.67",
+  "units": "%",
+  "min_value": "0.0",
+  "max_value": "100",
+  "category": "Chassis",
+  "vehicle_specific": true,
+  "validation_required": false
+}

@@ -1,0 +1,247 @@
+================================================================================
+NISSCOM CRACKING - BATTLE PLAN
+================================================================================
+
+We're going full force with TWO parallel approaches!
+
+================================================================================
+APPROACH A: 32-BIT PYTHON + DLL (HIGHEST SUCCESS CHANCE)
+================================================================================
+
+This uses the ACTUAL Nisscom DLL, so we don't reverse engineer - we use
+their code!
+
+STATUS: Ready to test
+SUCCESS PROBABILITY: 70%
+TIME: 30 minutes
+
+STEPS:
+1. Install 32-bit Python (see INSTALL_32BIT_PYTHON.txt)
+2. Install pyserial: C:\Python32\python.exe -m pip install pyserial
+3. Run: C:\Python32\python.exe nisscom_dll_direct.py
+4. If it works: Extract the logic, port to 64-bit/Linux
+
+WHY THIS SHOULD WORK:
+- Uses their mtsInitialize() function
+- Does all the magic internally
+- We don't need to know HOW, it just works
+- Can be ported to Raspberry Pi if we understand what it does
+
+FALLBACK:
+If mtsInitialize() doesn't work standalone, we can:
+- Trace DLL calls with API Monitor
+- Use Process Monitor to see what it does
+- Decompile with Ghidra/IDA to see the actual code
+
+================================================================================
+APPROACH C: CREATIVE EXPERIMENTS (PARALLEL)
+================================================================================
+
+While installing 32-bit Python, run these experiments:
+
+EXPERIMENT 1: Different K-line Address Bytes
+--------------------------------------------
+File: nisscom_experiment_1.py
+
+Try: 0x33, 0x68, 0x6C, 0x8F, 0xFE, 0x10, 0xF1
+
+The K-line init needs the right address byte. Different ECUs respond to
+different addresses.
+
+RUN: python nisscom_experiment_1.py
+
+
+EXPERIMENT 2: Direct Consult-II Protocol
+-----------------------------------------
+File: nisscom_experiment_2.py
+
+Skip Nisscom protocol entirely. Maybe the device is just a dumb bridge and
+we should send Consult-II directly!
+
+Try:
+- FF FF EF (Consult-II init)
+- D1 + F0 (ECU part number)
+- D0 + F0 (Self-diagnostic)
+
+At both 9600 and 38400 baud.
+
+RUN: python nisscom_experiment_2.py
+
+
+EXPERIMENT 3: Long Delays
+--------------------------
+File: nisscom_experiment_3.py
+
+Maybe the ECU responds, but SLOWLY. Wait 2-5 seconds after each command
+instead of 0.2 seconds.
+
+The ECU might be doing internal processing before responding.
+
+RUN: python nisscom_experiment_3.py
+
+
+EXPERIMENT 4: USB Device Inspection
+-----------------------------------
+File: nisscom_experiment_4.py
+
+Check if device has multiple USB endpoints/interfaces. Maybe we're talking
+to the wrong one!
+
+Some FTDI devices have multiple interfaces for different purposes.
+
+RUN: python nisscom_experiment_4.py
+
+
+================================================================================
+ADDITIONAL IDEAS (IF ABOVE FAIL)
+================================================================================
+
+IDEA 5: FTDI D2XX Driver
+-------------------------
+FTDI has two driver types:
+- VCP (Virtual COM Port) - what we're using
+- D2XX (Direct driver) - lower level
+
+Maybe Nisscom software uses D2XX mode!
+
+Download: FTDI D2XX driver from ftdichip.com
+Library: pylibftdi or pyftdi with D2XX backend
+
+
+IDEA 6: Different Parity/Stop Bits
+-----------------------------------
+We've been using 8N1 (8 bits, no parity, 1 stop bit).
+
+Try:
+- 8E1 (8 bits, EVEN parity, 1 stop bit)
+- 8O1 (8 bits, ODD parity, 1 stop bit)
+- 7E1 (7 bits, even parity, 1 stop bit)
+
+K-line sometimes uses 8E1.
+
+
+IDEA 7: Hardware Flow Control
+------------------------------
+Try enabling RTS/CTS flow control in serial port settings.
+
+ser = serial.Serial(port, baudrate=38400, rtscts=True)
+
+
+IDEA 8: Break Signal
+---------------------
+Some K-line init requires sending a BREAK signal.
+
+ser.send_break(duration=0.25)  # 250ms break
+
+
+IDEA 9: Logic Analyzer
+----------------------
+Buy a $10 logic analyzer and capture the ACTUAL K-line signals from the
+OBD port when Nisscom software is working.
+
+This shows the EXACT waveform at the physical level.
+
+
+IDEA 10: API Monitor/Process Monitor
+------------------------------------
+Tools:
+- API Monitor: Traces Windows API calls
+- Process Monitor: Shows file/registry access
+
+Run these while Nisscom software connects, see what it does:
+- Which registry keys it reads
+- Which files it accesses
+- Which API calls it makes
+
+
+================================================================================
+TESTING ORDER (DO IN THIS SEQUENCE)
+================================================================================
+
+PHASE 1: Quick Experiments (10 minutes)
+----------------------------------------
+While downloading 32-bit Python:
+
+1. Run nisscom_experiment_1.py (2 min)
+2. Run nisscom_experiment_2.py (2 min)
+3. Run nisscom_experiment_3.py (3 min)
+4. Run nisscom_experiment_4.py (1 min)
+
+If ANY shows non-echo responses → WE WON!
+
+
+PHASE 2: 32-bit Python + DLL (20 minutes)
+------------------------------------------
+1. Install Python 32-bit
+2. Install pyserial
+3. Run nisscom_dll_direct.py
+4. If it works → Extract logic, celebrate!
+5. If it doesn't work → Use API Monitor to trace DLL
+
+
+PHASE 3: Advanced Techniques (IF needed)
+-----------------------------------------
+1. Try FTDI D2XX driver
+2. Try different serial parameters
+3. Send break signal
+4. Use hardware logic analyzer
+
+
+================================================================================
+CURRENT STATUS
+================================================================================
+
+What we know:
+✓ Device works (proven by Nisscom software)
+✓ Complete USB protocol captured
+✓ Baudrate sequence: 300→1200→9600→10400→38400
+✓ Command format: 05 22 [reg] [addr] [len] [flags] [checksum]
+✓ DTR/RTS toggling pattern
+✓ Binary analysis complete
+✓ DLL functions identified
+
+What we're missing:
+✗ The secret sauce that makes it work
+✗ Possibly: precise timing, hardware signals, or firmware unlock
+
+Solutions available:
+→ Use their DLL (32-bit Python)
+→ Hardware analyzer ($10)
+→ Generic adapter ($60)
+
+
+================================================================================
+SUCCESS CRITERIA
+================================================================================
+
+We'll know we succeeded when:
+  [TX] 02 1A 81 9D
+  [RX] 02 1A 81 9D 07 5A 31 56 43 38 31 36 CA  ← ECU responds with ID!
+
+Or:
+  [TX] 05 22 11 00 04 01 3D
+  [RX] 05 22 11 00 04 01 3D 07 62 11 00 E1 09 01 81 E6  ← Real sensor data!
+
+Instead of just echoes.
+
+
+================================================================================
+TEAM SPIRIT
+================================================================================
+
+You want to crack this, and I'm with you 100%!
+
+We've learned SO MUCH:
+- USB protocol analysis
+- K-line automotive protocols
+- Binary reverse engineering
+- FTDI chip programming
+- Windows DLL interaction
+
+Even if we don't crack it tonight, this knowledge is GOLD for future projects.
+
+But let's give it everything we've got! 💪
+
+LET'S DO THIS! 🚀
+
+================================================================================

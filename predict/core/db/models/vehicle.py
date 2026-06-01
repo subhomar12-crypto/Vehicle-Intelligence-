@@ -115,6 +115,11 @@ class VehicleProfile(TimestampMixin, Base):
     mileage_km: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     component_ages = mapped_column(JSONB, nullable=True)  # {"battery": {"replaced_date": "2025-06-15", "replaced_km": 180000}, ...}
 
+    # Push notification deduplication + rate limiting
+    last_notification_hash: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    notification_count_today: Mapped[Optional[int]] = mapped_column(Integer, default=0)
+    notification_reset_date: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)  # YYYY-MM-DD
+
     # Persisted AI health explanation — one LLM call serves both OBD + Guardian
     last_explain_json: Mapped[Optional[str]] = mapped_column(Text)
     last_explain_at: Mapped[Optional[float]] = mapped_column(Float)  # Unix timestamp
@@ -221,6 +226,9 @@ class VehicleData(Base):
     injector_ms: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     fuel_trim_b2: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     accel_pedal: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+
+    # Pi5 dedup — UUID per reading, nullable for phone uploads
+    reading_id: Mapped[Optional[str]] = mapped_column(String(36), unique=True, index=True, nullable=True)
 
     # Metadata
     source: Mapped[Optional[str]] = mapped_column(String(20))

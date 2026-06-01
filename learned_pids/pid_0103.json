@@ -1,0 +1,12 @@
+{
+  "hex_code": "0103",
+  "name": "Fuel System Status",
+  "description": "Fuel system 1 and 2 status",
+  "formula": "A B",
+  "units": "",
+  "min_value": "",
+  "max_value": "Fuel",
+  "category": "No",
+  "vehicle_specific": false,
+  "validation_required": false
+}

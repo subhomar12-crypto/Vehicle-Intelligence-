@@ -1,0 +1,12 @@
+{
+  "hex_code": "51EC",
+  "name": "Nissan_PID_51EC",
+  "description": "Nissan proprietary parameter 51EC",
+  "formula": "(B*256 + A)",
+  "units": "units",
+  "min_value": "0.0",
+  "max_value": "65535",
+  "category": "Nissan-UDS",
+  "vehicle_specific": true,
+  "validation_required": false
+}

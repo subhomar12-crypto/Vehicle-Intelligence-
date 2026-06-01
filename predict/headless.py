@@ -10,8 +10,10 @@ Usage:
 """
 
 import logging
+import os
 import sys
 import signal
+from pathlib import Path
 from typing import Optional
 
 import uvicorn
@@ -19,13 +21,17 @@ import uvicorn
 from predict.core.version import APP_NAME, APP_VERSION
 from predict.core.config import get_config
 
+# Ensure log directory exists before creating FileHandler
+_log_dir = Path(__file__).parent.parent / "data" / "logs"
+_log_dir.mkdir(parents=True, exist_ok=True)
+
 # Setup logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.StreamHandler(sys.stdout),
-        logging.FileHandler('data/logs/server.log', encoding='utf-8'),
+        logging.FileHandler(str(_log_dir / 'server.log'), encoding='utf-8'),
     ]
 )
 logger = logging.getLogger(__name__)
@@ -51,10 +57,6 @@ class HeadlessServer:
         # Setup signal handlers
         signal.signal(signal.SIGINT, self._signal_handler)
         signal.signal(signal.SIGTERM, self._signal_handler)
-        
-        # Ensure log directory exists
-        import os
-        os.makedirs('data/logs', exist_ok=True)
         
         # Create Uvicorn server
         self.server = uvicorn.Server(

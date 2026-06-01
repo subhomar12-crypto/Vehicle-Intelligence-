@@ -1,0 +1,58 @@
+================================================================================
+  PREDICT CAR AI - PREVILIUM SERVER QUICK START
+================================================================================
+
+WHAT CHANGED:
+-------------
+Your desktop app now connects to the Previlium OBD Server (port 8000)
+instead of running a separate server on port 8080.
+
+HOW TO USE:
+-----------
+
+1. STARTING THE SERVER (Choose one):
+
+   Option A - From Desktop App (Easiest):
+   - Open Predict desktop app
+   - Go to "Server" tab
+   - Click "Start Server"
+   - Wait for "Server: Running ✓"
+
+   Option B - Manually:
+   - Open command prompt
+   - cd "C:\OBDserver\Previlium_OBD_Server"
+   - Run: uvicorn main:app --host 0.0.0.0 --port 8000
+
+2. VERIFY IT'S WORKING:
+   - Open browser
+   - Go to: http://localhost:8000/docs
+   - You should see the API documentation
+
+3. ANDROID APP SETUP:
+   - Server IP: <Your computer's IP from Server tab>
+   - Port: 8000  <-- NOT 8080 anymore!
+   - API Key: <Generate in Server tab>
+
+IMPORTANT:
+----------
+- Port is now 8000 (not 8080)
+- Update your Android app if it's using port 8080
+- Desktop app will auto-start Previlium if needed
+
+TROUBLESHOOTING:
+----------------
+If "Start Server" fails:
+1. Make sure uvicorn is installed: pip install uvicorn fastapi
+2. Check if port 8000 is already in use
+3. Try starting manually (Option B above)
+
+FILES CHANGED:
+--------------
+✓ mobile_server_wrapper.py - Connects to Previlium
+✓ server_tab.py - Shows port 8000
+✓ main_pyside.py - Uses port 8000
+✓ server_module.py - Fixed syntax errors
+
+For full details, see: PREVILIUM_INTEGRATION_COMPLETE.md
+
+================================================================================

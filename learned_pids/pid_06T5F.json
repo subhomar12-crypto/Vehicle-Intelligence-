@@ -1,0 +1,12 @@
+{
+  "hex_code": "06T5F",
+  "name": "Mode06_Test_95",
+  "description": "Onboard diagnostic test 95",
+  "formula": "A",
+  "units": "raw",
+  "min_value": "0.0",
+  "max_value": "255",
+  "category": "Diagnostics",
+  "vehicle_specific": false,
+  "validation_required": true
+}

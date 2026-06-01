@@ -1,0 +1,25 @@
+{
+  "backups": [
+    {
+      "timestamp": "2026-01-06T13:38:23.164069",
+      "type": "daily",
+      "filename": "backup_2026_01_06_133823.zip",
+      "size_mb": 0.0,
+      "description": "Automatic scheduled backup"
+    },
+    {
+      "timestamp": "2026-01-08T16:06:41.344508",
+      "type": "daily",
+      "filename": "backup_2026_01_08_160641.zip",
+      "size_mb": 0.0,
+      "description": "Automatic scheduled backup"
+    },
+    {
+      "timestamp": "2026-01-17T14:06:34.809442",
+      "type": "daily",
+      "filename": "backup_2026_01_17_140634.zip",
+      "size_mb": 0.0,
+      "description": "Automatic scheduled backup"
+    }
+  ]
+}

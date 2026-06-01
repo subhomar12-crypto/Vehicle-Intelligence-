@@ -1354,7 +1354,7 @@ class FleetDenyRequest(BaseModel):
 
 @router.get("/fleet-requests")
 async def list_fleet_requests(
-    status: str = Query("pending", regex="^(pending|approved|rejected|all)$"),
+    status: str = Query("pending", pattern="^(pending|approved|rejected|all)$"),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     session: AsyncSession = Depends(get_db_session),
@@ -1655,3 +1655,245 @@ async def deny_fleet_request(
         "status": "rejected",
         "timestamp": current_time,
     }
+
+
+# ===== AI Dashboard + Train Endpoints (v3 Task 4) =====
+
+@router.get("/ai-dashboard")
+async def get_ai_dashboard(
+    session: AsyncSession = Depends(get_db_session),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Fleet-wide AI overview for admin.
+    Returns model coverage matrix, intelligence distribution, and vehicle list.
+    """
+    require_admin(current_user)
+
+    from predict.core.db.models.vehicle import VehicleProfile, VehicleBaseline
+    from predict.core.db.models.prediction_feedback import FleetPenaltyAdjustment
+
+    # Get all vehicle baselines joined with profiles
+    stmt = (
+        select(VehicleProfile, VehicleBaseline)
+        .outerjoin(
+            VehicleBaseline,
+            VehicleProfile.profile_id == VehicleBaseline.profile_id,
+        )
+    )
+    result = await session.execute(stmt)
+    rows = result.all()
+
+    # Phase distribution
+    phase_counts = {"collecting": 0, "baseline_ready": 0, "autoencoder_ready": 0, "none": 0}
+    # Intelligence level distribution
+    intel_dist = {"basic": 0, "enhanced": 0, "expert": 0, "predictive": 0}
+
+    vehicles = []
+    total_data_points = 0
+
+    for profile, baseline in rows:
+        phase = baseline.phase if baseline else "none"
+        data_points = baseline.data_points if baseline else 0
+        total_data_points += data_points
+
+        phase_counts[phase] = phase_counts.get(phase, 0) + 1
+
+        # Compute intelligence level
+        if data_points >= 5000:
+            level = "predictive"
+        elif data_points >= 2000 or phase == "autoencoder_ready":
+            level = "expert"
+        elif data_points >= 500 or phase == "baseline_ready":
+            level = "enhanced"
+        else:
+            level = "basic"
+
+        intel_dist[level] = intel_dist.get(level, 0) + 1
+
+        vehicles.append({
+            "vehicle_id": profile.profile_id,
+            "make": profile.make,
+            "model": profile.model,
+            "year": profile.year,
+            "phase": phase,
+            "data_points": data_points,
+            "intelligence_level": level,
+            "trip_count": baseline.trip_count if baseline else 0,
+            "has_autoencoder": baseline.autoencoder_weights is not None if baseline else False,
+        })
+
+    # Model coverage: how many vehicles have each model type active
+    model_coverage = {
+        "baseline_stats": sum(1 for v in vehicles if v["phase"] in ("baseline_ready", "autoencoder_ready")),
+        "isolation_forest": sum(1 for v in vehicles if v["phase"] in ("baseline_ready", "autoencoder_ready")),
+        "correlation_baseline": sum(1 for v in vehicles if v["phase"] in ("baseline_ready", "autoencoder_ready")),
+        "survival_curves": sum(1 for v in vehicles if v["phase"] in ("baseline_ready", "autoencoder_ready")),
+        "autoencoder": sum(1 for v in vehicles if v["phase"] == "autoencoder_ready"),
+        "lstm": sum(1 for v in vehicles if v["phase"] == "autoencoder_ready"),
+        "xgboost": sum(1 for v in vehicles if v["data_points"] >= 5000),
+        "context_scorer": len(vehicles),  # always active
+        "pattern_matcher": len(vehicles),  # always active
+    }
+
+    # Fleet learning stats
+    fleet_stmt = select(FleetPenaltyAdjustment)
+    fleet_result = await session.execute(fleet_stmt)
+    fleet_rows = fleet_result.scalars().all()
+    fleet_learning = {
+        "active": len(fleet_rows) > 0,
+        "components_calibrated": sum(1 for r in fleet_rows if r.sample_count > 0),
+        "total_samples": sum(r.sample_count for r in fleet_rows),
+    }
+
+    await _log_admin_read(session, current_user, "ai-dashboard", {})
+
+    return {
+        "total_vehicles": len(vehicles),
+        "total_data_points": total_data_points,
+        "phase_distribution": phase_counts,
+        "intelligence_distribution": intel_dist,
+        "model_coverage": model_coverage,
+        "fleet_learning": fleet_learning,
+        "vehicles": vehicles,
+    }
+
+
+class TrainRequest(BaseModel):
+    model_name: str  # e.g. "autoencoder", "baseline_stats", "isolation_forest"
+
+
+@router.post("/vehicles/{vehicle_id}/train")
+async def trigger_training(
+    vehicle_id: int,
+    request: TrainRequest,
+    session: AsyncSession = Depends(get_db_session),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Trigger training for a specific model on a vehicle.
+    Admin only. Queues an ARQ job.
+
+    Error handling:
+    - 400: insufficient data for requested model
+    - 403: non-admin
+    - 404: vehicle not found
+    - 409: training already in progress
+    - 503: ARQ queue unavailable
+    """
+    require_admin(current_user)
+
+    from predict.core.db.models.vehicle import VehicleProfile, VehicleBaseline
+    from sqlalchemy import update as sql_update
+
+    valid_models = {
+        "baseline_stats", "isolation_forest", "correlation_baseline",
+        "survival_curves", "autoencoder", "lstm", "xgboost",
+    }
+    if request.model_name not in valid_models:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid model_name. Must be one of: {', '.join(sorted(valid_models))}",
+        )
+
+    # Verify vehicle exists
+    profile_result = await session.execute(
+        select(VehicleProfile).where(VehicleProfile.profile_id == vehicle_id)
+    )
+    profile = profile_result.scalar_one_or_none()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Vehicle not found")
+
+    # Get baseline
+    baseline_result = await session.execute(
+        select(VehicleBaseline).where(VehicleBaseline.profile_id == vehicle_id)
+    )
+    baseline = baseline_result.scalar_one_or_none()
+
+    data_points = baseline.data_points if baseline else 0
+
+    # Check data sufficiency
+    min_data = {
+        "baseline_stats": 500,
+        "isolation_forest": 500,
+        "correlation_baseline": 500,
+        "survival_curves": 500,
+        "autoencoder": 2000,
+        "lstm": 2000,
+        "xgboost": 5000,
+    }
+    required = min_data.get(request.model_name, 500)
+    if data_points < required:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Insufficient data: {data_points} points, need {required} for {request.model_name}",
+        )
+
+    # Check concurrent training (training_in_progress JSON on baseline)
+    training_in_progress = {}
+    if baseline:
+        try:
+            tip_raw = getattr(baseline, "training_in_progress", None)
+            if tip_raw:
+                training_in_progress = json.loads(tip_raw) if isinstance(tip_raw, str) else (tip_raw or {})
+        except (json.JSONDecodeError, TypeError):
+            training_in_progress = {}
+
+    if request.model_name in training_in_progress:
+        started_at = training_in_progress[request.model_name]
+        if isinstance(started_at, (int, float)) and (time.time() - started_at) < 3600:
+            raise HTTPException(
+                status_code=409,
+                detail=f"Training '{request.model_name}' already in progress (started {int(time.time() - started_at)}s ago)",
+            )
+        # Stale (> 1 hour) — allow re-queue
+
+    # Queue ARQ job
+    try:
+        from predict.core.cache.redis_client import get_redis
+        redis = await get_redis()
+        if redis is None:
+            raise HTTPException(status_code=503, detail="Training queue unavailable (Redis not connected)")
+
+        job_data = json.dumps({
+            "vehicle_id": vehicle_id,
+            "model_name": request.model_name,
+            "triggered_by": current_user.get("user_id"),
+            "triggered_at": time.time(),
+        })
+        await redis.lpush("arq:queue", job_data)
+
+        # Mark training in progress
+        training_in_progress[request.model_name] = time.time()
+        if baseline:
+            # Update baseline with training flag
+            try:
+                # Use raw SQL update since training_in_progress may not be a column yet
+                await session.execute(
+                    sql_update(VehicleBaseline)
+                    .where(VehicleBaseline.profile_id == vehicle_id)
+                    .values(training_in_progress=json.dumps(training_in_progress))
+                )
+                await session.commit()
+            except Exception as e:
+                logger.debug("Could not update training_in_progress flag: %s", e)
+                await session.rollback()
+
+        logger.info(
+            "Admin %s triggered training '%s' for vehicle %d",
+            current_user.get("user_id"), request.model_name, vehicle_id,
+        )
+
+        return {
+            "success": True,
+            "vehicle_id": vehicle_id,
+            "model_name": request.model_name,
+            "status": "queued",
+            "message": f"Training job queued for {request.model_name}",
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Failed to queue training job: %s", e)
+        raise HTTPException(status_code=503, detail=f"Training queue error: {str(e)}")

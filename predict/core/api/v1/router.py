@@ -50,6 +50,8 @@ from predict.core.api.v1 import (
     pid_atlas,
     feedback,
     pricing,
+    share,
+    pi5,
 )
 
 api_router = APIRouter()
@@ -111,6 +113,12 @@ api_router.include_router(feedback.router, prefix="/predictions", tags=["predict
 
 # Pricing (parts + service costs, Qatar market)
 api_router.include_router(pricing.router, prefix="/pricing", tags=["pricing"])
+
+# Share (time-limited public health snapshots for mechanics)
+api_router.include_router(share.router, prefix="/share", tags=["share"])
+
+# Pi5 edge device management
+api_router.include_router(pi5.router, prefix="/pi5", tags=["pi5"])
 
 # Legacy routes for Android compatibility
 api_router.include_router(auth.legacy_router, tags=["legacy"])

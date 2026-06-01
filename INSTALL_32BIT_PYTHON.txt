@@ -1,0 +1,43 @@
+================================================================================
+INSTALL 32-BIT PYTHON FOR DLL ACCESS
+================================================================================
+
+STEP 1: Download 32-bit Python
+===============================
+1. Go to: https://www.python.org/downloads/
+2. Find Python 3.12 (or latest)
+3. Click "Download"
+4. Scroll down to "Files"
+5. Download: "Windows installer (32-bit)"
+   Example: python-3.12.x-webinstall.exe (32-bit)
+
+STEP 2: Install
+===============
+1. Run the installer
+2. CHECK "Add Python 3.12 to PATH"
+3. Click "Customize installation"
+4. Check all optional features
+5. In Advanced Options:
+   - CHECK "Install for all users"
+   - Change install location to: C:\Python32
+6. Click "Install"
+
+STEP 3: Verify
+==============
+Open command prompt and run:
+   C:\Python32\python.exe --version
+
+Should show: Python 3.12.x (32-bit)
+
+STEP 4: Install pyserial
+=========================
+   C:\Python32\python.exe -m pip install pyserial
+
+STEP 5: Test DLL
+================
+   cd "C:\D Drive\Predict"
+   C:\Python32\python.exe nisscom_dll_direct.py
+
+This should load the 32-bit DLL and work!
+
+================================================================================

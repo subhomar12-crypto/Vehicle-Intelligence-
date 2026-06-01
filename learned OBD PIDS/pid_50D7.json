@@ -1,0 +1,12 @@
+{
+  "hex_code": "50D7",
+  "name": "Nissan_PID_50D7",
+  "description": "Nissan proprietary parameter 50D7",
+  "formula": "(B*256 + A)",
+  "units": "units",
+  "min_value": "0.0",
+  "max_value": "65535",
+  "category": "Nissan-UDS",
+  "vehicle_specific": true,
+  "validation_required": false
+}

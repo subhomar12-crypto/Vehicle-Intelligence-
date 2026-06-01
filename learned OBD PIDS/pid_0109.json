@@ -1,0 +1,12 @@
+{
+  "hex_code": "0109",
+  "name": "Long Term Fuel Trim Bank 2",
+  "description": "LTFT B2",
+  "formula": "A*100/128 - 100",
+  "units": "%",
+  "min_value": "-100.0",
+  "max_value": "99.2",
+  "category": "Fuel",
+  "vehicle_specific": false,
+  "validation_required": false
+}

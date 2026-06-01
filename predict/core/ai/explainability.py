@@ -36,7 +36,7 @@ class ExplainabilityEngine:
             "oil_temp_c": "Oil temperature",
             "rpm": "Engine RPM",
             "speed_kmh": "Vehicle speed",
-            "throttle_position": "Throttle position",
+            "throttle_pos": "Throttle position",
             "coolant_temp_c": "Coolant temperature",
             "intake_temp_c": "Intake air temperature",
             "maf_rate": "Mass air flow rate",

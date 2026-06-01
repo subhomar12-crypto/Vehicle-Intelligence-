@@ -1,0 +1,12 @@
+{
+  "hex_code": "22B5",
+  "name": "KPH",
+  "description": "Kilometers Per Hour",
+  "formula": "B * 256 + A",
+  "units": "km/h",
+  "min_value": "0.0",
+  "max_value": "600",
+  "category": "Chassis",
+  "vehicle_specific": true,
+  "validation_required": false
+}

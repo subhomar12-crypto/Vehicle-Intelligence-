@@ -20,6 +20,7 @@ from predict.core.config import get_config
 from predict.core.version import APP_NAME, APP_VERSION
 from predict.desktop.server_thread import get_server_manager
 from predict.desktop.main_window import PredictMainWindow
+from predict.desktop.theme import PredictTheme
 
 logger = logging.getLogger(__name__)
 
@@ -60,15 +61,18 @@ def start_desktop(
     
     logger.info(f"Starting {APP_NAME} Desktop v{APP_VERSION}")
     
+    # Enable high DPI scaling (must be set BEFORE QApplication is created)
+    QApplication.setHighDpiScaleFactorRoundingPolicy(
+        Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
+    )
+
     # Create Qt Application
     app = QApplication(sys.argv)
     app.setApplicationName(APP_NAME)
     app.setApplicationVersion(APP_VERSION)
-    
-    # Enable high DPI scaling
-    app.setHighDpiScaleFactorRoundingPolicy(
-        Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
-    )
+
+    # Apply dark theme
+    PredictTheme.apply_dark_theme(app)
     
     try:
         # Start embedded server

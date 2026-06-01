@@ -1,0 +1,65 @@
+================================================================================
+VIRTUAL COM PORT SETUP INSTRUCTIONS
+================================================================================
+
+STEP 1: Download com0com
+========================
+1. Go to: https://sourceforge.net/projects/com0com/
+2. Download: com0com-2.2.2.0-x64-fre-signed.zip (for 64-bit Windows)
+   OR: com0com-2.2.2.0-i386-fre-signed.zip (for 32-bit Windows)
+3. Extract the ZIP file
+
+STEP 2: Install com0com
+=======================
+1. Run setup.exe from the extracted folder (Run as Administrator)
+2. Follow installation wizard
+3. Accept default settings
+4. When complete, it will create a virtual COM port pair (usually COM10 <-> COM11)
+
+STEP 3: Verify Installation
+===========================
+1. Open Device Manager (Right-click Start → Device Manager)
+2. Expand "Ports (COM & LTP)"
+3. You should see:
+   - com0com - serial port emulator (COM10)
+   - com0com - serial port emulator (COM11)
+   (Port numbers might be different - note what they are!)
+
+STEP 4: Configure Port Pair (If Needed)
+========================================
+If you need to change port numbers:
+1. Open command prompt as Administrator
+2. Navigate to com0com installation folder (usually C:\Program Files\com0com)
+3. Run: setupc.exe
+4. Use commands like:
+   list                    (show current pairs)
+   install - -               (create new pair)
+   change CNCA0 PortName=COM10
+   change CNCB0 PortName=COM11
+
+RECOMMENDED CONFIGURATION:
+=========================
+We want: COM10 <-> COM11
+- COM10 will be used by Nisscom software
+- COM11 will be used by our Python bridge
+- Python bridge connects COM11 to real COM5
+
+Once installed, come back and run the bridge script!
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Issue: "Setup failed" or driver not installing
+Fix: - Disable driver signature enforcement temporarily
+     - Use the "signed" version of com0com
+     - Run as Administrator
+
+Issue: Ports don't appear in Device Manager
+Fix: - Restart computer after installation
+     - Check if service is running (services.msc → look for com0com)
+
+Issue: Wrong port numbers
+Fix: - Use setupc.exe to reconfigure port names
+
+================================================================================

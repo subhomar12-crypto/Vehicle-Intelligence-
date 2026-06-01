@@ -1,0 +1,371 @@
+
+    Directory: C:\Predict\PredictOBD\app\src\main
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----         12/9/2025   9:33 PM                java
+d-----        12/15/2025   4:17 PM                res
+-a----        12/15/2025   4:17 PM           2620 AndroidManifest.xml
+-a----        12/10/2025  12:16 PM          52930 ic_launcher-playstore.png
+    Directory: C:\Predict\PredictOBD\app\src\main\java
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----         12/9/2025   9:33 PM                com
+    Directory: C:\Predict\PredictOBD\app\src\main\java\com
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----         12/9/2025   9:33 PM                omar
+    Directory: C:\Predict\PredictOBD\app\src\main\java\com\omar
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        12/15/2025   8:18 PM                predictobd
+    Directory: C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----         12/9/2025   9:33 PM                auth
+d-----        12/12/2025  10:20 AM                connection
+d-----        12/15/2025   4:21 PM                data
+d-----        12/15/2025   8:16 PM                navigation
+d-----        12/17/2025   4:09 PM                network
+d-----         12/9/2025   9:33 PM                sensors
+d-----         12/9/2025   9:33 PM                sync
+d-----        12/15/2025   4:29 PM                ui
+d-----         12/9/2025   9:33 PM                util
+d-----        12/15/2025   4:33 PM                workers
+-a----        12/12/2025   2:10 PM           6930 MainActivity.kt
+-a----        12/15/2025   8:18 PM           5338 ProfileSetupScreen.kt
+    Directory: C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\auth
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         12/8/2025   5:59 PM           5785 AuthManager.kt
+    Directory:
+    C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\connection
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/12/2025   1:38 PM          34867 BLEOBDConnection.kt
+-a----        12/12/2025   9:41 AM            753 BluetoothConnection.kt
+-a----        12/12/2025   1:38 PM          16779 DeviceConnectionManager.kt
+-a----        12/12/2025   9:41 AM           7744 ESP32Connection.kt
+-a----        12/12/2025   3:50 PM          29159 OBDConnection.kt
+    Directory: C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\data
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        12/11/2025   1:07 PM                local
+d-----        12/17/2025   4:07 PM                models
+d-----         12/9/2025   9:33 PM                predict
+d-----        12/17/2025   4:11 PM                repository
+d-----         12/9/2025   9:33 PM                telemetry
+    Directory:
+    C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\data\local
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/11/2025   1:07 PM           2607 OBDDevicePreferences.kt
+-a----         12/8/2025  11:17 AM           3390 PredictDao.kt
+-a----         12/8/2025   5:56 PM           1092 PredictDatabase.kt
+-a----         12/8/2025  11:17 AM           1741 VehicleDataEntity.kt
+    Directory:
+    C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\data\models
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        12/15/2025   4:19 PM                alert
+d-----        12/15/2025   4:19 PM                command
+d-----        12/15/2025   4:19 PM                driving
+d-----        12/15/2025   4:19 PM                export
+d-----        12/15/2025   4:19 PM                fleet
+d-----        12/15/2025   4:19 PM                fuel
+d-----        12/15/2025   4:19 PM                geofence
+d-----        12/15/2025   4:19 PM                maintenance
+d-----        12/17/2025   4:06 PM                obd
+d-----        12/17/2025   4:07 PM                pdf
+d-----        12/15/2025   4:19 PM                profile
+d-----        12/15/2025  10:47 PM                service
+d-----        12/17/2025   4:07 PM                telemetry
+d-----        12/15/2025   4:19 PM                trip
+-a----        12/10/2025  11:31 PM           1043 ConnectionMode.kt
+-a----        12/12/2025   3:30 PM           7354 DashboardMetric.kt
+-a----        12/12/2025   3:49 PM           3495 LiveDataModels.kt
+    Directory: C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\data
+    \models\alert
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/15/2025   4:19 PM           1968 AlertModels.kt
+    Directory: C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\data
+    \models\command
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/15/2025   4:19 PM           1503 CommandModels.kt
+    Directory: C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\data
+    \models\driving
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/15/2025   4:19 PM           1305 DrivingScoreModels.kt
+    Directory: C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\data
+    \models\export
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/15/2025   4:19 PM            796 ExportModels.kt
+    Directory: C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\data
+    \models\fleet
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/15/2025   4:19 PM           1462 FleetModels.kt
+    Directory: C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\data
+    \models\fuel
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/15/2025   4:19 PM           3616 FuelModels.kt
+    Directory: C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\data
+    \models\geofence
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/15/2025   4:19 PM           1952 GeofenceModels.kt
+    Directory: C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\data
+    \models\maintenance
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/15/2025   4:19 PM           1922 MaintenanceModels.kt
+    Directory:
+    C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\data\models\obd
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/17/2025   4:06 PM           2144 OBDModels.kt
+    Directory:
+    C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\data\models\pdf
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/17/2025   4:07 PM            574 PDFModels.kt
+    Directory: C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\data
+    \models\profile
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/15/2025   4:19 PM           3575 VehicleProfile.kt
+    Directory: C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\data
+    \models\service
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/15/2025   4:54 PM           1929 DTCModels.kt
+-a----        12/15/2025   4:54 PM           3641 OilChangeModels.kt
+-a----        12/15/2025  10:47 PM           1149 PDFReportModels.kt
+    Directory: C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\data
+    \models\telemetry
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/17/2025   4:07 PM           2172 TelemetryModels.kt
+    Directory: C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\data
+    \models\trip
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/15/2025   4:19 PM           1706 TripModels.kt
+    Directory:
+    C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\data\predict
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         12/5/2025   6:10 PM            511 PredictApiService.kt
+-a----         12/5/2025   6:10 PM           1036 PredictModels.kt
+-a----         12/5/2025   6:10 PM           4478 PredictRepository.kt
+    Directory:
+    C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\data\repository
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/17/2025   4:11 PM          18401 LocalPredictRepository.kt
+    Directory:
+    C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\data\telemetry
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/12/2025   1:41 PM           2999 TelemetryManager.kt
+    Directory:
+    C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\navigation
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/15/2025   8:16 PM          18795 MainNavigationApp.kt
+-a----         12/6/2025   8:01 AM           3685 PredictObdNavHost.kt
+    Directory:
+    C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\network
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----         12/9/2025   9:33 PM                desktop
+d-----        12/17/2025   4:08 PM                local
+d-----        12/17/2025   4:10 PM                pdf
+-a----         12/8/2025   5:59 PM           4397 ApiModels.kt
+-a----         12/5/2025   8:34 PM           2214 DashboardUploader.kt
+-a----         12/8/2025   5:59 PM           2625 EnhancedPredictApiService.kt
+-a----         12/5/2025   8:09 PM            535 ObdTelemetryPayload.kt
+-a----         12/5/2025   8:10 PM            537 PredictApiService.kt
+-a----         12/5/2025   8:10 PM            929 RetrofitClient.kt
+-a----         12/5/2025   8:17 PM           1859 TelemetryUploader.kt
+-a----         12/8/2025   5:58 PM           4373 WebSocketManager.kt
+    Directory:
+    C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\network\desktop
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/12/2025   5:17 PM          11392 DesktopServerClient.kt
+-a----         12/9/2025   1:59 PM           2567 DesktopServerConfig.kt
+-a----         12/9/2025   2:00 PM           4320 VehicleDataPayload.kt
+    Directory:
+    C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\network\local
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/17/2025   4:08 PM          15102 LocalPredictApiService.kt
+-a----        12/17/2025   1:48 PM           2067 LocalRetrofitClient.kt
+-a----        12/17/2025   1:47 PM           3654 LocalServerConfig.kt
+    Directory:
+    C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\network\pdf
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/17/2025   4:09 PM            624 PDFApiService.kt
+-a----        12/17/2025   4:10 PM           2032 PDFRetrofitClient.kt
+    Directory:
+    C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\sensors
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         12/9/2025   2:01 PM           4673 VibrationMonitor.kt
+    Directory: C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\sync
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         12/8/2025   6:00 PM           9603 SyncManager.kt
+    Directory: C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\ui
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        12/17/2025  10:10 PM                screens
+d-----        12/12/2025   5:34 PM                theme
+d-----        12/17/2025   4:28 PM                viewmodels
+    Directory:
+    C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\ui\screens
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        12/15/2025   4:34 PM                dashboard
+d-----        12/15/2025   4:31 PM                fuel
+d-----        12/17/2025   4:33 PM                profile
+d-----        12/15/2025  11:58 PM                service
+d-----        12/15/2025   4:32 PM                trip
+-a----        12/11/2025   1:11 PM          21681 ConnectionScreen.kt
+-a----        12/12/2025   2:09 PM          16175 DashboardScreen.kt
+-a----        12/12/2025   3:44 PM           2697 DebugScreen.kt
+-a----         12/9/2025   2:01 PM          14783 DesktopServerSettings.kt
+-a----         12/8/2025   7:11 PM          11713 EnhancedLiveDataScreen.kt
+-a----         12/8/2025   6:01 PM          10459 EnhancedPredictionsScreen.kt
+-a----         12/5/2025   6:10 PM            493 HistoryScreen.kt
+-a----         12/5/2025   6:10 PM           1439 LiveDataScreen.kt
+-a----        12/12/2025   5:31 PM          31150 MotecDashboardScreen.kt
+-a----         12/5/2025   6:10 PM           3816 PredictionsScreen.kt
+-a----        12/12/2025   5:08 PM          16610 RacingDashboardScreen.kt
+-a----        12/17/2025  10:10 PM          16014 ServerConnectionCard.kt
+-a----        12/17/2025   5:15 PM          39452 SettingsScreen.kt
+    Directory: C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\ui\s
+    creens\dashboard
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/15/2025   4:34 PM          11895 MainDashboardScreen.kt
+    Directory:
+    C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\ui\screens\fuel
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/15/2025   4:31 PM           6164 AddFillupScreen.kt
+-a----        12/15/2025   4:31 PM           6650 FuelTrackingScreen.kt
+    Directory: C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\ui\s
+    creens\profile
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/15/2025   8:19 PM          13120 AddProfileScreen.kt
+-a----        12/15/2025   4:30 PM          10492 ProfileListScreen.kt
+-a----        12/17/2025   4:33 PM           8710 ServerConfigScreen.kt
+    Directory: C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\ui\s
+    creens\service
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/15/2025  11:58 PM          12607 DTCReaderTab.kt
+-a----        12/15/2025  10:32 PM          15978 OilChangeTab.kt
+-a----        12/15/2025  10:47 PM          12432 PDFReportTab.kt
+-a----        12/15/2025  10:50 PM           2914 ServiceScreen.kt
+    Directory:
+    C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\ui\screens\trip
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/15/2025   4:32 PM           6478 TripAnalyticsScreen.kt
+    Directory:
+    C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\ui\theme
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/12/2025   5:35 PM            513 RacingSizes.kt
+-a----         12/9/2025   2:05 PM           3692 RacingTheme.kt
+-a----        12/12/2025   5:35 PM            958 Theme.kt
+    Directory:
+    C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\ui\viewmodels
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/15/2025   4:33 PM           2627 AlertViewModel.kt
+-a----        12/15/2025   4:33 PM           1316 DrivingScoreViewModel.kt
+-a----        12/15/2025   4:31 PM           4549 FuelViewModel.kt
+-a----        12/15/2025   4:33 PM           1841 MaintenanceViewModel.kt
+-a----        12/15/2025   4:45 PM           6940 ProfileViewModel.kt
+-a----        12/17/2025   4:28 PM           3392 ServerConfigViewModel.kt
+-a----        12/15/2025  10:50 PM          11523 ServiceViewModel.kt
+-a----        12/15/2025   4:31 PM           2709 TripViewModel.kt
+    Directory: C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\util
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         12/5/2025   6:10 PM            214 Result.kt
+    Directory:
+    C:\Predict\PredictOBD\app\src\main\java\com\omar\predictobd\workers
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/15/2025   4:33 PM           5212 CommandPollingWorker.kt
+    Directory: C:\Predict\PredictOBD\app\src\main\res
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----         12/9/2025   9:33 PM                drawable
+d-----         12/9/2025   9:33 PM                mipmap-anydpi-v26
+d-----         12/9/2025   9:33 PM                mipmap-hdpi
+d-----         12/9/2025   9:33 PM                mipmap-mdpi
+d-----         12/9/2025   9:33 PM                mipmap-xhdpi
+d-----         12/9/2025   9:33 PM                mipmap-xxhdpi
+d-----         12/9/2025   9:33 PM                mipmap-xxxhdpi
+d-----         12/9/2025   9:33 PM                values
+d-----        12/17/2025   1:47 PM                xml
+    Directory: C:\Predict\PredictOBD\app\src\main\res\drawable
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/10/2025  12:16 PM           4941 ic_launcher_background.xml
+    Directory: C:\Predict\PredictOBD\app\src\main\res\mipmap-anydpi-v26
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/10/2025  12:16 PM            272 ic_launcher.xml
+-a----        12/10/2025  12:16 PM            272 ic_launcher_round.xml
+    Directory: C:\Predict\PredictOBD\app\src\main\res\mipmap-hdpi
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/10/2025  12:16 PM           1472 ic_launcher.webp
+-a----        12/10/2025  12:16 PM           1376 ic_launcher_foreground.webp
+-a----        12/10/2025  12:16 PM           2834 ic_launcher_round.webp
+    Directory: C:\Predict\PredictOBD\app\src\main\res\mipmap-mdpi
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/10/2025  12:16 PM            926 ic_launcher.webp
+-a----        12/10/2025  12:16 PM            694 ic_launcher_foreground.webp
+-a----        12/10/2025  12:16 PM           1748 ic_launcher_round.webp
+    Directory: C:\Predict\PredictOBD\app\src\main\res\mipmap-xhdpi
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/10/2025  12:16 PM           2136 ic_launcher.webp
+-a----        12/10/2025  12:16 PM           1972 ic_launcher_foreground.webp
+-a----        12/10/2025  12:16 PM           4000 ic_launcher_round.webp
+    Directory: C:\Predict\PredictOBD\app\src\main\res\mipmap-xxhdpi
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/10/2025  12:16 PM           3200 ic_launcher.webp
+-a----        12/10/2025  12:16 PM           3998 ic_launcher_foreground.webp
+-a----        12/10/2025  12:16 PM           6452 ic_launcher_round.webp
+    Directory: C:\Predict\PredictOBD\app\src\main\res\mipmap-xxxhdpi
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/10/2025  12:16 PM           4846 ic_launcher.webp
+-a----        12/10/2025  12:16 PM           7302 ic_launcher_foreground.webp
+-a----        12/10/2025  12:16 PM           9582 ic_launcher_round.webp
+    Directory: C:\Predict\PredictOBD\app\src\main\res\values
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         12/5/2025   6:10 PM             73 strings.xml
+-a----         12/5/2025   6:53 PM            349 themes.xml
+    Directory: C:\Predict\PredictOBD\app\src\main\res\xml
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        12/17/2025   1:47 PM           1189 network_security_config.xml

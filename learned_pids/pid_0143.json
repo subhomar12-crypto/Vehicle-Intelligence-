@@ -1,0 +1,12 @@
+{
+  "hex_code": "0143",
+  "name": "Absolute Load",
+  "description": "Absolute load",
+  "formula": "256*A + B",
+  "units": "%",
+  "min_value": "0.0",
+  "max_value": "25700",
+  "category": "Engine",
+  "vehicle_specific": false,
+  "validation_required": false
+}

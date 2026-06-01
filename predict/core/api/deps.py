@@ -30,13 +30,43 @@ async def get_current_user(
     request: Request,
     authorization: Optional[str] = Header(None),
     x_api_key: Optional[str] = Header(None, alias="X-API-Key"),
+    x_device_token: Optional[str] = Header(None, alias="X-Device-Token"),
 ) -> dict:
     """
-    Get current authenticated user from API key.
+    Get current authenticated user from API key or Pi5 device token.
 
-    This dependency validates the API key and returns user information.
+    Checks device token FIRST (Pi5 edge units), then falls back to API key.
+    This dependency validates credentials and returns user information.
     It should be used on protected endpoints.
     """
+    # --- Device token auth (Pi5 edge units) ---
+    if x_device_token:
+        import time as _time
+        from sqlalchemy import select
+        from predict.core.db.models.pi5_device import Pi5Device
+        from predict.core.db.session import get_session_maker
+        async with get_session_maker()() as db:
+            result = await db.execute(
+                select(Pi5Device).where(
+                    Pi5Device.device_token == x_device_token,
+                    Pi5Device.token_expires_at > _time.time(),
+                )
+            )
+            device = result.scalar_one_or_none()
+            if device:
+                # Refresh token expiry on each use (rolling 90 days)
+                device.token_expires_at = _time.time() + 90 * 24 * 60 * 60
+                device.last_seen = _time.time()
+                await db.commit()
+                request.state.user_id = device.user_id
+                return {"user_id": device.user_id, "id": device.user_id, "tier": "device"}
+        raise APIError(
+            status_code=401,
+            code=ErrorCode.AUTH_INVALID_KEY,
+            message="Invalid or expired device token.",
+        )
+
+    # --- Standard API key / JWT auth ---
     api_key = extract_api_key(x_api_key=x_api_key, authorization=authorization, request=request)
 
     if not api_key:
@@ -45,20 +75,20 @@ async def get_current_user(
             code=ErrorCode.AUTH_MISSING_HEADER,
             message="API key required. Use X-API-Key or Authorization header.",
         )
-    
+
     key_data = await validate_api_key(request)
-    
+
     if not key_data:
         raise APIError(
             status_code=401,
             code=ErrorCode.AUTH_INVALID_KEY,
             message="Invalid or expired API key.",
         )
-    
+
     # Store on request state for later use
     request.state.user_id = key_data.get('user_id')
     request.state.api_key_id = key_data.get('key_id')
-    
+
     return key_data
 
 

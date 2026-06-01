@@ -1,0 +1,13 @@
+{
+  "hex_code": "B5",
+  "name": "Discovered_PID_B5",
+  "description": "Discovered PID B5 - Raw Response: UNSUPPORTED_CONNECTION",
+  "formula": "A",
+  "units": "Raw",
+  "min_value": "0",
+  "max_value": "255",
+  "category": "Mode_01",
+  "vehicle_specific": true,
+  "validation_required": true,
+  "raw_response": "UNSUPPORTED_CONNECTION"
+}

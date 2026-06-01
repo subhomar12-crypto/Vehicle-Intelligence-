@@ -1,0 +1,12 @@
+{
+  "hex_code": "26A5",
+  "name": "VCL APP VER",
+  "description": "VCL Application Version",
+  "formula": "(B * 256 + A)/100",
+  "units": "version",
+  "min_value": "0.0",
+  "max_value": "327.67",
+  "category": "System",
+  "vehicle_specific": true,
+  "validation_required": false
+}

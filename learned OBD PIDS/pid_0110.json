@@ -1,0 +1,12 @@
+{
+  "hex_code": "0110",
+  "name": "MAF Air Flow Rate",
+  "description": "MAF sensor",
+  "formula": "(256*A + B)/100",
+  "units": "g/s",
+  "min_value": "0.0",
+  "max_value": "655.35",
+  "category": "Engine",
+  "vehicle_specific": false,
+  "validation_required": false
+}

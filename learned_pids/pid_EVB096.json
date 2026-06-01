@@ -1,0 +1,12 @@
+{
+  "hex_code": "EVB096",
+  "name": "Battery_Cell_96",
+  "description": "EV cell 96 voltage",
+  "formula": "(B*256 + A)/1000",
+  "units": "V",
+  "min_value": "2.5",
+  "max_value": "4.3",
+  "category": "EV-Battery",
+  "vehicle_specific": true,
+  "validation_required": true
+}

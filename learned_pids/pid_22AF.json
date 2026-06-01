@@ -1,0 +1,12 @@
+{
+  "hex_code": "22AF",
+  "name": "MPH",
+  "description": "Miles Per Hour",
+  "formula": "(B * 256 + A)/10",
+  "units": "mph",
+  "min_value": "0.0",
+  "max_value": "100",
+  "category": "Chassis",
+  "vehicle_specific": true,
+  "validation_required": false
+}

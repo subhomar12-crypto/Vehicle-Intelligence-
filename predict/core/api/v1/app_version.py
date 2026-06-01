@@ -65,8 +65,8 @@ class VersionCheckResponse(BaseModel):
 
 @router.get("/version")
 async def check_version(
-    platform: str,
-    version: str,
+    platform: str = "android",
+    version: str = "1.0.0",
     build: Optional[int] = None,
 ):
     """

@@ -1,180 +1,197 @@
 """
-Standardized API error response system.
-Preserves exact ErrorCode values from original server for Android compatibility.
+Global error handler middleware with float timestamps.
 """
 
 import logging
+import time
 import traceback
-from typing import Any, Dict, Optional
-from datetime import datetime, timezone
+import uuid
+from typing import Any, Optional, Dict
 
-from fastapi import HTTPException, Request
+from fastapi import Request, status, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
-from pydantic import BaseModel
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 logger = logging.getLogger(__name__)
 
 
-class ErrorCode:
-    """Standardized error codes. Preserved exactly from original server."""
+# =============================================================================
+# ERROR CODES - Standardized error code registry (from old error_responses.py)
+# =============================================================================
 
-    # Authentication (401)
+class ErrorCode:
+    """Standardized error codes for API responses."""
+
+    # Authentication errors (401)
     AUTH_MISSING_HEADER = "AUTH_MISSING_HEADER"
     AUTH_INVALID_FORMAT = "AUTH_INVALID_FORMAT"
     AUTH_EMPTY_KEY = "AUTH_EMPTY_KEY"
     AUTH_INVALID_KEY = "AUTH_INVALID_KEY"
+    AUTH_INVALID_TOKEN = "AUTH_INVALID_TOKEN"
     AUTH_EXPIRED_TOKEN = "AUTH_EXPIRED_TOKEN"
+    AUTH_USER_NOT_FOUND = "AUTH_USER_NOT_FOUND"
     AUTH_INSUFFICIENT_PERMISSIONS = "AUTH_INSUFFICIENT_PERMISSIONS"
+    INSUFFICIENT_PERMISSIONS = "INSUFFICIENT_PERMISSIONS"
 
-    # Subscription (402/403)
+    # Subscription errors (402/403)
     SUBSCRIPTION_EXPIRED = "SUBSCRIPTION_EXPIRED"
     SUBSCRIPTION_LIMIT_EXCEEDED = "SUBSCRIPTION_LIMIT_EXCEEDED"
     SUBSCRIPTION_INVALID = "SUBSCRIPTION_INVALID"
     FEATURE_NOT_AVAILABLE = "FEATURE_NOT_AVAILABLE"
 
-    # Validation (400)
+    # Validation errors (400)
     VALIDATION_ERROR = "VALIDATION_ERROR"
     INVALID_JSON = "INVALID_JSON"
     MISSING_REQUIRED_FIELD = "MISSING_REQUIRED_FIELD"
     INVALID_FIELD_VALUE = "INVALID_FIELD_VALUE"
     INVALID_PARAMETER = "INVALID_PARAMETER"
 
-    # Resource (404)
+    # Resource errors (404)
     RESOURCE_NOT_FOUND = "RESOURCE_NOT_FOUND"
     PROFILE_NOT_FOUND = "PROFILE_NOT_FOUND"
     VEHICLE_NOT_FOUND = "VEHICLE_NOT_FOUND"
+    VEHICLE_NOT_LINKED = "VEHICLE_NOT_LINKED"
+    VEHICLE_ALREADY_LINKED = "VEHICLE_ALREADY_LINKED"
     DATA_NOT_FOUND = "DATA_NOT_FOUND"
 
     # Rate limiting (429)
     RATE_LIMIT_EXCEEDED = "RATE_LIMIT_EXCEEDED"
 
-    # Server (500)
+    # Server errors (500)
     INTERNAL_ERROR = "INTERNAL_ERROR"
     DATABASE_ERROR = "DATABASE_ERROR"
     AI_MODEL_ERROR = "AI_MODEL_ERROR"
     EXTERNAL_SERVICE_ERROR = "EXTERNAL_SERVICE_ERROR"
 
-    # Service availability (503)
+    # Service availability (501/503)
+    NOT_IMPLEMENTED = "NOT_IMPLEMENTED"
     SERVICE_UNAVAILABLE = "SERVICE_UNAVAILABLE"
     MODEL_NOT_AVAILABLE = "MODEL_NOT_AVAILABLE"
     DATABASE_UNAVAILABLE = "DATABASE_UNAVAILABLE"
 
 
-class ErrorDetail(BaseModel):
-    code: str
-    message: str
-    details: Optional[Dict[str, Any]] = None
-    timestamp: str
-    request_id: Optional[str] = None
-    path: Optional[str] = None
-
-
-class ErrorResponse(BaseModel):
-    success: bool = False
-    error: ErrorDetail
-
+# =============================================================================
+# API ERROR EXCEPTION
+# =============================================================================
 
 class APIError(HTTPException):
-    """Custom exception with standardized error format."""
-
+    """
+    Custom exception class that creates standardized error responses.
+    
+    Usage:
+        raise APIError(
+            status_code=401,
+            code=ErrorCode.AUTH_INVALID_KEY,
+            message="The provided API key is invalid",
+            details={"key_prefix": "pk_..."}
+        )
+    """
+    
     def __init__(
         self,
         status_code: int,
         code: str,
         message: str,
         details: Optional[Dict[str, Any]] = None,
+        request_id: Optional[str] = None
     ):
         self.code = code
-        self.error_message = message
+        self.message = message
         self.details = details
-        super().__init__(status_code=status_code, detail=message)
+        self.request_id = request_id or str(uuid.uuid4())[:8]
+        self.timestamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        
+        # Create the standardized response body
+        error_body = {
+            "success": False,
+            "error": {
+                "code": self.code,
+                "message": self.message,
+                "timestamp": self.timestamp,
+                "request_id": self.request_id
+            }
+        }
+        
+        if self.details:
+            error_body["error"]["details"] = self.details
+        
+        super().__init__(status_code=status_code, detail=error_body)
 
 
-def _build_error_response(
-    status_code: int,
-    code: str,
-    message: str,
-    request: Optional[Request] = None,
-    details: Optional[Dict[str, Any]] = None,
-) -> JSONResponse:
-    """Build standardized error JSON response."""
-    request_id = getattr(request.state, "request_id", None) if request else None
-    path = str(request.url.path) if request else None
-
-    body = ErrorResponse(
-        error=ErrorDetail(
-            code=code,
-            message=message,
-            details=details,
-            timestamp=datetime.now(timezone.utc).isoformat(),
-            request_id=request_id,
-            path=path,
-        )
+async def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
+    """Handle HTTP exceptions."""
+    timestamp_iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    
+    logger.warning(
+        f"HTTP {exc.status_code}: {exc.detail} - {request.method} {request.url.path}"
     )
-    return JSONResponse(status_code=status_code, content=body.model_dump())
-
-
-async def api_error_handler(request: Request, exc: APIError) -> JSONResponse:
-    """Handle APIError exceptions."""
-    return _build_error_response(
+    
+    return JSONResponse(
         status_code=exc.status_code,
-        code=exc.code,
-        message=exc.error_message,
-        request=request,
-        details=exc.details,
+        content={
+            "error": exc.detail,
+            "status_code": exc.status_code,
+            "timestamp": timestamp_iso,
+            "timestamp_unix": time.time(),
+            "path": str(request.url.path),
+        },
     )
 
 
-async def http_error_handler(request: Request, exc: HTTPException) -> JSONResponse:
-    """Handle generic HTTPException."""
-    return _build_error_response(
-        status_code=exc.status_code,
-        code=ErrorCode.INTERNAL_ERROR,
-        message=str(exc.detail),
-        request=request,
+async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    """Handle validation errors."""
+    timestamp_iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    
+    logger.warning(
+        f"Validation error: {exc.errors()} - {request.method} {request.url.path}"
     )
-
-
-async def validation_error_handler(
-    request: Request, exc: RequestValidationError
-) -> JSONResponse:
-    """Handle Pydantic validation errors."""
-    errors = []
+    
+    # Sanitize errors — Pydantic ctx may contain non-serializable objects (ValueError)
+    sanitized_errors = []
     for err in exc.errors():
-        errors.append({
-            "field": ".".join(str(loc) for loc in err["loc"]),
-            "message": err["msg"],
-            "type": err["type"],
-        })
-    return _build_error_response(
-        status_code=422,
-        code=ErrorCode.VALIDATION_ERROR,
-        message="Request validation failed",
-        request=request,
-        details={"errors": errors},
+        clean = {k: v for k, v in err.items() if k != "ctx"}
+        if "ctx" in err:
+            clean["ctx"] = {k: str(v) for k, v in err["ctx"].items()}
+        sanitized_errors.append(clean)
+
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={
+            "error": "Validation error",
+            "details": sanitized_errors,
+            "timestamp": timestamp_iso,
+            "timestamp_unix": time.time(),
+            "path": str(request.url.path),
+        },
     )
 
 
-async def unhandled_error_handler(request: Request, exc: Exception) -> JSONResponse:
-    """Catch-all for unhandled exceptions. Logs traceback, returns 500."""
-    request_id = getattr(request.state, "request_id", None)
+async def general_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Handle uncaught exceptions."""
+    timestamp_iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    error_id = f"ERR-{int(time.time())}-{id(exc) % 10000:04d}"
+    
     logger.error(
-        f"Unhandled exception on {request.method} {request.url.path}",
-        extra={"request_id": request_id},
-        exc_info=True,
+        f"Unhandled exception {error_id}: {exc}\n{traceback.format_exc()}"
     )
-    return _build_error_response(
-        status_code=500,
-        code=ErrorCode.INTERNAL_ERROR,
-        message="An internal error occurred",
-        request=request,
+    
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "error": "Internal server error",
+            "error_id": error_id,
+            "timestamp": timestamp_iso,
+            "timestamp_unix": time.time(),
+            "path": str(request.url.path),
+            "message": "An unexpected error occurred. Please try again later.",
+        },
     )
 
 
-def setup_error_handlers(app) -> None:
-    """Register all error handlers on a FastAPI app."""
-    app.add_exception_handler(APIError, api_error_handler)
-    app.add_exception_handler(HTTPException, http_error_handler)
-    app.add_exception_handler(RequestValidationError, validation_error_handler)
-    app.add_exception_handler(Exception, unhandled_error_handler)
+def setup_error_handlers(app: Any) -> None:
+    """Register all error handlers with the FastAPI app."""
+    app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+    app.add_exception_handler(RequestValidationError, validation_exception_handler)
+    app.add_exception_handler(Exception, general_exception_handler)
+    logger.debug("Error handlers registered")

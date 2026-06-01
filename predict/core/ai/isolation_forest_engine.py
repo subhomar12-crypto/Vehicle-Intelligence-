@@ -75,35 +75,51 @@ class IsolationForestEngine:
         
         return model_dict
     
+    @staticmethod
+    def _average_path_length(n: np.ndarray) -> np.ndarray:
+        """Average path length of unsuccessful BST search c(n).
+
+        Matches sklearn's _average_path_length exactly.
+        """
+        n = np.asarray(n, dtype=np.float64)
+        result = np.zeros_like(n)
+        mask = n > 2
+        result[mask] = (
+            2.0 * (np.log(n[mask] - 1.0) + 0.5772156649)
+            - 2.0 * (n[mask] - 1.0) / n[mask]
+        )
+        result[n == 2] = 1.0
+        # n <= 1: result stays 0
+        return result
+
     def serialize_model(self, model) -> Dict[str, Any]:
         """Serialize sklearn IsolationForest to JSON.
-        
+
         Extracts tree structure for pure-Python inference on Pi5.
-        
+
         Returns:
             Dictionary with tree structures
         """
         trees = []
-        
+
         for estimator in model.estimators_:
             tree = estimator.tree_
-            n_nodes = tree.node_count
-            
-            # Extract tree structure
+
             tree_dict = {
-                "n_nodes": n_nodes,
+                "n_nodes": tree.node_count,
                 "children_left": tree.children_left.tolist(),
                 "children_right": tree.children_right.tolist(),
                 "feature": tree.feature.tolist(),
                 "threshold": tree.threshold.tolist(),
-                "value": tree.value[:, 0, 0].tolist() if hasattr(tree, 'value') else [],
+                "n_node_samples": tree.n_node_samples.tolist(),
             }
             trees.append(tree_dict)
-        
+
         return {
             "n_estimators": len(trees),
             "trees": trees,
             "n_features": model.n_features_in_,
+            "max_samples": int(model.max_samples_),
         }
     
     def load_model(self, model_dict: Dict[str, Any]) -> None:
@@ -205,98 +221,102 @@ class IsolationForestEngine:
     
     def _score_samples_json(self, features: np.ndarray) -> np.ndarray:
         """Score samples using JSON-serialized model (pure Python).
-        
-        This allows inference on Pi5 without sklearn.
-        
+
+        Matches sklearn IsolationForest.score_samples() output exactly:
+            score = -2^(-sum_depths / (n_trees * c(max_samples)))
+
         Args:
             features: (N, n_features) array
-            
+
         Returns:
             Array of anomaly scores (lower = more anomalous)
         """
-        n_samples = len(features)
         n_trees = self.model["n_estimators"]
         trees = self.model["trees"]
-        
-        scores = np.zeros(n_samples)
-        
+        max_samples = self.model.get("max_samples", 256)
+
+        total_depths = np.zeros(len(features))
+
         for tree in trees:
-            depths = self._traverse_tree(features, tree)
-            scores += depths
-        
-        # Average depth across trees
-        scores /= n_trees
-        
-        # Convert to anomaly score (lower = more anomalous)
-        # Using average path length normalization
-        scores = -scores
-        
+            total_depths += self._traverse_tree(features, tree)
+
+        # Normalize by c(max_samples) — matches sklearn formula
+        c_n = self._average_path_length(np.array([max_samples]))[0]
+        if c_n == 0:
+            c_n = 1.0
+
+        scores = -2.0 ** (-total_depths / (n_trees * c_n))
+
         return scores
     
     def _traverse_tree(
-        self, 
-        features: np.ndarray, 
+        self,
+        features: np.ndarray,
         tree: Dict[str, Any]
     ) -> np.ndarray:
-        """Traverse tree for all samples and return depths.
-        
+        """Traverse tree for all samples and return path lengths.
+
+        Path length = edge_depth + c(n_node_samples_at_leaf), matching sklearn's
+        IsolationForest scoring which adds expected additional path length at leaves.
+
         Args:
             features: (N, n_features) array
             tree: Tree dictionary
-            
+
         Returns:
-            Array of depths for each sample
+            Array of path lengths for each sample
         """
         n_samples = len(features)
         depths = np.zeros(n_samples)
-        
-        # Start at root for all samples
+
         node_indices = np.zeros(n_samples, dtype=int)
         active = np.ones(n_samples, dtype=bool)
         current_depth = np.zeros(n_samples)
-        
+
         children_left = np.array(tree["children_left"])
         children_right = np.array(tree["children_right"])
-        feature = np.array(tree["feature"])
-        threshold = np.array(tree["threshold"])
-        
+        feature_arr = np.array(tree["feature"])
+        threshold_arr = np.array(tree["threshold"])
+        n_node_samples = np.array(tree.get("n_node_samples", []))
+
         while np.any(active):
-            # Process active samples
             current_nodes = node_indices[active]
-            
-            # Check which are leaves
+
             is_leaf = (children_left[current_nodes] == children_right[current_nodes])
-            
-            # Mark leaves as done
+
             leaf_mask = active.copy()
             leaf_mask[active] = is_leaf
             depths[leaf_mask] = current_depth[leaf_mask]
+
+            # Add leaf correction: expected path length for remaining unseen samples
+            if len(n_node_samples) > 0 and np.any(leaf_mask):
+                leaf_node_ids = node_indices[leaf_mask]
+                leaf_samples = n_node_samples[leaf_node_ids].astype(np.float64)
+                depths[leaf_mask] += self._average_path_length(leaf_samples)
+
             active[leaf_mask] = False
-            
+
             if not np.any(active):
                 break
-            
-            # Process internal nodes
+
             current_nodes = node_indices[active]
-            feat_idx = feature[current_nodes]
-            thresh = threshold[current_nodes]
-            
-            # Get feature values for active samples
+            feat_idx = feature_arr[current_nodes]
+            thresh = threshold_arr[current_nodes]
+
             active_indices = np.where(active)[0]
             feat_values = features[active_indices, feat_idx]
-            
-            # Go left or right
+
             go_left = feat_values <= thresh
-            
+
             next_nodes = np.where(
                 go_left,
                 children_left[current_nodes],
                 children_right[current_nodes]
             )
-            
+
             node_indices[active] = next_nodes
             current_depth[active] += 1
-        
+
         return depths
     
     def export_for_pi5(self, filepath: str) -> None:

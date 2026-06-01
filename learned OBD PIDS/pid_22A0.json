@@ -1,0 +1,12 @@
+{
+  "hex_code": "22A0",
+  "name": "Amps",
+  "description": "Current Amperage",
+  "formula": "(B * 256 + A)/10",
+  "units": "A",
+  "min_value": "-600.0",
+  "max_value": "600",
+  "category": "Electrical",
+  "vehicle_specific": true,
+  "validation_required": true
+}

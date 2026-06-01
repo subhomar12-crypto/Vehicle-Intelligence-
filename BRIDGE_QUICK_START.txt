@@ -1,0 +1,84 @@
+================================================================================
+QUICK START: Capture Nisscom Protocol with COM Bridge
+================================================================================
+
+OVERVIEW
+========
+We'll create a "bridge" that sits between Nisscom software and your device,
+capturing all communication while remaining completely transparent.
+
+    Nisscom Software → COM10 → Bridge → COM5 → Device → Car
+                                  ↓
+                              Captures Everything!
+
+STEP 1: Install com0com (5 minutes)
+====================================
+See: SETUP_VIRTUAL_COM_PORTS.txt for detailed instructions
+
+Quick version:
+1. Download com0com from: https://sourceforge.net/projects/com0com/
+2. Run setup.exe as Administrator
+3. Verify in Device Manager you see COM10 and COM11
+
+STEP 2: Run the Bridge (30 seconds)
+====================================
+1. Close Nisscom software if it's open
+2. Open command prompt
+3. Run:
+   cd "C:\D Drive\Predict"
+   python nisscom_com_bridge.py
+
+4. Bridge will start and wait for connection
+
+STEP 3: Use Nisscom Software (2 minutes)
+=========================================
+1. Open Nisscom software
+2. IMPORTANT: Configure it to use COM10 (NOT COM5!)
+3. Connect to vehicle
+4. Read some sensors
+5. Let it run for 30-60 seconds
+6. Perform different actions if possible
+
+STEP 4: Stop and Analyze (1 minute)
+====================================
+1. Go back to command prompt with bridge
+2. Press Ctrl+C
+3. Bridge will show statistics and save logs
+4. Logs are in: C:\D Drive\Predict\nisscom_logs\
+
+WHAT YOU'LL GET
+===============
+- Complete capture of all communication
+- HEX, ASCII, and decimal formats
+- Timestamps for every packet
+- Statistics on data flow
+- CSV file for analysis in Excel
+
+NEXT STEPS
+==========
+After capturing:
+1. We'll analyze the protocol
+2. Identify command structure
+3. Create Python implementation
+4. You'll have working Python diagnostics!
+
+TROUBLESHOOTING
+===============
+
+Bridge says "Failed to open real port COM5"
+→ Device not connected or in use by another program
+→ Close Nisscom software before running bridge
+
+Bridge says "Failed to open virtual port COM11"
+→ com0com not installed or wrong port number
+→ Check Device Manager for actual virtual port numbers
+
+Nisscom software can't connect to COM10
+→ Make sure bridge is running first
+→ Check port number in Nisscom settings
+
+No data captured
+→ Make sure you selected COM10 in Nisscom software (not COM5)
+→ Make sure you actually connected to vehicle in Nisscom software
+
+================================================================================

@@ -1,0 +1,12 @@
+{
+  "hex_code": "0163",
+  "name": "Engine Reference Torque",
+  "description": "Reference torque",
+  "formula": "256*A + B",
+  "units": "Nm",
+  "min_value": "0.0",
+  "max_value": "65535",
+  "category": "Engine",
+  "vehicle_specific": false,
+  "validation_required": false
+}

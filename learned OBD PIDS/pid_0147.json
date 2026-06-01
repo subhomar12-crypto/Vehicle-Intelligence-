@@ -1,0 +1,12 @@
+{
+  "hex_code": "0147",
+  "name": "Throttle Position B",
+  "description": "TP B",
+  "formula": "A*100/255",
+  "units": "%",
+  "min_value": "0.0",
+  "max_value": "100",
+  "category": "Sensors",
+  "vehicle_specific": false,
+  "validation_required": false
+}

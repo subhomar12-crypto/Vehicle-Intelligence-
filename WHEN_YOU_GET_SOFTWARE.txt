@@ -1,0 +1,382 @@
+================================================================================
+WHEN YOU GET NISSCOM SOFTWARE - ACTION PLAN
+================================================================================
+
+If you manage to get the Nisscom software from the vendor, here's exactly
+what to do to make everything work AND reverse engineer it for future use.
+
+================================================================================
+STEP-BY-STEP GUIDE
+================================================================================
+
+STEP 1: TEST NISSCOM SOFTWARE FIRST (5 minutes)
+================================================
+
+  1. Install Nisscom software on your computer
+  2. Connect Nisscom device to car (ignition ON)
+  3. Connect USB to computer
+  4. Launch Nisscom software
+  5. Try to connect to vehicle
+  6. If it works, verify you can read:
+     - RPM
+     - Coolant temperature
+     - Vehicle speed
+     - Other sensors
+
+  If this works, GREAT! Now we can reverse engineer it.
+
+STEP 2: CAPTURE THE PROTOCOL (20 minutes)
+==========================================
+
+  Now we'll capture HOW the software communicates with the device.
+  This lets us create our own Python implementation.
+
+  A. Close Nisscom software completely
+
+  B. Open command prompt and run:
+     cd "C:\D Drive\Predict"
+     python nisscom_protocol_sniffer.py
+
+  C. The sniffer will start monitoring COM5
+
+  D. When sniffer says "ready", open Nisscom software
+
+  E. In Nisscom software:
+     - Connect to vehicle
+     - Read some sensors
+     - Let it run for 30-60 seconds
+     - Read different sensors if possible
+
+  F. Go back to command prompt with sniffer
+
+  G. Press Ctrl+C to stop sniffer
+
+  H. Sniffer will save logs to:
+     C:\D Drive\Predict\nisscom_logs\
+
+STEP 3: ANALYZE THE CAPTURED PROTOCOL (1 hour)
+===============================================
+
+  The captured logs will show:
+    - What commands Nisscom software sends to device
+    - How device responds
+    - What the actual car data looks like
+    - Command structure and timing
+
+  We can then:
+    1. Identify the initialization sequence
+    2. Figure out the command format
+    3. Understand the response format
+    4. See how to read each sensor
+
+STEP 4: CREATE PYTHON IMPLEMENTATION (2-4 hours)
+=================================================
+
+  Using the captured protocol, I'll create:
+
+    nisscom_native.py
+      - Sends same initialization as Nisscom software
+      - Reads sensors using discovered command format
+      - Decodes responses correctly
+      - Works WITHOUT Nisscom software
+
+  This means:
+    - You can use Python instead of Nisscom software
+    - Create custom dashboards
+    - Log data automatically
+    - Integrate with other tools
+    - Never need Nisscom software again!
+
+STEP 5: TEST PYTHON IMPLEMENTATION (5 minutes)
+===============================================
+
+  1. Close Nisscom software
+  2. Run: python nisscom_native.py
+  3. Should read all sensors correctly
+  4. SUCCESS - you have working diagnostics!
+
+================================================================================
+WHAT THE PROTOCOL SNIFFER CAPTURES
+================================================================================
+
+Example of what we'll capture:
+
+  [12:34:56.123] SEND >>> FF FF EF
+  [12:34:56.156] RECV <<< 10 AA BB CC
+
+  [12:34:57.234] SEND >>> 5A 01 00 F0
+  [12:34:57.267] RECV <<< 5A 01 AB CD
+
+  From this we learn:
+    - FF FF EF gets response: 10 AA BB CC (initialization)
+    - 5A 01 00 F0 reads register 0x00 (RPM)
+    - Response format: command echo + actual data
+
+  Then we replicate this in Python!
+
+================================================================================
+BENEFITS OF REVERSE ENGINEERING
+================================================================================
+
+Once we capture and replicate the protocol:
+
+  IMMEDIATE BENEFITS:
+    ✓ Use Python instead of Nisscom software
+    ✓ Create custom scripts for your needs
+    ✓ Automate data logging
+    ✓ No dependency on Nisscom company
+    ✓ Free forever (no license fees)
+
+  ADVANCED USES:
+    ✓ Build custom dashboard
+    ✓ Real-time monitoring while driving
+    ✓ Performance data logging
+    ✓ Integration with other tools
+    ✓ Create mobile app (if you want)
+
+  COMMUNITY CONTRIBUTION:
+    ✓ Share implementation with other Nisscom users
+    ✓ Help others who can't get software
+    ✓ Document the protocol for community
+
+================================================================================
+LIKELY PROTOCOL SCENARIOS
+================================================================================
+
+Scenario A: Simple Bridge
+  - Software sends standard Consult-II commands
+  - Device forwards them to car
+  - Device forwards responses back
+  - Easy to replicate in Python
+
+Scenario B: Custom Protocol
+  - Software uses Nisscom-specific commands
+  - Device translates to Consult-II
+  - Harder but still capturable
+
+Scenario C: Complex Handshake
+  - Software negotiates with device firmware
+  - Requires specific initialization
+  - Sniffer will capture all of it
+
+In ALL cases, the sniffer will capture what we need!
+
+================================================================================
+ALTERNATIVE: Share Logs With Me
+================================================================================
+
+If you capture the protocol but aren't sure how to analyze it:
+
+  1. Run the sniffer as described
+  2. Zip the log files from C:\D Drive\Predict\nisscom_logs\
+  3. Share them (you can send to support forums, etc.)
+  4. Someone (me or community) can analyze and create implementation
+
+The logs contain:
+  - All commands (hex format)
+  - All responses (hex format)
+  - Timestamps
+  - No personal data
+  - No car-specific secrets
+  - Just the communication protocol
+
+Safe to share!
+
+================================================================================
+ESTIMATED TIMELINE
+================================================================================
+
+If you get Nisscom software TODAY:
+
+  Day 1, Hour 1:  Test Nisscom software (works? YES/NO)
+  Day 1, Hour 1:  Run protocol sniffer
+  Day 1, Hour 1:  Capture 30-60 seconds of data
+  Day 1, Hour 2:  Analyze captured protocol
+  Day 1, Hour 3:  Start coding Python implementation
+  Day 1, Hour 4:  Test Python implementation
+  Day 1, Hour 5:  SUCCESS - Working Python diagnostics!
+
+  Same day result: Full Python implementation ready
+
+  Then you have BOTH:
+    - Nisscom software (official, might have nice GUI)
+    - Python scripts (customizable, automatable)
+
+================================================================================
+COMPARISON: Get Software vs Buy Adapter
+================================================================================
+
+IF YOU GET NISSCOM SOFTWARE:
+  Cost: $0-100 (software might be free or paid)
+  Time: Available immediately (if you get it)
+  Works with: Your existing Nisscom device
+  Result: Working diagnostics
+  Future: Need to reverse engineer for Python use
+  Risk: Medium (software might not be available)
+
+  PROS:
+    ✓ Use hardware you already own
+    ✓ No shipping wait
+    ✓ Can reverse engineer for Python later
+
+  CONS:
+    ✗ Software might not be available
+    ✗ Software might cost money
+    ✗ Locked to Nisscom software (until we reverse engineer)
+
+IF YOU BUY CONSULT-II ADAPTER:
+  Cost: $40-80
+  Time: 1-3 weeks shipping
+  Works with: Any Nissan Consult-II car
+  Result: Working diagnostics immediately
+  Future: Already have Python implementation ready
+  Risk: Low (adapters widely available, proven to work)
+
+  PROS:
+    ✓ Python scripts already written and tested
+    ✓ Free software available (NDS II, ECU Talk)
+    ✓ No dependency on proprietary software
+    ✓ Works forever
+
+  CONS:
+    ✗ Costs $40-80
+    ✗ Wait for shipping
+    ✗ Nisscom device becomes unused
+
+RECOMMENDATION:
+  - If you can get Nisscom software in next few days: TRY IT FIRST
+  - If software works: Use it + capture protocol
+  - If can't get software in 1 week: Buy Consult-II adapter
+
+================================================================================
+PROTOCOL SNIFFER READY TO USE
+================================================================================
+
+The sniffer is already created and tested:
+  File: C:\D Drive\Predict\nisscom_protocol_sniffer.py
+
+How to use:
+  1. Open command prompt
+  2. cd "C:\D Drive\Predict"
+  3. python nisscom_protocol_sniffer.py
+  4. Follow on-screen instructions
+  5. Logs saved automatically
+
+Features:
+  - Captures all serial data
+  - Saves in multiple formats (text + CSV)
+  - Timestamps every packet
+  - Shows HEX, ASCII, and decimal
+  - Automatically analyzes patterns
+
+Ready to go as soon as you have Nisscom software!
+
+================================================================================
+WHAT TO TELL VENDOR
+================================================================================
+
+When asking vendor for software:
+
+  "I purchased a Nisscom diagnostic device (USB adapter) for my
+   2003 Nissan Patrol. The device is detected on my computer but
+   I need the Nisscom software to use it. Can you please provide:
+
+   1. Download link for Nisscom diagnostic software
+   2. Installation instructions
+   3. License key if required
+   4. User manual if available
+
+   Device details:
+   - Connects via USB (shows as COM5)
+   - For Nissan vehicles
+   - Purchased from: [your vendor]
+   - Date: [purchase date]
+
+   Thank you!"
+
+Keep it simple and professional. They should provide the software
+if it's a legitimate product.
+
+================================================================================
+SUCCESS METRICS
+================================================================================
+
+Software WORKS if:
+  ✓ Connects to your car
+  ✓ Reads RPM correctly (changes when you rev)
+  ✓ Reads coolant temperature (reasonable value)
+  ✓ Reads vehicle speed (0 when parked)
+  ✓ Can read diagnostic codes
+
+Protocol Capture SUCCESSFUL if:
+  ✓ Sniffer logs show data exchange
+  ✓ See commands going to device
+  ✓ See responses coming back
+  ✓ Can identify patterns
+
+Python Implementation WORKS if:
+  ✓ Runs without Nisscom software
+  ✓ Reads same sensors
+  ✓ Values match what Nisscom software showed
+  ✓ No errors
+
+================================================================================
+QUESTIONS & ANSWERS
+================================================================================
+
+Q: Will the sniffer interfere with Nisscom software?
+A: No, it just monitors COM port passively.
+
+Q: Can I break the device by sniffing?
+A: No, we're only reading data, not sending anything.
+
+Q: What if software is in Chinese/other language?
+A: Doesn't matter, we only need it to communicate with device.
+   Protocol is the same regardless of UI language.
+
+Q: How long should I capture data?
+A: 30-60 seconds is enough to see all command patterns.
+
+Q: What if I can't figure out the protocol?
+A: Share the log files, I or community can analyze.
+
+Q: Will Python implementation be as good as Nisscom software?
+A: For reading sensors: YES
+   For advanced features: We'll implement what we can decode
+
+Q: Can we sell the Python implementation?
+A: It's reverse engineered, so better to keep it free/open source
+   for community benefit.
+
+================================================================================
+FILES YOU'LL NEED
+================================================================================
+
+Ready NOW:
+  ✓ nisscom_protocol_sniffer.py - Protocol capture tool
+  ✓ nissan_consult2_native.py - Template for implementation
+
+To be created AFTER capture:
+  - nisscom_native.py - Working with your device
+  - nisscom_sensor_reader.py - Specific sensors
+  - nisscom_code_reader.py - Diagnostic codes
+  - nisscom_logger.py - Data logging
+
+All based on what we learn from the protocol capture!
+
+================================================================================
+SUMMARY
+================================================================================
+
+YES, if you get Nisscom software, the device WILL WORK.
+
+And even better - we can capture the protocol and create our own
+Python implementation, giving you the best of both worlds:
+  1. Working Nisscom device (with official software)
+  2. Python scripts (for custom use)
+
+The protocol sniffer is ready and waiting.
+
+Just let me know when you get the software and we'll capture it!
+
+================================================================================

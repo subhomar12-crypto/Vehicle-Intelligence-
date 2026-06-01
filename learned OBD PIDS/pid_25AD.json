@@ -1,0 +1,12 @@
+{
+  "hex_code": "25AD",
+  "name": "Overvoltage Cutback",
+  "description": "Overvoltage Cutback",
+  "formula": "(B * 256 + A) / 40.96",
+  "units": "%",
+  "min_value": "0.0",
+  "max_value": "100",
+  "category": "Electrical",
+  "vehicle_specific": true,
+  "validation_required": false
+}

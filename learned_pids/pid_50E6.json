@@ -1,0 +1,12 @@
+{
+  "hex_code": "50E6",
+  "name": "Nissan_PID_50E6",
+  "description": "Nissan proprietary parameter 50E6",
+  "formula": "(B*256 + A)",
+  "units": "units",
+  "min_value": "0.0",
+  "max_value": "65535",
+  "category": "Nissan-UDS",
+  "vehicle_specific": true,
+  "validation_required": false
+}

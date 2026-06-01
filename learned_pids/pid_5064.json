@@ -1,0 +1,12 @@
+{
+  "hex_code": "5064",
+  "name": "Nissan_PID_5064",
+  "description": "Nissan proprietary parameter 5064",
+  "formula": "(B*256 + A)",
+  "units": "units",
+  "min_value": "0.0",
+  "max_value": "65535",
+  "category": "Nissan-UDS",
+  "vehicle_specific": true,
+  "validation_required": false
+}

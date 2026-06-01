@@ -1,0 +1,12 @@
+{
+  "hex_code": "0134",
+  "name": "O2 Sensor 1 Current",
+  "description": "O2 current",
+  "formula": "A/256 - 128",
+  "units": "mA",
+  "min_value": "-128.0",
+  "max_value": "127",
+  "category": "Sensors",
+  "vehicle_specific": false,
+  "validation_required": false
+}

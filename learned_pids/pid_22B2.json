@@ -1,0 +1,12 @@
+{
+  "hex_code": "22B2",
+  "name": "Batt Temp",
+  "description": "Battery Temperature",
+  "formula": "(B * 256 + A)/100",
+  "units": "\u00b0C",
+  "min_value": "0.0",
+  "max_value": "100",
+  "category": "Electrical",
+  "vehicle_specific": true,
+  "validation_required": false
+}

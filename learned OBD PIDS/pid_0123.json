@@ -1,0 +1,12 @@
+{
+  "hex_code": "0123",
+  "name": "Fuel Rail Pressure (Diesel/GDI)",
+  "description": "High pressure fuel",
+  "formula": "(256*A + B)*10",
+  "units": "kPa",
+  "min_value": "0.0",
+  "max_value": "655350",
+  "category": "Fuel",
+  "vehicle_specific": false,
+  "validation_required": false
+}

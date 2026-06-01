@@ -1,0 +1,12 @@
+{
+  "hex_code": "25A2",
+  "name": "Motor Temp C",
+  "description": "Motor Temperature",
+  "formula": "(B * 256 + A)/10",
+  "units": "\u00b0C",
+  "min_value": "-100.0",
+  "max_value": "300",
+  "category": "Motor",
+  "vehicle_specific": true,
+  "validation_required": true
+}

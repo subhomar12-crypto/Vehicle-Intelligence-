@@ -1,0 +1,12 @@
+{
+  "hex_code": "9F",
+  "name": "Discovered_PID_9F",
+  "description": "Discovered PID 9F - Raw Response: UNSUPPORTED_CONNECTION",
+  "formula": "A",
+  "units": "Raw",
+  "min_value": "0",
+  "max_value": "255",
+  "category": "Mode_01",
+  "vehicle_specific": true,
+  "validation_required": true
+}

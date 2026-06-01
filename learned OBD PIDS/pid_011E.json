@@ -1,0 +1,12 @@
+{
+  "hex_code": "011E",
+  "name": "Auxiliary Input Status",
+  "description": "Power input status",
+  "formula": "A",
+  "units": "",
+  "min_value": "",
+  "max_value": "Electrical",
+  "category": "No",
+  "vehicle_specific": false,
+  "validation_required": false
+}

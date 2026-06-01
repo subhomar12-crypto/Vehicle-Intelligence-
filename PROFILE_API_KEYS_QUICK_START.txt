@@ -1,0 +1,92 @@
+================================================================================
+  PROFILE-BASED API KEYS - QUICK START GUIDE
+================================================================================
+
+WHAT'S NEW:
+-----------
+✅ Each API key is now linked to a specific vehicle profile
+✅ Better security: one key per vehicle
+✅ Profile column added to API keys table
+✅ Profile selection when generating keys
+
+HOW TO GENERATE A PROFILE-BASED API KEY:
+-----------------------------------------
+
+1. Open Predict Desktop App
+2. Go to "Server" tab
+3. Click "➕ Generate New Key"
+4. SELECT A VEHICLE PROFILE from dropdown
+   - Example: "Omar (Nissan Patrol Y61 2003)"
+5. Enter API Key Name
+   - Example: "Android Phone #1"
+6. Click "Generate"
+7. COPY THE KEY (shown only once!)
+8. Configure your Android app:
+   - API Key: [paste the key]
+   - Server IP: [your computer's IP]
+   - Port: 8000
+
+EXISTING PROFILES IN YOUR SYSTEM:
+----------------------------------
+• Omar - Nissan Patrol Y61 (2003)
+• MOM - Nissan Altima (2017)
+• fath
+• Sobeh - Nissan Altima (2017)
+• ahmed - Nissan Patrol Y62 (2017)
+• MOH - Chevrolet Suburban (2023)
+
+API KEYS TABLE - NEW LOOK:
+---------------------------
+┌─────────────┬─────────┬──────────────┬─────────────┬───────────────┐
+│ Name        │ Profile │ Key (Hidden) │ Created     │ Actions       │
+├─────────────┼─────────┼──────────────┼─────────────┼───────────────┤
+│ Phone #1    │ Omar    │ ••••••••••   │ 2023-12-10  │ Copy | Delete │
+│ Backup      │ MOM     │ ••••••••••   │ 2023-12-11  │ Copy | Delete │
+└─────────────┴─────────┴──────────────┴─────────────┴───────────────┘
+
+HOW TO DELETE AN API KEY:
+--------------------------
+1. Click "Delete" button next to the key
+2. Confirm deletion in the popup dialog
+3. Key is permanently removed
+4. ⚠️ WARNING: Android devices using this key will lose access
+
+SECURITY BENEFITS:
+------------------
+✓ Each vehicle has its own unique API key
+✓ No shared keys across vehicles
+✓ Easy to revoke individual keys
+✓ Clear ownership and audit trail
+
+IMPORTANT NOTES:
+----------------
+• Old API keys (without profile) will show "N/A" in Profile column
+• Recommended: Regenerate all old keys to link them to profiles
+• Each Android device needs a separate API key per vehicle
+• Keys cannot be retrieved after generation (stored as hashes)
+
+TROUBLESHOOTING:
+----------------
+Issue: "No vehicle profiles found"
+→ Create a vehicle profile first in Profiles tab
+
+Issue: Profile shows "N/A"
+→ Delete old key and generate new profile-based key
+
+Issue: Cannot see profiles in dropdown
+→ Check database: C:\D Drive\Predict\data\vehicle_profiles.db
+
+FILES MODIFIED:
+---------------
+✓ server_tab.py - Added profile selection and display
+
+NEW FEATURES:
+-------------
+• _get_vehicle_profiles() - Fetches profiles from database
+• Profile selection dialog during key generation
+• Profile column in API keys table
+• Profile name stored with each API key
+
+For full details, see: PROFILE_BASED_API_KEYS.md
+
+================================================================================

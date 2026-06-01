@@ -1,0 +1,437 @@
+================================================================================
+  PREDICT - COMPLETE DATA ORGANIZATION STRUCTURE
+  All Data Storage Locations & File Formats
+================================================================================
+
+📁 ROOT DIRECTORY: D:/Predict/
+────────────────────────────────────────────────────────────────────────────
+
+D:/Predict/
+├── 📂 data/                          # Core Application Data
+│   └── vehicle_profiles.db           # SQLite database (profiles, service history)
+│
+├── 📂 historical_data/                # OBD & Trip Data (Permanent Storage)
+│   ├── 📂 ProfileName_ID/
+│   │   ├── 📂 obd_data/
+│   │   │   ├── obd_data_2025_01.jsonl    # Monthly OBD data
+│   │   │   ├── obd_data_2025_02.jsonl
+│   │   │   └── summary_2025_01.json      # Monthly statistics
+│   │   │
+│   │   └── 📂 trips/
+│   │       ├── trip_ProfileName_20250115_080000.json
+│   │       ├── trip_ProfileName_20250115_173000.json
+│   │       └── ...
+│   │
+│   └── 📂 AnotherProfile_ID/
+│       └── ...
+│
+├── 📂 fuel_data/                      # Fuel Tracking Data
+│   ├── profile_1_fillups.jsonl       # One file per profile
+│   ├── profile_2_fillups.jsonl
+│   └── ...
+│
+├── 📂 maintenance_schedules/          # Maintenance Reminder Configs
+│   ├── profile_1_schedule.json       # Custom schedules per profile
+│   ├── profile_2_schedule.json
+│   ├── profile_1_dismissals.json     # Snoozed reminders
+│   └── ...
+│
+├── 📂 custom_alerts/                  # Custom Alert Rules
+│   ├── profile_1_rules.json          # Alert rules per profile
+│   ├── profile_2_rules.json
+│   └── ...
+│
+├── 📂 geofences/                      # Geofencing Data
+│   ├── custom_geofences.json         # User-created geofences
+│   └── zone_events.jsonl             # Entry/exit event history
+│
+├── 📂 ai_alerts/                      # AI Alert Notifications
+│   ├── profile_1_alerts.jsonl        # AI-detected issue alerts
+│   ├── profile_2_alerts.jsonl
+│   └── ...
+│
+├── 📂 ai_models/                      # Trained AI Models
+│   ├── global_model.pkl              # Model trained on all vehicles
+│   ├── brand_Nissan_model.pkl        # Brand-specific models
+│   ├── brand_Toyota_model.pkl
+│   ├── vehicle_ProfileName_1_model.pkl  # Vehicle-specific models
+│   └── ...
+│
+├── 📂 generated_pdfs/                 # PDF Reports (24hr retention)
+│   ├── predict_report_MyNissan_week_20251215_103045.pdf
+│   ├── predict_report_MyNissan_lifetime_20251215_120000.pdf
+│   └── ... (auto-deleted after 24 hours)
+│
+├── 📂 exports/                        # Data Exports (CSV/Excel)
+│   ├── obd_data_MyNissan_1_20251215_103045.csv
+│   ├── trips_MyNissan_1_30days_20251215_103045.xlsx
+│   ├── fuel_tracking_1_90days_20251215_103045.csv
+│   └── ...
+│
+├── 📂 logs/                           # Application Logs
+│   ├── predict_app.log               # Main application log
+│   ├── 📂 training/
+│   │   ├── training_log_20251215_030000.json
+│   │   └── ...
+│   └── 📂 backup/
+│       └── backup_log_20251215_020000.json
+│
+├── 📂 learned_pids/                   # OBD PID Learning
+│   ├── pid_profile_general.json
+│   └── ...
+│
+└── 📂 config/                         # Configuration Files
+    ├── email_config.json             # SMTP settings for PDF email
+    └── ...
+
+
+📁 BACKUP DIRECTORY: D:/Backup/
+────────────────────────────────────────────────────────────────────────────
+
+D:/Backup/
+├── 📂 daily/
+│   ├── backup_20251215_020000.zip    # Last 7 days retained
+│   ├── backup_20251214_020000.zip
+│   └── ...
+│
+├── 📂 weekly/
+│   ├── backup_weekly_20251208.zip    # Last 4 weeks retained
+│   └── ...
+│
+└── 📂 monthly/
+    ├── backup_monthly_202512.zip     # Last 12 months retained
+    └── ...
+
+
+================================================================================
+FILE FORMAT SPECIFICATIONS
+================================================================================
+
+1. VEHICLE PROFILES (SQLite Database)
+────────────────────────────────────────────────────────────────────────────
+Location: D:/Predict/data/vehicle_profiles.db
+
+Tables:
+- vehicle_profiles (profile_id, name, make, model, year, ...)
+- service_history (id, profile_id, date, service_type, cost, ...)
+- fillups (id, profile_id, fillup_id, liters, cost, odometer_km, ...)
+- custom_alerts (id, profile_id, rule_id, parameter, threshold, ...)
+- geofences (id, geofence_id, name, center_lat, center_lon, radius_km, ...)
+
+Access: SQLite3
+Example Query:
+  SELECT * FROM vehicle_profiles WHERE profile_id = 1;
+
+
+2. OBD HISTORICAL DATA (JSONL - JSON Lines)
+────────────────────────────────────────────────────────────────────────────
+Location: D:/Predict/historical_data/ProfileName_ID/obd_data/obd_data_YYYY_MM.jsonl
+
+Format: One JSON object per line (append-only)
+
+Example Record:
+{"timestamp": "2025-12-15T10:30:45", "rpm": 2500, "speed_kmh": 60, "coolant_temp": 85, "fuel_level_pct": 75, "throttle_position": 35, "engine_load": 45, "gps_latitude": 30.0444, "gps_longitude": 31.2357}
+{"timestamp": "2025-12-15T10:30:47", "rpm": 2550, "speed_kmh": 62, ...}
+
+Read: Line by line
+Append: New line with JSON object
+
+
+3. TRIP DATA (JSON)
+────────────────────────────────────────────────────────────────────────────
+Location: D:/Predict/historical_data/ProfileName_ID/trips/trip_*.json
+
+Format: Single JSON file per trip
+
+Example:
+{
+  "trip_id": "trip_MyNissan_20251215_080000",
+  "profile_id": 1,
+  "profile_name": "My Nissan",
+  "start_time": "2025-12-15T08:00:00",
+  "end_time": "2025-12-15T08:45:00",
+  "start_location": {"latitude": 30.0444, "longitude": 31.2357},
+  "end_location": {"latitude": 30.0555, "longitude": 31.2468},
+  "total_distance": 25.5,
+  "duration_seconds": 2700,
+  "avg_speed": 34,
+  "max_speed": 80,
+  "fuel_consumed": 2.5,
+  "fuel_efficiency_l_per_100km": 6.5,
+  "route_points": [
+    {"lat": 30.0444, "lon": 31.2357, "timestamp": "2025-12-15T08:00:00", "speed": 0},
+    {"lat": 30.0450, "lon": 31.2360, "timestamp": "2025-12-15T08:00:30", "speed": 25},
+    ...
+  ]
+}
+
+
+4. FUEL FILLUPS (JSONL)
+────────────────────────────────────────────────────────────────────────────
+Location: D:/Predict/fuel_data/profile_ID_fillups.jsonl
+
+Format: One JSON object per line
+
+Example Record:
+{"fillup_id": "fillup_MyNissan_20251215_103045", "profile_id": 1, "timestamp": "2025-12-15T10:30:45", "liters": 45.5, "gallons": 12.02, "cost": 120.50, "cost_per_liter": 2.648, "odometer_km": 45000, "odometer_miles": 27961.74, "full_tank": true, "fuel_grade": "Regular", "station_name": "Shell", "calculated_metrics": {"distance_since_last_km": 500, "fuel_efficiency_mpg": 35.2}}
+
+
+5. MAINTENANCE SCHEDULES (JSON)
+────────────────────────────────────────────────────────────────────────────
+Location: D:/Predict/maintenance_schedules/profile_ID_schedule.json
+
+Format: JSON object with service types as keys
+
+Example:
+{
+  "oil_change": {
+    "name": "Oil Change",
+    "mileage_interval_km": 5000,
+    "time_interval_days": 180,
+    "priority": "high",
+    "warning_threshold_km": 500,
+    "warning_threshold_days": 14
+  },
+  "tire_rotation": { ... }
+}
+
+
+6. CUSTOM ALERT RULES (JSON)
+────────────────────────────────────────────────────────────────────────────
+Location: D:/Predict/custom_alerts/profile_ID_rules.json
+
+Format: JSON array of alert rules
+
+Example:
+[
+  {
+    "rule_id": "rule_1_20251215_103045",
+    "profile_id": 1,
+    "name": "High Coolant Temperature",
+    "parameter": "coolant_temp",
+    "condition": "greater_than",
+    "threshold": 105,
+    "severity": "critical",
+    "enabled": true,
+    "created_at": "2025-12-15T10:30:45",
+    "trigger_count": 5
+  }
+]
+
+
+7. AI ALERTS (JSONL)
+────────────────────────────────────────────────────────────────────────────
+Location: D:/Predict/ai_alerts/profile_ID_alerts.jsonl
+
+Format: One JSON object per line
+
+Example Record:
+{"alert_id": "alert_20251215_103045_1", "alert_type": "health_score", "severity": "warning", "title": "⚠️ WARNING: Low Vehicle Health", "message": "My Nissan health score is 45%. Service recommended soon.", "health_score": 45.0, "confidence": 0.85, "timestamp": "2025-12-15T10:30:45", "current_data": {"rpm": 2500, "speed": 60}}
+
+
+8. GEOFENCES (JSON)
+────────────────────────────────────────────────────────────────────────────
+Location: D:/Predict/geofences/custom_geofences.json
+
+Format: JSON object with geofence_id as keys
+
+Example:
+{
+  "my_home": {
+    "name": "Home Zone",
+    "center": {"lat": 30.0444, "lon": 31.2357},
+    "radius_km": 0.5,
+    "zone_type": "custom",
+    "severity": "info",
+    "warnings": ["Welcome home"],
+    "enabled": true
+  }
+}
+
+
+9. TRAINED AI MODELS (Pickle)
+────────────────────────────────────────────────────────────────────────────
+Location: D:/Predict/ai_models/*.pkl
+
+Format: Python pickle files (scikit-learn models)
+
+Files:
+- global_model.pkl (XGBoost/RandomForest trained on all vehicles)
+- brand_<BrandName>_model.pkl (per brand)
+- vehicle_<ProfileName>_<ID>_model.pkl (per vehicle)
+
+Load with:
+  import pickle
+  with open('global_model.pkl', 'rb') as f:
+      model = pickle.load(f)
+
+
+10. EXPORTED DATA (CSV/Excel)
+────────────────────────────────────────────────────────────────────────────
+Location: D:/Predict/exports/
+
+Formats:
+- CSV: Standard comma-separated values
+- Excel: .xlsx with formatted headers and auto-sized columns
+
+File naming:
+- obd_data_<ProfileName>_<ID>_<DateRange>_<Timestamp>.csv
+- trips_<ProfileName>_<ID>_<Days>days_<Timestamp>.xlsx
+- fuel_tracking_<ID>_<Days>days_<Timestamp>.csv
+
+
+================================================================================
+DATA RETENTION POLICIES
+================================================================================
+
+Permanent Storage (Never Deleted):
+────────────────────────────────────────────────────────────────────────────
+✓ OBD Historical Data (historical_data/)
+✓ Trip Data (historical_data/*/trips/)
+✓ Fuel Fillups (fuel_data/)
+✓ AI Models (ai_models/)
+✓ Service History (database)
+
+Temporary Storage (Auto-Cleanup):
+────────────────────────────────────────────────────────────────────────────
+⏱ Generated PDFs: 24 hours (pdf_api_service.py cleans up daily)
+⏱ Exported Files: Manual deletion (user managed)
+⏱ Logs: 30 days (can be configured)
+
+Backup Retention:
+────────────────────────────────────────────────────────────────────────────
+⏱ Daily Backups: Last 7 days
+⏱ Weekly Backups: Last 4 weeks
+⏱ Monthly Backups: Last 12 months
+
+
+================================================================================
+MOBILE APP DATA ACCESS
+================================================================================
+
+Android App Should:
+────────────────────────────────────────────────────────────────────────────
+
+1. NEVER directly access desktop file system
+2. ALWAYS use API endpoints to retrieve data
+3. Store data locally in Android app's internal storage
+4. Sync with desktop server via API
+
+API Endpoints for Data Retrieval:
+────────────────────────────────────────────────────────────────────────────
+POST /api/profile/create                  → Create new vehicle profile
+GET /api/profile/list                     → Get all vehicle profiles
+GET /api/profile/{profile_id}             → Get profile details
+GET /api/fuel/history/{profile_id}        → Fuel fillups
+GET /api/trips/history/{profile_id}       → Trip history
+GET /api/driving/score/{profile_id}       → Driving score
+GET /api/maintenance/reminders/{profile_id} → Maintenance reminders
+GET /api/alerts/rules/{profile_id}        → Custom alert rules
+GET /api/geofence/active/{profile_id}     → Active geofences
+GET /api/ai/alerts/{profile_id}           → AI alerts
+POST /api/export/data                     → Export data files
+
+All data is accessed via HTTP API - NO direct file access!
+
+
+================================================================================
+DATA BACKUP & RECOVERY
+================================================================================
+
+Automatic Backups:
+────────────────────────────────────────────────────────────────────────────
+Schedule: Daily at 2:00 AM
+Location: D:/Backup/
+Contents: All data folders + database + AI models + configs
+
+Backup includes:
+✓ vehicle_profiles.db
+✓ historical_data/
+✓ fuel_data/
+✓ maintenance_schedules/
+✓ custom_alerts/
+✓ geofences/
+✓ ai_alerts/
+✓ ai_models/
+✓ learned_pids/
+✓ config/
+
+Restore:
+────────────────────────────────────────────────────────────────────────────
+1. Extract backup ZIP file
+2. Replace corresponding folders in D:/Predict/
+3. Restart application
+
+
+================================================================================
+DISK SPACE ESTIMATES
+================================================================================
+
+Typical Storage Requirements (per vehicle, per year):
+────────────────────────────────────────────────────────────────────────────
+OBD Data (1 record/2 sec):      ~500 MB/year
+Trip Data (2 trips/day):        ~10 MB/year
+Fuel Fillups (2/month):         ~0.1 MB/year
+AI Models:                      ~50 MB total
+Logs:                           ~100 MB/year
+Backups:                        ~2 GB (rotating)
+
+Total for 1 vehicle:            ~600-700 MB/year
+Total for 5 vehicles:           ~3-3.5 GB/year
+
+
+================================================================================
+FILE PERMISSIONS & SECURITY
+================================================================================
+
+All data folders created with:
+────────────────────────────────────────────────────────────────────────────
+os.makedirs(path, exist_ok=True)
+
+Recommended permissions:
+- Owner: Read/Write
+- Group: Read
+- Others: None
+
+Database security:
+- SQLite file with restricted access
+- API key hashing (SHA256)
+- No plain-text passwords
+
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Missing Data Folders:
+────────────────────────────────────────────────────────────────────────────
+→ All folders are auto-created on first run
+→ If missing, app will recreate them automatically
+
+Corrupted Files:
+────────────────────────────────────────────────────────────────────────────
+→ Restore from D:/Backup/
+→ JSONL files can be repaired by removing corrupted lines
+
+Database Locked:
+────────────────────────────────────────────────────────────────────────────
+→ Close all applications accessing the database
+→ Check for zombie processes
+
+Disk Full:
+────────────────────────────────────────────────────────────────────────────
+→ Delete old exports from D:/Predict/exports/
+→ Clean up old backups from D:/Backup/
+→ Reduce log retention period
+
+
+================================================================================
+END OF DATA ORGANIZATION STRUCTURE
+================================================================================
+
+For questions about data storage, check:
+- Module source code for storage_path variables
+- Backup manager logs (D:/Predict/logs/backup/)
+- Historical data manager documentation
+
+All data is organized, secure, and backed up automatically! 📁

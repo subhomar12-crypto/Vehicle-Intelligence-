@@ -1,0 +1,110 @@
+{
+  "version": "20251225_153144",
+  "config": {
+    "sequence_length": 60,
+    "prediction_horizon": 30,
+    "feature_columns": [
+      "rpm",
+      "speed",
+      "coolant_temp",
+      "engine_load",
+      "intake_temp",
+      "maf",
+      "throttle_pos",
+      "fuel_pressure",
+      "timing_advance",
+      "short_fuel_trim",
+      "long_fuel_trim",
+      "voltage",
+      "rpm_stability",
+      "load_stability",
+      "temp_rate_of_change",
+      "voltage_trend"
+    ],
+    "lstm_units_1": 128,
+    "lstm_units_2": 64
+  },
+  "scaler_params": {
+    "0": {
+      "min": 622.6482944528741,
+      "max": 973.8499629711895
+    },
+    "1": {
+      "min": 0.0,
+      "max": 0.0
+    },
+    "2": {
+      "min": 0.0,
+      "max": 280.0
+    },
+    "3": {
+      "min": 1.794629732948298,
+      "max": 38.840172141445656
+    },
+    "4": {
+      "min": 14.404942250863023,
+      "max": 36.868749238000966
+    },
+    "5": {
+      "min": 3.000281858010707,
+      "max": 6.854036588356848
+    },
+    "6": {
+      "min": 6.697830791704986,
+      "max": 22.926037805264194
+    },
+    "7": {
+      "min": 31.421753188025487,
+      "max": 39.78426272048849
+    },
+    "8": {
+      "min": 1.7106289004270927,
+      "max": 18.15760914976415
+    },
+    "9": {
+      "min": -21.74202447303923,
+      "max": 15.775850306969938
+    },
+    "10": {
+      "min": -30.0,
+      "max": 30.0
+    },
+    "11": {
+      "min": 0.0,
+      "max": 16.0
+    },
+    "12": {
+      "min": 0.0,
+      "max": 0.0
+    },
+    "13": {
+      "min": 0.0,
+      "max": 0.0
+    },
+    "14": {
+      "min": 0.0,
+      "max": 0.0
+    },
+    "15": {
+      "min": 0.0,
+      "max": 0.0
+    }
+  },
+  "failure_types": [
+    "battery",
+    "alternator",
+    "starter",
+    "fuel_pump",
+    "spark_plug",
+    "oxygen_sensor",
+    "catalytic_converter",
+    "maf_sensor",
+    "thermostat",
+    "coolant_system",
+    "transmission",
+    "ignition",
+    "no_failure"
+  ],
+  "training_history": [],
+  "saved_at": "2025-12-25T15:31:44.561120"
+}

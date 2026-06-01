@@ -1,0 +1,12 @@
+{
+  "hex_code": "505A",
+  "name": "Nissan_PID_505A",
+  "description": "Nissan proprietary parameter 505A",
+  "formula": "(B*256 + A)",
+  "units": "units",
+  "min_value": "0.0",
+  "max_value": "65535",
+  "category": "Nissan-UDS",
+  "vehicle_specific": true,
+  "validation_required": false
+}

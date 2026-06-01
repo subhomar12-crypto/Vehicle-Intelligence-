@@ -31,6 +31,11 @@ class Prediction(Base):
     resolved_at: Mapped[Optional[float]] = mapped_column(Float)
     data_json: Mapped[Optional[str]] = mapped_column(Text)
 
+    @property
+    def health_score(self) -> float:
+        """Derived health score: inverse of failure_probability on 0-100 scale."""
+        return round((1.0 - self.failure_probability) * 100, 1)
+
     __table_args__ = (
         Index("idx_predictions_profile", "profile_id", "status"),
     )

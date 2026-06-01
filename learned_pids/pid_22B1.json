@@ -1,0 +1,12 @@
+{
+  "hex_code": "22B1",
+  "name": "Primary Controller Fault",
+  "description": "Primary Controller Fault",
+  "formula": "A",
+  "units": "%",
+  "min_value": "1.0",
+  "max_value": "100",
+  "category": "System",
+  "vehicle_specific": true,
+  "validation_required": true
+}

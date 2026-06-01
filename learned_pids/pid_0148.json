@@ -1,0 +1,12 @@
+{
+  "hex_code": "0148",
+  "name": "Throttle Position C",
+  "description": "TP C",
+  "formula": "A*100/255",
+  "units": "%",
+  "min_value": "0.0",
+  "max_value": "100",
+  "category": "Sensors",
+  "vehicle_specific": false,
+  "validation_required": false
+}

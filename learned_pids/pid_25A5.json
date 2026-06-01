@@ -1,0 +1,12 @@
+{
+  "hex_code": "25A5",
+  "name": "Tachometer",
+  "description": "Tachometer",
+  "formula": "(B * 256 + A)/100",
+  "units": "rpm",
+  "min_value": "0.0",
+  "max_value": "8000",
+  "category": "Motor",
+  "vehicle_specific": true,
+  "validation_required": false
+}

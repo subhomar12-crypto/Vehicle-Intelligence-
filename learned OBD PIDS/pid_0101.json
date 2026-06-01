@@ -1,0 +1,12 @@
+{
+  "hex_code": "0101",
+  "name": "Monitor Status",
+  "description": "Current powertrain diagnostic status",
+  "formula": "A B C D",
+  "units": "",
+  "min_value": "",
+  "max_value": "System",
+  "category": "No",
+  "vehicle_specific": false,
+  "validation_required": false
+}

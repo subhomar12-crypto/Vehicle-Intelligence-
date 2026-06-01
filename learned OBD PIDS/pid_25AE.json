@@ -1,0 +1,12 @@
+{
+  "hex_code": "25AE",
+  "name": "Vehicle Odometer",
+  "description": "Vehicle Odometer",
+  "formula": "(C * 65536) + (B * 256 + A)",
+  "units": "km",
+  "min_value": "0.0",
+  "max_value": "120",
+  "category": "Chassis",
+  "vehicle_specific": true,
+  "validation_required": false
+}

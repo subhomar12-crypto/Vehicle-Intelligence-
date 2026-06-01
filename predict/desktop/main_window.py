@@ -28,6 +28,7 @@ from PySide6.QtWidgets import (
     QStatusBar,
     QMessageBox,
     QProgressBar,
+    QSystemTrayIcon,
 )
 from PySide6.QtCore import QTimer, Qt, QThread, Signal
 from PySide6.QtGui import QAction, QIcon, QFont
@@ -47,6 +48,7 @@ from predict.desktop.tabs.analytics_tab import AnalyticsTab
 from predict.desktop.tabs.fleet_requests_tab import FleetRequestsTab
 from predict.desktop.tabs.vehicle_photos_tab import VehiclePhotosTab
 from predict.desktop.tabs.pricing_tab import PricingTab
+from predict.desktop.tabs.pi5_provisioning_tab import Pi5ProvisioningTab
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +72,7 @@ class PredictMainWindow(QMainWindow):
         self._setup_ui()
         self._setup_menu()
         self._setup_status_bar()
+        self._setup_tray_icon()
         # Defer background services until the Qt event loop is running
         QTimer.singleShot(300, self._start_services)
 
@@ -113,6 +116,7 @@ class PredictMainWindow(QMainWindow):
         self._fleet_requests_tab = FleetRequestsTab(self._api_client)
         self._vehicle_photos_tab = VehiclePhotosTab(self._api_client)
         self._pricing_tab = PricingTab(self._api_client)
+        self._pi5_tab = Pi5ProvisioningTab(self._api_client)
 
         # Add tabs
         self._tabs.addTab(self._profile_tab, "Profiles")
@@ -124,8 +128,21 @@ class PredictMainWindow(QMainWindow):
         self._tabs.addTab(self._fleet_requests_tab, "Fleet Requests")
         self._tabs.addTab(self._vehicle_photos_tab, "Vehicle Photos")
         self._tabs.addTab(self._pricing_tab, "Pricing")
+        self._tabs.addTab(self._pi5_tab, "Pi5 Setup")
 
         layout.addWidget(self._tabs)
+
+    def _setup_tray_icon(self):
+        """Setup system tray icon for notifications."""
+        self._tray_icon = QSystemTrayIcon(self)
+        # Use the app icon or create a simple one
+        icon = self.windowIcon()
+        if not icon.isNull():
+            self._tray_icon.setIcon(icon)
+        else:
+            self._tray_icon.setIcon(self.style().standardIcon(self.style().StandardPixmap.SP_ComputerIcon))
+        self._tray_icon.setToolTip("PREDICT Desktop")
+        self._tray_icon.show()
 
     def _setup_menu(self):
         """Setup the menu bar."""
@@ -185,12 +202,22 @@ class PredictMainWindow(QMainWindow):
         if not server:
             return
 
-        # Start status poller
+        # Start status poller — polls every 1s until server is ready, then 5s
         self._status_poller = StatusPoller(server.base_url)
         self._status_poller.status_updated.connect(self._update_status)
+        self._status_poller.server_ready.connect(self._on_server_ready)
         self._status_poller.start()
 
-        # Start WebSocket listener
+        self._status_label.setText("Server: Starting...")
+        self._status_label.setStyleSheet("color: orange;")
+
+    def _on_server_ready(self):
+        """Called once when the embedded server first responds to health check."""
+        server = get_server_manager().server
+        if not server:
+            return
+
+        # Start WebSocket listener now that server is up
         ws_url = f"ws://{server.host}:{server.port}/api/ws"
         self._ws_listener = WebSocketListener(ws_url)
         self._ws_listener.connected.connect(self._on_ws_connected)
@@ -200,6 +227,28 @@ class PredictMainWindow(QMainWindow):
         # Update profile tab with WebSocket
         self._profile_tab._ws_listener = self._ws_listener
         self._ws_listener.user_change.connect(self._profile_tab._on_user_change)
+
+        # Connect alert signal for tray notifications
+        self._ws_listener.alert.connect(self._on_ws_alert)
+
+        # Stagger initial data loads — one tab every 800ms to avoid
+        # overwhelming the single-worker server with concurrent requests
+        tabs_to_load = []
+        for tab in [self._profile_tab, self._server_ops_tab, self._ai_llm_tab,
+                     self._pdf_tab, self._dtc_tab, self._analytics_tab,
+                     self._fleet_requests_tab, self._vehicle_photos_tab,
+                     self._pricing_tab]:
+            if hasattr(tab, '_load_data'):
+                tabs_to_load.append(tab._load_data)
+            elif hasattr(tab, '_load_users'):
+                tabs_to_load.append(tab._load_users)
+            elif hasattr(tab, '_start_monitors'):
+                tabs_to_load.append(tab._start_monitors)
+            elif hasattr(tab, '_load_report_history'):
+                tabs_to_load.append(tab._load_report_history)
+
+        for i, loader in enumerate(tabs_to_load):
+            QTimer.singleShot(i * 800, loader)
 
     def _update_status(self, status: dict):
         """Update UI with server status."""
@@ -219,6 +268,22 @@ class PredictMainWindow(QMainWindow):
         """Handle WebSocket disconnected."""
         logger.info("WebSocket disconnected")
         self._status_bar.showMessage("Real-time updates disconnected")
+
+    def _on_ws_alert(self, data: dict):
+        """Handle WebSocket alert - show tray notification for critical alerts."""
+        alert_type = data.get("type", "").lower()
+        message = data.get("message", "Alert received")
+        severity = data.get("severity", "info").lower()
+        
+        # Show tray notification for critical alerts
+        if severity == "critical" or alert_type == "critical_alert":
+            if hasattr(self, '_tray_icon') and self._tray_icon.isVisible():
+                self._tray_icon.showMessage(
+                    "PREDICT Critical Alert",
+                    message,
+                    QSystemTrayIcon.MessageIcon.Critical,
+                    5000  # 5 seconds
+                )
 
     def _refresh_current_tab(self):
         """Refresh the currently selected tab."""
@@ -269,13 +334,13 @@ class PredictMainWindow(QMainWindow):
             f"<h2>{APP_NAME} v{APP_VERSION}</h2>"
             f"<p>Vehicle Intelligence Platform</p>"
             f"<p>Unified Desktop + Server Architecture</p>"
-            f"<p>9-Tab Admin Interface</p>"
+            f"<p>10-Tab Admin Interface</p>"
         )
 
     def closeEvent(self, event):
         """Handle window close event."""
         # Stop tab PollingWorkers first (Qt doesn't call closeEvent on child widgets)
-        for tab in [self._server_ops_tab, self._ai_llm_tab, self._analytics_tab, self._fleet_requests_tab, self._vehicle_photos_tab, self._pricing_tab]:
+        for tab in [self._server_ops_tab, self._ai_llm_tab, self._analytics_tab, self._fleet_requests_tab, self._vehicle_photos_tab, self._pricing_tab, self._pi5_tab]:
             if hasattr(tab, 'cleanup'):
                 tab.cleanup()
 

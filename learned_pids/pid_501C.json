@@ -1,0 +1,12 @@
+{
+  "hex_code": "501C",
+  "name": "Nissan_PID_501C",
+  "description": "Nissan proprietary parameter 501C",
+  "formula": "(B*256 + A)",
+  "units": "units",
+  "min_value": "0.0",
+  "max_value": "65535",
+  "category": "Nissan-UDS",
+  "vehicle_specific": true,
+  "validation_required": false
+}

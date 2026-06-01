@@ -13,6 +13,25 @@ from sqlalchemy.orm import Mapped, mapped_column
 from predict.core.db.base import Base
 
 
+class Report(Base):
+    """Generated PDF reports."""
+    __tablename__ = "reports"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    vehicle_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    report_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    file_path: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(String(20), server_default="generating")
+    created_at: Mapped[float] = mapped_column(Float, nullable=False)
+    updated_at: Mapped[Optional[float]] = mapped_column(Float)
+
+    __table_args__ = (
+        Index("idx_reports_user", "user_id"),
+        Index("idx_reports_created", "created_at"),
+    )
+
+
 class AuditLog(Base):
     """Track all auth-related and admin actions."""
     __tablename__ = "audit_log"
@@ -38,7 +57,7 @@ class VerificationCode(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(Integer, nullable=False)
-    code: Mapped[str] = mapped_column(String(10), nullable=False)
+    code: Mapped[str] = mapped_column(String(255), nullable=False)
     type: Mapped[str] = mapped_column(String(30), nullable=False)
     nonce: Mapped[Optional[str]] = mapped_column(String(64), unique=True)
     created_at: Mapped[float] = mapped_column(Float, nullable=False)

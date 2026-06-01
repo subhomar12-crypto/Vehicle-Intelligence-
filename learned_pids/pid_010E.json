@@ -1,0 +1,12 @@
+{
+  "hex_code": "010E",
+  "name": "Ignition Timing Advance",
+  "description": "Timing advance",
+  "formula": "A/2 - 64",
+  "units": "\u00b0",
+  "min_value": "-64.0",
+  "max_value": "63.5",
+  "category": "Engine",
+  "vehicle_specific": false,
+  "validation_required": false
+}

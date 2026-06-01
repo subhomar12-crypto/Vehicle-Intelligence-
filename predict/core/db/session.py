@@ -39,6 +39,8 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     """
     Get a database session as an async context manager.
 
+    Auto-commits on success, rolls back on exception.
+
     Usage:
         async with get_db_session() as session:
             result = await session.execute(query)
@@ -47,6 +49,7 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     session = maker()
     try:
         yield session
+        await session.commit()
     except Exception:
         await session.rollback()
         raise
@@ -58,3 +61,7 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """FastAPI dependency for request-scoped database sessions."""
     async with get_db_session() as session:
         yield session
+
+
+# Alias for backward compatibility and service-layer usage
+get_async_session = get_db_session

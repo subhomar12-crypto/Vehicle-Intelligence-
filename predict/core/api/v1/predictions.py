@@ -14,7 +14,7 @@ import logging
 import time
 from typing import List, Optional, Dict, Any
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 from sqlalchemy import select, desc, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -1388,6 +1388,23 @@ async def get_health_assessment(
             logger.warning(f"Failed to save prediction snapshot: {snap_err}")
             await session.rollback()
 
+        # Save health snapshot for trend charts (max 1 per 6 hours)
+        await _maybe_save_health_snapshot(session, vehicle_id, result)
+
+        # Send push notification for critical anomalies (non-blocking)
+        try:
+            fcm_token = None
+            if user_id:
+                user_row = await session.execute(
+                    select(User).where(User.id == user_id)
+                )
+                user_obj = user_row.scalar_one_or_none()
+                if user_obj:
+                    fcm_token = user_obj.fcm_token
+            await _maybe_send_anomaly_notification(session, vehicle_id, result, fcm_token)
+        except Exception as notif_err:
+            logger.debug("Anomaly notification call failed (non-fatal): %s", notif_err)
+
         return result
     except Exception as e:
         logger.error("Health assessment failed for vehicle %d: %s", vehicle_id, e, exc_info=True)
@@ -1448,6 +1465,333 @@ EXPLAIN_CACHE_TTL = 600  # 10 minutes
 # Rate limiting: user_id -> list of request timestamps
 _explain_rate: Dict[int, list] = {}
 EXPLAIN_RATE_LIMIT = 10  # max requests per hour
+
+# Maintenance cost estimates in QAR (Qatari Riyal) — typical Qatar market prices
+COMPONENT_COSTS_QAR = {
+    "engine_oil": {"min": 150, "max": 350, "label": "Oil Change"},
+    "coolant_system": {"min": 200, "max": 500, "label": "Coolant Flush"},
+    "coolant": {"min": 200, "max": 500, "label": "Coolant Flush"},
+    "battery": {"min": 250, "max": 600, "label": "Battery Replacement"},
+    "brakes": {"min": 400, "max": 1200, "label": "Brake Service"},
+    "transmission_fluid": {"min": 300, "max": 800, "label": "Transmission Service"},
+    "spark_plugs": {"min": 200, "max": 500, "label": "Spark Plug Replacement"},
+    "catalytic_converter": {"min": 1500, "max": 4000, "label": "Catalytic Converter"},
+    "o2_sensor": {"min": 300, "max": 800, "label": "O2 Sensor Replacement"},
+    "o2_sensors": {"min": 300, "max": 800, "label": "O2 Sensor Replacement"},
+    "air_filter": {"min": 50, "max": 150, "label": "Air Filter Replacement"},
+    "fuel_system": {"min": 500, "max": 1500, "label": "Fuel System Service"},
+    "fuel_pump": {"min": 500, "max": 1500, "label": "Fuel Pump Replacement"},
+    "alternator": {"min": 600, "max": 1500, "label": "Alternator Replacement"},
+    "thermostat": {"min": 200, "max": 500, "label": "Thermostat Replacement"},
+    "maf_sensor": {"min": 300, "max": 700, "label": "MAF Sensor Replacement"},
+}
+
+# Typical maintenance intervals in km (Qatar-adjusted — shorter due to extreme heat)
+MAINTENANCE_INTERVALS_KM = {
+    "engine_oil": 7500,       # 7,500 km (short due to Qatar heat)
+    "coolant_system": 40000,
+    "coolant": 40000,
+    "battery": 35000,         # ~2.5 years in Qatar heat
+    "brakes": 50000,
+    "transmission_fluid": 50000,
+    "spark_plugs": 45000,
+    "catalytic_converter": 150000,
+    "o2_sensor": 80000,
+    "o2_sensors": 80000,
+    "air_filter": 15000,      # Desert dust = frequent changes
+    "fuel_system": 80000,
+    "fuel_pump": 100000,
+    "alternator": 80000,
+    "thermostat": 60000,
+    "maf_sensor": 80000,
+}
+
+
+def _compute_maintenance_events(
+    component_bundles: Dict[str, Any],
+    component_ages: Optional[dict],
+    mileage_km: Optional[int],
+    vehicle_year: Optional[int],
+) -> list:
+    """
+    Compute maintenance event forecasts for each component.
+
+    Uses component ages (from service records), Weibull survival probabilities,
+    health scores, and mileage to estimate when each component needs service.
+
+    Returns list of maintenance events sorted by priority.
+    """
+    import math
+    from datetime import datetime as _dt, timedelta
+
+    now = _dt.now()
+    current_year = now.year
+    ages = component_ages or {}
+
+    # Estimate mileage if not provided
+    if not mileage_km and vehicle_year:
+        years_old = max(1, current_year - vehicle_year)
+        mileage_km = years_old * 25000  # Qatar average
+
+    mileage_km = mileage_km or 50000  # fallback
+
+    # Import RUL estimator component models for Weibull params
+    try:
+        from predict.core.ai.rul_estimation import RULEstimator
+        rul = RULEstimator()
+        comp_models = rul.component_models
+        qatar_factors = rul.QATAR_HEAT_FACTORS
+    except Exception:
+        comp_models = {}
+        qatar_factors = {}
+
+    events = []
+
+    for comp_id, bundle in component_bundles.items():
+        health_pct = bundle.get("health_pct", 100)
+        trend = bundle.get("trend", "stable")
+
+        # Get component age info
+        age_info = ages.get(comp_id, {})
+        replaced_date_str = age_info.get("replaced_date") if isinstance(age_info, dict) else None
+        replaced_km = age_info.get("replaced_km", 0) if isinstance(age_info, dict) else 0
+
+        # Compute km since last replacement
+        km_since_replacement = mileage_km - (replaced_km or 0) if replaced_km else mileage_km
+        km_since_replacement = max(0, km_since_replacement)
+
+        # Days since last replacement
+        days_since_replacement = None
+        if replaced_date_str:
+            try:
+                replaced_date = _dt.fromisoformat(replaced_date_str)
+                days_since_replacement = (now - replaced_date).days
+            except (ValueError, TypeError):
+                pass
+
+        # Get maintenance interval for this component
+        interval_km = MAINTENANCE_INTERVALS_KM.get(comp_id, 80000)
+
+        # Qatar heat factor reduces intervals
+        heat_factor = qatar_factors.get(comp_id, 0.90)
+        adjusted_interval = int(interval_km * heat_factor)
+
+        # Weibull survival probability
+        survival_prob = 1.0
+        weibull_rul_days = None
+        model = comp_models.get(comp_id)
+        if model:
+            scale_km = model.typical_life_miles * 1.60934 * heat_factor  # miles→km, heat-adjusted
+            shape = model.weibull_shape
+            if scale_km > 0:
+                survival_prob = math.exp(-(km_since_replacement / scale_km) ** shape)
+                # Expected remaining km: integral of survival function from current age
+                # Approximation: scale * gamma(1 + 1/shape) - current_age
+                try:
+                    from math import gamma as _gamma
+                    expected_life_km = scale_km * _gamma(1 + 1 / shape)
+                    remaining_km = max(0, expected_life_km - km_since_replacement)
+                    # Convert remaining km to days (assume 25,000 km/year = ~68.5 km/day)
+                    km_per_day = 68.5
+                    weibull_rul_days = int(remaining_km / km_per_day) if km_per_day > 0 else None
+                except Exception:
+                    pass
+
+        # Estimate days until service needed
+        # Use multiple signals: health %, Weibull RUL, km vs interval
+        km_remaining = max(0, adjusted_interval - km_since_replacement)
+        km_based_days = int(km_remaining / 68.5) if km_remaining > 0 else 0
+
+        # Blend estimates
+        estimates = []
+        if weibull_rul_days is not None:
+            estimates.append(weibull_rul_days)
+        if km_based_days > 0:
+            estimates.append(km_based_days)
+
+        # Health-based urgency adjustment
+        if health_pct < 30:
+            estimates.append(7)  # critical — within a week
+        elif health_pct < 50:
+            estimates.append(30)
+        elif health_pct < 70:
+            estimates.append(60)
+
+        # Use minimum of all estimates (most conservative)
+        if estimates:
+            days_until_due = min(estimates)
+        else:
+            days_until_due = 180  # default 6 months
+
+        # Trend adjustment
+        if trend == "declining":
+            days_until_due = int(days_until_due * 0.7)
+        elif trend == "improving":
+            days_until_due = int(days_until_due * 1.3)
+
+        days_until_due = max(0, days_until_due)
+
+        # Priority classification
+        if days_until_due <= 7:
+            priority = "critical"
+        elif days_until_due <= 30:
+            priority = "high"
+        elif days_until_due <= 90:
+            priority = "medium"
+        else:
+            priority = "low"
+
+        # Cost estimate
+        cost_info = COMPONENT_COSTS_QAR.get(comp_id, {"min": 200, "max": 500, "label": comp_id.replace("_", " ").title()})
+
+        due_date = (now + timedelta(days=days_until_due)).strftime("%Y-%m-%d")
+
+        events.append({
+            "component_id": comp_id,
+            "component_name": cost_info["label"],
+            "priority": priority,
+            "days_until_due": days_until_due,
+            "due_date": due_date,
+            "health_pct": health_pct,
+            "survival_probability": round(survival_prob, 3),
+            "km_since_service": km_since_replacement,
+            "service_interval_km": adjusted_interval,
+            "last_service_date": replaced_date_str,
+            "cost_estimate_qar": {
+                "min": cost_info["min"],
+                "max": cost_info["max"],
+            },
+            "trend": trend,
+        })
+
+    # Sort by priority: critical > high > medium > low, then by days_until_due
+    priority_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+    events.sort(key=lambda e: (priority_order.get(e["priority"], 4), e["days_until_due"]))
+
+    return events
+
+
+async def _compute_fleet_comparison(
+    session,
+    vehicle_id: int,
+    health_score: int,
+    component_bundles: Dict[str, Any],
+    make: Optional[str],
+    model: Optional[str],
+    year: Optional[int],
+) -> Optional[Dict[str, Any]]:
+    """
+    Compare this vehicle's health against fleet cohort (same make/model, ±2 years).
+
+    Uses HealthSnapshot table for cohort analysis. Returns None if cohort < 5 vehicles.
+    """
+    import json as _json
+    from predict.core.db.models.health_snapshot import HealthSnapshot
+    from predict.core.db.models.vehicle import VehicleProfile
+
+    if not make or not model:
+        return None
+
+    try:
+        # Find cohort vehicles: same make+model, ±2 years
+        cohort_query = select(VehicleProfile.profile_id).where(
+            VehicleProfile.make == make,
+            VehicleProfile.model == model,
+        )
+        if year:
+            cohort_query = cohort_query.where(
+                VehicleProfile.year >= year - 2,
+                VehicleProfile.year <= year + 2,
+            )
+
+        cohort_rows = (await session.execute(cohort_query)).scalars().all()
+        cohort_ids = [pid for pid in cohort_rows if pid != vehicle_id]
+
+        if len(cohort_ids) < 4:  # Need at least 5 vehicles total (4 others + this one)
+            return None
+
+        # Get latest snapshot per cohort vehicle
+        # Subquery: max created_at per vehicle_id
+        latest_sub = (
+            select(
+                HealthSnapshot.vehicle_id,
+                func.max(HealthSnapshot.created_at).label("max_ts"),
+            )
+            .where(HealthSnapshot.vehicle_id.in_(cohort_ids))
+            .group_by(HealthSnapshot.vehicle_id)
+            .subquery()
+        )
+
+        snapshot_query = (
+            select(HealthSnapshot)
+            .join(
+                latest_sub,
+                (HealthSnapshot.vehicle_id == latest_sub.c.vehicle_id)
+                & (HealthSnapshot.created_at == latest_sub.c.max_ts),
+            )
+        )
+        snapshots = (await session.execute(snapshot_query)).scalars().all()
+
+        if len(snapshots) < 4:
+            return None
+
+        # Compute overall percentile
+        cohort_scores = [s.health_score for s in snapshots]
+        cohort_scores.append(health_score)  # Include this vehicle
+        cohort_scores.sort()
+        rank = cohort_scores.index(health_score) + 1
+        percentile = int((rank / len(cohort_scores)) * 100)
+
+        # Per-component comparison
+        component_comparison = {}
+        # Build cohort component scores from snapshot JSON
+        cohort_component_scores: Dict[str, list] = {}
+        for snap in snapshots:
+            if snap.components:
+                try:
+                    comps = _json.loads(snap.components) if isinstance(snap.components, str) else snap.components
+                    for cid, score in comps.items():
+                        if cid not in cohort_component_scores:
+                            cohort_component_scores[cid] = []
+                        cohort_component_scores[cid].append(int(score) if isinstance(score, (int, float)) else 0)
+                except (ValueError, TypeError):
+                    pass
+
+        for comp_id, bundle in component_bundles.items():
+            my_score = bundle.get("health_pct", 0)
+            cohort_vals = cohort_component_scores.get(comp_id, [])
+            if not cohort_vals:
+                continue
+
+            cohort_vals_with_me = cohort_vals + [my_score]
+            cohort_vals_with_me.sort()
+            comp_rank = cohort_vals_with_me.index(my_score) + 1
+            comp_percentile = int((comp_rank / len(cohort_vals_with_me)) * 100)
+
+            avg_score = int(sum(cohort_vals) / len(cohort_vals))
+
+            component_comparison[comp_id] = {
+                "percentile": comp_percentile,
+                "cohort_avg": avg_score,
+                "your_score": my_score,
+                "delta": my_score - avg_score,
+                "better_than_pct": comp_percentile,
+            }
+
+        return {
+            "cohort_size": len(cohort_scores),
+            "make": make,
+            "model": model,
+            "year_range": f"{year - 2}-{year + 2}" if year else "all",
+            "overall_percentile": percentile,
+            "overall_cohort_avg": int(sum(cohort_scores) / len(cohort_scores)),
+            "your_score": health_score,
+            "components": component_comparison,
+        }
+
+    except Exception as e:
+        logger.warning(f"Fleet comparison failed: {e}")
+        return None
 
 
 async def _fetch_sensor_history(
@@ -2375,6 +2719,30 @@ async def explain_predictions(
     except Exception as haiku_err:
         logger.warning(f"Haiku call failed in /explain: {haiku_err}")
 
+    # Maintenance events (Task 29 — Weibull survival + component ages + cost estimates)
+    _comp_ages_raw = profile.component_ages
+    _comp_ages = None
+    if _comp_ages_raw:
+        _comp_ages = _json.loads(_comp_ages_raw) if isinstance(_comp_ages_raw, str) else dict(_comp_ages_raw)
+
+    maintenance_events = _compute_maintenance_events(
+        component_bundles=component_bundles,
+        component_ages=_comp_ages,
+        mileage_km=getattr(profile, "mileage_km", None),
+        vehicle_year=profile.year,
+    )
+
+    # Fleet comparison (Task 28 — cohort percentile analysis)
+    fleet_comparison = await _compute_fleet_comparison(
+        session=session,
+        vehicle_id=vehicle_id,
+        health_score=health.get("health_score", 0),
+        component_bundles=component_bundles,
+        make=profile.make,
+        model=profile.model,
+        year=profile.year,
+    )
+
     elapsed = round((_time.time() - start_time) * 1000)
 
     response = {
@@ -2387,6 +2755,8 @@ async def explain_predictions(
         "accuracy": accuracy,
         "components": component_bundles,
         "action_plan": action_plan,
+        "maintenance_events": maintenance_events,
+        "fleet_comparison": fleet_comparison,
         "vehicle_info": vehicle_dict,
         "data_quality": {
             "telemetry_points": len(telemetry_history),
@@ -2420,3 +2790,428 @@ async def explain_predictions(
         logger.warning(f"Failed to persist explain to DB: {_e}")
 
     return response
+
+
+# ===== AI Status Endpoint (Task 3) =====
+
+@router.get("/{vehicle_id}/ai-status")
+async def get_ai_status(
+    vehicle_id: int,
+    session: AsyncSession = Depends(get_db_session),
+    current_user: dict = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """
+    Get AI learning state for a vehicle.
+    
+    Returns baseline phase, data points, trip count, model statuses,
+    intelligence level, and fleet learning adjustments per component.
+    """
+    from predict.core.db.models.vehicle import VehicleProfile, VehicleBaseline
+    from predict.core.db.models.prediction_feedback import FleetPenaltyAdjustment
+    
+    user_id = current_user.get("user_id") if isinstance(current_user, dict) else getattr(current_user, "id", current_user)
+    user_tier = current_user.get("tier") if isinstance(current_user, dict) else getattr(current_user, "tier", None)
+    
+    # Verify vehicle exists
+    profile_result = await session.execute(
+        select(VehicleProfile).where(VehicleProfile.profile_id == vehicle_id)
+    )
+    profile = profile_result.scalar_one_or_none()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Vehicle not found")
+    
+    # Verify ownership (admin can access any vehicle)
+    if profile.owner_user_id and profile.owner_user_id != user_id and user_tier != "admin":
+        raise HTTPException(status_code=403, detail="Not your vehicle")
+    
+    # Get vehicle baseline
+    baseline_stmt = select(VehicleBaseline).where(VehicleBaseline.profile_id == vehicle_id)
+    baseline_result = await session.execute(baseline_stmt)
+    baseline = baseline_result.scalar_one_or_none()
+    
+    # Parse sensor stats to get component statuses
+    sensor_stats = {}
+    if baseline and baseline.sensor_stats:
+        try:
+            import json as _json
+            sensor_stats = _json.loads(baseline.sensor_stats) if isinstance(baseline.sensor_stats, str) else baseline.sensor_stats
+        except (ValueError, TypeError):
+            sensor_stats = {}
+    
+    # Define components for AI learning tracking
+    COMPONENTS = [
+        "battery", "cooling_system", "engine", "fuel_system", "transmission",
+        "intake_system", "exhaust_system", "turbo_supercharger", "oil_system"
+    ]
+    
+    # Compute 9 model statuses based on phase
+    data_points = baseline.data_points if baseline else 0
+    phase = baseline.phase if baseline else "collecting"
+    trip_count = baseline.trip_count if baseline else 0
+    
+    model_statuses = []
+    for comp in COMPONENTS:
+        # Status based on data accumulation
+        if phase == "autoencoder_ready":
+            status = "trained"
+        elif phase == "baseline_ready":
+            status = "learning"
+        elif data_points >= 100:
+            status = "building"
+        else:
+            status = "collecting"
+        
+        # Add sensor availability indicator
+        has_sensor_data = comp in sensor_stats if sensor_stats else False
+        
+        model_statuses.append({
+            "component": comp,
+            "status": status,
+            "has_sensor_data": has_sensor_data,
+            "data_points": data_points,
+        })
+    
+    # Determine intelligence level
+    if phase == "autoencoder_ready":
+        intelligence_level = "advanced"
+    elif phase == "baseline_ready":
+        intelligence_level = "basic"
+    elif data_points >= 100:
+        intelligence_level = "emerging"
+    else:
+        intelligence_level = "minimal"
+    
+    # Get fleet learning adjustments per component
+    fleet_adjustments = {}
+    for comp in COMPONENTS:
+        fleet_stmt = select(FleetPenaltyAdjustment).where(
+            FleetPenaltyAdjustment.component == comp
+        )
+        fleet_result = await session.execute(fleet_stmt)
+        adjustment = fleet_result.scalar_one_or_none()
+        
+        if adjustment and adjustment.sample_count > 0:
+            fleet_adjustments[comp] = {
+                "penalty_multiplier": adjustment.penalty_multiplier,
+                "sample_count": adjustment.sample_count,
+                "directional_accuracy": adjustment.directional_accuracy,
+                "mean_absolute_error": adjustment.mean_absolute_error,
+                "last_updated": adjustment.last_updated,
+            }
+        else:
+            fleet_adjustments[comp] = {
+                "penalty_multiplier": 1.0,
+                "sample_count": 0,
+                "directional_accuracy": 0.5,
+                "mean_absolute_error": 0.0,
+                "last_updated": None,
+            }
+    
+    return {
+        "vehicle_id": vehicle_id,
+        "baseline_phase": phase,
+        "data_points": data_points,
+        "trip_count": trip_count,
+        "model_statuses": model_statuses,
+        "intelligence_level": intelligence_level,
+        "fleet_learning": fleet_adjustments,
+        "autoencoder": {
+            "trained_at": baseline.autoencoder_trained_at if baseline else None,
+            "loss": baseline.autoencoder_loss if baseline else None,
+            "has_weights": baseline.autoencoder_weights is not None if baseline else False,
+        } if phase == "autoencoder_ready" else None,
+        "timestamp": time.time(),
+        "timestamp_iso": format_timestamp(time.time()),
+    }
+
+
+# ===== Health History Endpoint (v3 Task 5) =====
+
+@router.get("/{vehicle_id}/health-history")
+async def get_health_history(
+    vehicle_id: int,
+    days: int = Query(default=90, ge=1, le=365),
+    session: AsyncSession = Depends(get_db_session),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Get health score history snapshots for trend charts.
+    Returns snapshots within the requested time window (default 90 days, max 365).
+    """
+    from predict.core.db.models.vehicle import VehicleProfile
+    from predict.core.db.models.health_snapshot import HealthSnapshot
+
+    user_id = current_user.get("user_id") if isinstance(current_user, dict) else getattr(current_user, "id", current_user)
+    user_tier = current_user.get("tier") if isinstance(current_user, dict) else getattr(current_user, "tier", None)
+
+    # Verify vehicle exists
+    profile_result = await session.execute(
+        select(VehicleProfile).where(VehicleProfile.profile_id == vehicle_id)
+    )
+    profile = profile_result.scalar_one_or_none()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Vehicle not found")
+
+    # Verify ownership (admin can access any vehicle)
+    if profile.owner_user_id and profile.owner_user_id != user_id and user_tier != "admin":
+        raise HTTPException(status_code=403, detail="Not your vehicle")
+
+    # Query snapshots within time window
+    cutoff = time.time() - (days * 86400)
+    stmt = (
+        select(HealthSnapshot)
+        .where(HealthSnapshot.vehicle_id == vehicle_id)
+        .where(HealthSnapshot.created_at >= cutoff)
+        .order_by(desc(HealthSnapshot.created_at))
+    )
+    result = await session.execute(stmt)
+    snapshots = result.scalars().all()
+
+    snapshot_list = []
+    for snap in snapshots:
+        components = {}
+        if snap.components:
+            try:
+                components = json.loads(snap.components) if isinstance(snap.components, str) else snap.components
+            except (json.JSONDecodeError, TypeError):
+                components = {}
+
+        snapshot_list.append({
+            "health_score": snap.health_score,
+            "components": components,
+            "intelligence_level": snap.intelligence_level or "basic",
+            "anomaly_count": snap.anomaly_count or 0,
+            "created_at": format_timestamp(snap.created_at) if snap.created_at else "",
+        })
+
+    return {
+        "vehicle_id": vehicle_id,
+        "snapshots": snapshot_list,
+        "days": days,
+    }
+
+
+async def _maybe_save_health_snapshot(
+    session: AsyncSession,
+    vehicle_id: int,
+    result: Dict[str, Any],
+) -> None:
+    """
+    Save a health snapshot if the last one for this vehicle is older than 6 hours.
+    Also cleans up snapshots older than 365 days.
+    Non-blocking — failures are logged but never propagated.
+    """
+    from predict.core.db.models.health_snapshot import HealthSnapshot
+
+    try:
+        # Check if a recent snapshot exists (within 6 hours)
+        six_hours_ago = time.time() - 21600
+        recent = await session.execute(
+            select(HealthSnapshot.id)
+            .where(HealthSnapshot.vehicle_id == vehicle_id)
+            .where(HealthSnapshot.created_at >= six_hours_ago)
+            .limit(1)
+        )
+        if recent.scalar_one_or_none() is not None:
+            return  # Too soon — skip
+
+        # Build component scores dict
+        comp_scores = {}
+        for comp_id, comp_data in result.get("components", {}).items():
+            if isinstance(comp_data, dict):
+                comp_scores[comp_id] = comp_data.get("health_pct", 0)
+            else:
+                comp_scores[comp_id] = 0
+
+        # Determine intelligence level
+        intel = result.get("intelligence_level")
+        if isinstance(intel, dict):
+            intel_level = intel.get("level", "basic")
+        elif isinstance(intel, str):
+            intel_level = intel
+        else:
+            intel_level = "basic"
+
+        # Count anomalies and patterns
+        anomaly_count = len(result.get("anomaly_alerts", []) or [])
+        pattern_count = len(result.get("detected_patterns", []) or result.get("patterns_detected", []) or [])
+
+        snapshot = HealthSnapshot(
+            vehicle_id=vehicle_id,
+            health_score=result.get("health_score", 0),
+            components=json.dumps(comp_scores),
+            intelligence_level=intel_level,
+            anomaly_count=anomaly_count,
+            pattern_count=pattern_count,
+        )
+        session.add(snapshot)
+
+        # Cleanup: delete snapshots older than 365 days
+        one_year_ago = time.time() - (365 * 86400)
+        await session.execute(
+            HealthSnapshot.__table__.delete().where(
+                HealthSnapshot.vehicle_id == vehicle_id,
+                HealthSnapshot.created_at < one_year_ago,
+            )
+        )
+
+        await session.flush()
+    except Exception as e:
+        logger.debug("Health snapshot save failed (non-fatal): %s", e)
+
+
+# ===== Critical Anomaly Push Notification Helper =====
+
+
+def _compute_anomaly_hash(critical_items: list) -> str:
+    """Compute a deterministic SHA-256 hash from a sorted list of critical findings.
+
+    Each item is expected to be a dict; we serialize the sorted list of
+    (component, severity) tuples so that identical findings always produce the
+    same hash regardless of dict ordering.
+    """
+    import hashlib
+
+    # Normalise to tuples of (component/sensor, severity/type) for stability
+    keys: list[tuple[str, str]] = []
+    for item in critical_items:
+        comp = str(item.get("component") or item.get("sensor") or item.get("pattern") or "unknown")
+        sev = str(item.get("severity") or item.get("type") or "critical")
+        keys.append((comp, sev))
+    keys.sort()
+    payload = repr(keys).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
+def _extract_critical_findings(result: Dict[str, Any]) -> list:
+    """Return a list of critical findings from the pipeline result dict.
+
+    Considers:
+    - anomaly_alerts with severity="critical" AND anomaly_score > 0.7
+    - detected_patterns with severity="critical"
+    """
+    critical: list = []
+
+    for alert in result.get("anomaly_alerts") or []:
+        if (
+            isinstance(alert, dict)
+            and alert.get("severity") == "critical"
+            and (alert.get("anomaly_score") or 0) > 0.7
+        ):
+            critical.append(alert)
+
+    for pattern in result.get("detected_patterns") or []:
+        if isinstance(pattern, dict) and pattern.get("severity") == "critical":
+            critical.append(pattern)
+
+    return critical
+
+
+async def _maybe_send_anomaly_notification(
+    session: AsyncSession,
+    vehicle_id: int,
+    result: Dict[str, Any],
+    fcm_token: Optional[str] = None,
+) -> None:
+    """Send a Firebase push notification for critical anomalies if warranted.
+
+    Dedup: skips if the critical-findings hash matches the last sent notification.
+    Rate-limit: max 3 notifications per vehicle per calendar day.
+    Non-blocking: failures are logged and never propagated.
+    """
+    try:
+        from datetime import date as _date
+
+        from predict.core.db.models.vehicle import VehicleProfile
+
+        # 1. Extract critical findings
+        critical_items = _extract_critical_findings(result)
+        if not critical_items:
+            return  # Nothing critical — no notification needed
+
+        # 2. Compute hash
+        current_hash = _compute_anomaly_hash(critical_items)
+
+        # 3. Load vehicle's notification state
+        vp_result = await session.execute(
+            select(VehicleProfile).where(VehicleProfile.profile_id == vehicle_id)
+        )
+        profile = vp_result.scalar_one_or_none()
+        if not profile:
+            return
+
+        # 4. Dedup — same critical findings already notified
+        if profile.last_notification_hash == current_hash:
+            logger.debug("Anomaly notification skipped (hash match) for vehicle %d", vehicle_id)
+            return
+
+        # 5. Rate limit — max 3 per day
+        today_str = _date.today().isoformat()  # YYYY-MM-DD
+        count = profile.notification_count_today or 0
+        if profile.notification_reset_date != today_str:
+            count = 0  # New day — reset
+
+        if count >= 3:
+            logger.debug("Anomaly notification skipped (rate limit) for vehicle %d", vehicle_id)
+            return
+
+        # 6. Attempt to send Firebase push notification
+        if fcm_token:
+            try:
+                import firebase_admin.messaging as fcm_messaging
+
+                # Build a concise notification body
+                components = [
+                    str(c.get("component") or c.get("sensor") or c.get("pattern") or "system")
+                    for c in critical_items[:3]
+                ]
+                body_text = f"Critical: {', '.join(components)}"
+
+                message = fcm_messaging.Message(
+                    notification=fcm_messaging.Notification(
+                        title="PREDICT — Critical Alert",
+                        body=body_text,
+                    ),
+                    data={
+                        "type": "critical_anomaly",
+                        "vehicle_id": str(vehicle_id),
+                        "finding_count": str(len(critical_items)),
+                    },
+                    token=fcm_token,
+                )
+                fcm_messaging.send(message)
+                logger.info(
+                    "Sent critical anomaly notification for vehicle %d (%d findings)",
+                    vehicle_id,
+                    len(critical_items),
+                )
+            except ImportError:
+                logger.debug("firebase-admin not installed — push notification skipped")
+            except Exception as send_err:
+                logger.warning("Firebase send failed for vehicle %d: %s", vehicle_id, send_err)
+
+        # 7. WebSocket broadcast for Desktop tray notifications
+        try:
+            from predict.core.services.websocket_service import ws_manager
+
+            components = [
+                str(c.get("component") or c.get("sensor") or c.get("pattern") or "system")
+                for c in critical_items[:3]
+            ]
+            await ws_manager.broadcast({
+                "type": "critical_alert",
+                "vehicle_id": vehicle_id,
+                "message": f"Critical: {', '.join(components)}",
+                "severity": "critical",
+            })
+        except Exception as ws_err:
+            logger.debug("WebSocket broadcast failed (non-fatal): %s", ws_err)
+
+        # 8. Update notification state (even if send failed — dedup still applies)
+        profile.last_notification_hash = current_hash
+        profile.notification_count_today = count + 1
+        profile.notification_reset_date = today_str
+        await session.flush()
+
+    except Exception as e:
+        logger.warning("Anomaly notification helper failed (non-fatal): %s", e)

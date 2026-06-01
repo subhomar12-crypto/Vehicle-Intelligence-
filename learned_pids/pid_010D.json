@@ -1,0 +1,12 @@
+{
+  "hex_code": "010D",
+  "name": "Vehicle Speed",
+  "description": "Vehicle speed",
+  "formula": "A",
+  "units": "km/h",
+  "min_value": "0.0",
+  "max_value": "255",
+  "category": "Chassis",
+  "vehicle_specific": false,
+  "validation_required": false
+}

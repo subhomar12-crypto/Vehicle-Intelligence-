@@ -1,0 +1,12 @@
+{
+  "hex_code": "0146",
+  "name": "Ambient Air Temperature",
+  "description": "Ambient temp",
+  "formula": "A-40",
+  "units": "\u00b0C",
+  "min_value": "-40.0",
+  "max_value": "215",
+  "category": "Sensors",
+  "vehicle_specific": false,
+  "validation_required": false
+}

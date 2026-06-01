@@ -1,0 +1,106 @@
+{
+  "id": "nissan_altima_2017",
+  "name": "Nissan Altima (2014-2024)",
+  "description": "Full PID profile for Nissan Altima with CVT transmission, including Mode 01 and Mode 22 OEM PIDs",
+  
+  "match": {
+    "brand": "nissan",
+    "model": "altima",
+    "submodel": "",
+    "year_from": 2014,
+    "year_to": 2024
+  },
+
+  "mode01_pids": {
+    "engine_load": { "service": 1, "pid": "0x04" },
+    "coolant_temp": { "service": 1, "pid": "0x05" },
+    "fuel_pressure": { "service": 1, "pid": "0x0A" },
+    "intake_manifold_pressure": { "service": 1, "pid": "0x0B" },
+    "engine_rpm": { "service": 1, "pid": "0x0C" },
+    "vehicle_speed": { "service": 1, "pid": "0x0D" },
+    "timing_advance": { "service": 1, "pid": "0x0E" },
+    "intake_air_temp": { "service": 1, "pid": "0x0F" },
+    "maf_flow": { "service": 1, "pid": "0x10" },
+    "throttle_position": { "service": 1, "pid": "0x11" },
+    "runtime": { "service": 1, "pid": "0x1F" },
+    "fuel_level": { "service": 1, "pid": "0x2F" },
+    "barometric_pressure": { "service": 1, "pid": "0x33" },
+    "catalyst_temp_b1s1": { "service": 1, "pid": "0x3C" },
+    "control_module_voltage": { "service": 1, "pid": "0x42" },
+    "ambient_air_temp": { "service": 1, "pid": "0x46" },
+    "engine_oil_temp": { "service": 1, "pid": "0x5C" }
+  },
+
+  "mode22_pids": {
+    "nissan_cvt_temp": {
+      "service": 34,
+      "pid": "0x11A0",
+      "header": "7E1",
+      "name": "CVT Fluid Temperature",
+      "unit": "°C",
+      "equation": "((A*256+B)-400)/10",
+      "min": -40,
+      "max": 200
+    },
+    "nissan_cvt_ratio": {
+      "service": 34,
+      "pid": "0x11A1",
+      "header": "7E1",
+      "name": "CVT Ratio",
+      "unit": "",
+      "equation": "(A*256+B)/1000",
+      "min": 0.5,
+      "max": 3.0
+    },
+    "nissan_battery_soc": {
+      "service": 34,
+      "pid": "0x1203",
+      "header": "7E0",
+      "name": "Battery State of Charge",
+      "unit": "%",
+      "equation": "A/2.55",
+      "min": 0,
+      "max": 100
+    },
+    "nissan_acc_pedal": {
+      "service": 34,
+      "pid": "0x1103",
+      "header": "7E0",
+      "name": "Accelerator Pedal Position",
+      "unit": "%",
+      "equation": "A/2.55",
+      "min": 0,
+      "max": 100
+    },
+    "nissan_steering_angle": {
+      "service": 34,
+      "pid": "0x0420",
+      "header": "740",
+      "name": "Steering Wheel Angle",
+      "unit": "°",
+      "equation": "((A*256+B)-32768)/10",
+      "min": -720,
+      "max": 720
+    },
+    "nissan_brake_pressure": {
+      "service": 34,
+      "pid": "0x0421",
+      "header": "740",
+      "name": "Brake Pressure",
+      "unit": "bar",
+      "equation": "(A*256+B)/100",
+      "min": 0,
+      "max": 200
+    },
+    "nissan_engine_torque": {
+      "service": 34,
+      "pid": "0x1001",
+      "header": "7E0",
+      "name": "Engine Torque",
+      "unit": "Nm",
+      "equation": "(A*256+B)/10",
+      "min": 0,
+      "max": 500
+    }
+  }
+}

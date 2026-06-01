@@ -1,0 +1,12 @@
+{
+  "hex_code": "25B5",
+  "name": "Pot2 Raw",
+  "description": "Potentiometer 2 Raw",
+  "formula": "(B * 256 + A)/6553.5",
+  "units": "V",
+  "min_value": "0.0",
+  "max_value": "5.5",
+  "category": "Sensors",
+  "vehicle_specific": true,
+  "validation_required": false
+}

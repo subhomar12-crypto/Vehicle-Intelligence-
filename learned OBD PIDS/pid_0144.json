@@ -1,0 +1,12 @@
+{
+  "hex_code": "0144",
+  "name": "Commanded Equivalence Ratio",
+  "description": "Lambda",
+  "formula": "(256*A + B)/32768",
+  "units": "ratio",
+  "min_value": "0.0",
+  "max_value": "2",
+  "category": "Fuel",
+  "vehicle_specific": false,
+  "validation_required": false
+}

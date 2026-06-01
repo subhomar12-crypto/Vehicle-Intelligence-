@@ -1,0 +1,185 @@
+{
+  "id": "default",
+  "name": "Default OBD-II Profile",
+  "description": "Standard OBD-II PIDs that work with most vehicles",
+  "match": {
+    "brand": "*",
+    "model": "*",
+    "submodel": "",
+    "year_from": 1996,
+    "year_to": 2030
+  },
+  "mode01_pids": {
+    "engine_load": {
+      "service": 1,
+      "pid": "0x04",
+      "name": "Engine Load",
+      "unit": "%",
+      "category": "engine",
+      "equation": "A/2.55",
+      "min": 0,
+      "max": 100
+    },
+    "coolant_temp": {
+      "service": 1,
+      "pid": "0x05",
+      "name": "Coolant Temperature",
+      "unit": "°C",
+      "category": "engine",
+      "equation": "A-40",
+      "min": -40,
+      "max": 215
+    },
+    "fuel_pressure": {
+      "service": 1,
+      "pid": "0x0A",
+      "name": "Fuel Pressure",
+      "unit": "kPa",
+      "category": "fuel",
+      "equation": "A*3",
+      "min": 0,
+      "max": 765
+    },
+    "intake_manifold_pressure": {
+      "service": 1,
+      "pid": "0x0B",
+      "name": "Intake Manifold Pressure",
+      "unit": "kPa",
+      "category": "engine",
+      "equation": "A",
+      "min": 0,
+      "max": 255
+    },
+    "engine_rpm": {
+      "service": 1,
+      "pid": "0x0C",
+      "name": "Engine RPM",
+      "unit": "RPM",
+      "category": "engine",
+      "equation": "(A*256+B)/4",
+      "min": 0,
+      "max": 16383.75
+    },
+    "vehicle_speed": {
+      "service": 1,
+      "pid": "0x0D",
+      "name": "Vehicle Speed",
+      "unit": "km/h",
+      "category": "vehicle",
+      "equation": "A",
+      "min": 0,
+      "max": 255
+    },
+    "timing_advance": {
+      "service": 1,
+      "pid": "0x0E",
+      "name": "Timing Advance",
+      "unit": "°",
+      "category": "engine",
+      "equation": "A/2-64",
+      "min": -64,
+      "max": 63.5
+    },
+    "intake_air_temp": {
+      "service": 1,
+      "pid": "0x0F",
+      "name": "Intake Air Temperature",
+      "unit": "°C",
+      "category": "engine",
+      "equation": "A-40",
+      "min": -40,
+      "max": 215
+    },
+    "maf_flow": {
+      "service": 1,
+      "pid": "0x10",
+      "name": "MAF Flow Rate",
+      "unit": "g/s",
+      "category": "engine",
+      "equation": "(A*256+B)/100",
+      "min": 0,
+      "max": 655.35
+    },
+    "throttle_position": {
+      "service": 1,
+      "pid": "0x11",
+      "name": "Throttle Position",
+      "unit": "%",
+      "category": "engine",
+      "equation": "A/2.55",
+      "min": 0,
+      "max": 100
+    },
+    "runtime": {
+      "service": 1,
+      "pid": "0x1F",
+      "name": "Runtime Since Start",
+      "unit": "s",
+      "category": "vehicle",
+      "equation": "A*256+B",
+      "min": 0,
+      "max": 65535
+    },
+    "fuel_level": {
+      "service": 1,
+      "pid": "0x2F",
+      "name": "Fuel Tank Level",
+      "unit": "%",
+      "category": "fuel",
+      "equation": "A/2.55",
+      "min": 0,
+      "max": 100
+    },
+    "barometric_pressure": {
+      "service": 1,
+      "pid": "0x33",
+      "name": "Barometric Pressure",
+      "unit": "kPa",
+      "category": "environment",
+      "equation": "A",
+      "min": 0,
+      "max": 255
+    },
+    "catalyst_temp_b1s1": {
+      "service": 1,
+      "pid": "0x3C",
+      "name": "Catalyst Temp Bank 1 Sensor 1",
+      "unit": "°C",
+      "category": "emissions",
+      "equation": "(A*256+B)/10-40",
+      "min": -40,
+      "max": 6513.5
+    },
+    "control_module_voltage": {
+      "service": 1,
+      "pid": "0x42",
+      "name": "Control Module Voltage",
+      "unit": "V",
+      "category": "electrical",
+      "equation": "(A*256+B)/1000",
+      "min": 0,
+      "max": 65.535
+    },
+    "ambient_air_temp": {
+      "service": 1,
+      "pid": "0x46",
+      "name": "Ambient Air Temperature",
+      "unit": "°C",
+      "category": "environment",
+      "equation": "A-40",
+      "min": -40,
+      "max": 215
+    },
+    "engine_oil_temp": {
+      "service": 1,
+      "pid": "0x5C",
+      "name": "Engine Oil Temperature",
+      "unit": "°C",
+      "category": "engine",
+      "equation": "A-40",
+      "min": -40,
+      "max": 210
+    }
+  },
+  "mode22_pids": {}
+}

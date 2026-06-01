@@ -1,0 +1,12 @@
+{
+  "hex_code": "25A3",
+  "name": "Controller Temp C",
+  "description": "Controller Temperature",
+  "formula": "(B * 256 + A) / 10",
+  "units": "\u00b0C",
+  "min_value": "-100.0",
+  "max_value": "300",
+  "category": "System",
+  "vehicle_specific": true,
+  "validation_required": true
+}
